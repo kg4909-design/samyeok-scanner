@@ -5,7 +5,7 @@
   --accent:#0d7468; --accent-ink:#ffffff; --accent-soft:#dff1ee;
   --up:#d03a3a; --down:#2b5fd0; --warn:#b26a00; --warn-soft:#fbefdc; --bad-soft:#f8e3e3;
   --ema20:#d9822b; --ema50:#7a4fc4; --sma200:#3b4452; --kijun:#0d7468; --cloud-bull:rgba(13,116,104,.12); --cloud-bear:rgba(208,58,58,.10);
-  --s1:#0d7468; --s2:#d9822b; --s3:#7a4fc4;
+  --s1:#0d7468; --s2:#d9822b; --s3:#7a4fc4; --s4:#c2410c;
   --f-sans:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
   --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -14,14 +14,14 @@
   --accent:#37b3a3; --accent-ink:#06201c; --accent-soft:#163632;
   --up:#f06464; --down:#6b97f5; --warn:#e7a443; --warn-soft:#3a2c14; --bad-soft:#3a1e22;
   --ema20:#eda055; --ema50:#a98af0; --sma200:#c7cfdb; --kijun:#37b3a3; --cloud-bull:rgba(55,179,163,.16); --cloud-bear:rgba(240,100,100,.13);
-  --s1:#37b3a3; --s2:#eda055; --s3:#a98af0;
+  --s1:#37b3a3; --s2:#eda055; --s3:#a98af0; --s4:#fb923c;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#94a0b1; --line:#2a3442; --soft:#1d2531;
   --accent:#37b3a3; --accent-ink:#06201c; --accent-soft:#163632;
   --up:#f06464; --down:#6b97f5; --warn:#e7a443; --warn-soft:#3a2c14; --bad-soft:#3a1e22;
   --ema20:#eda055; --ema50:#a98af0; --sma200:#c7cfdb; --kijun:#37b3a3; --cloud-bull:rgba(55,179,163,.16); --cloud-bear:rgba(240,100,100,.13);
-  --s1:#37b3a3; --s2:#eda055; --s3:#a98af0;
+  --s1:#37b3a3; --s2:#eda055; --s3:#a98af0; --s4:#fb923c;
   color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -217,6 +217,21 @@ a.btn{text-decoration:none;display:inline-block}
 .cands{display:flex;flex-direction:column;gap:6px}
 .cands button{text-align:left;font-weight:500;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
 .cands button .note{font-family:var(--f-mono);word-break:break-all}
+.labcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 16px 14px}
+.labcards>div{background:var(--soft);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.labcards span{font-size:12px;color:var(--muted)}
+.labcards b{font-family:var(--f-mono);font-size:20px}
+.labcards small{font-size:12px;color:var(--muted);line-height:1.5}
+.labcards .rec{background:var(--accent-soft)}
+table.lab th[data-sort]{cursor:pointer;user-select:none}
+table.lab th[data-sort]:hover{color:var(--ink)}
+table.lab th small{font-weight:500}
+table.lab td{font-size:12.5px}
+table.lab td.nm2{white-space:normal;min-width:180px;max-width:260px}
+table.lab tr.recrow{background:var(--accent-soft)}
+table.lab tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.usebtn{font-size:11px;padding:4px 8px}
+@media (max-width:760px){.labcards{grid-template-columns:minmax(0,1fr)}}
 .fundsum{font-size:12px;color:var(--muted);background:var(--soft);border-radius:7px;padding:8px 10px;line-height:1.6}
 .fundsum b{color:var(--ink);font-family:var(--f-mono)}
 .calc{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
@@ -297,7 +312,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
   </tbody>
 </table>
 <p><b>"내 계좌"</b> 칸에 시드를 넣으면 살 수량과 예상 손익이 모두 그 금액에 맞춰 다시 계산됩니다. 실제로 산 가격이 오늘 종가와 다르면 주문표 아래 칸에 입력하세요.</p>
-<p><b>전략 검증</b> 탭에서 [검증 실행]을 누르면, 받아 둔 과거 데이터로 세 가지 전략과 구름 조건을 비교하고 "내 시드로 돌렸다면 얼마가 됐는지"를 보여줍니다.</p>
+<p><b>전략 검증</b> 탭은 기본 세 전략과 지금 쓰는 전략을 자세히 비교하고, <b>전략 연구소</b> 탭은 120개 전략을 한꺼번에 비교합니다.</p>
 
 <h2>예약 주문을 걸었다면: 저장 → 다음 날 체결 확인 → 보유 관리</h2>
 <ol>
@@ -314,6 +329,15 @@ table.orders tr.gain td:last-child{color:var(--up)}
     </ul></li>
   <li>저장을 깜빡하고 이미 샀다면 "② 보유 중"의 <b>[직접 추가]</b>로 종목코드, 산 가격, 수량, 손절가를 넣으세요.</li>
 </ol>
+
+<h2>전략 연구소: 어떤 매매법이 잘 맞았는지 비교하고 골라 쓰기</h2>
+<ol>
+  <li><b>[전략 연구소]</b> 탭에서 국장/미장을 고르고 <b>[120개 전략 시뮬레이션]</b>을 누릅니다. MACD, 이동평균 골든크로스, RSI, 볼린저밴드, 신고가 돌파, 스토캐스틱, 급락 후 반등, 거래량 급증, 삼역호전 등 24가지 매수 신호 × 5가지 청산 방식을 내 시드와 같은 조건으로 돌립니다.</li>
+  <li>결과는 <b>기간 앞 70%로 순위</b>를 매기고, <b>뒤 30%(전략이 본 적 없는 기간)</b> 성적을 함께 보여줍니다. <span class="verdict go">통과</span>는 앞·뒤 모두 계좌 수익이 난 전략입니다.</li>
+  <li>맨 위 카드의 <b>"단순 보유"</b>는 같은 종목을 그냥 사서 들고 있었을 때입니다. 매매 전략이 이걸 못 이기면 굳이 매매할 이유가 약합니다.</li>
+  <li>마음에 드는 전략 줄의 <b>[국장에 쓰기]</b>(또는 미장)를 누르면 <b>오늘 살 종목·주문표·내 주문 관리가 모두 그 전략 기준</b>으로 바뀝니다. 되돌리려면 "전략 · 데이터 · 세부 설정"의 시장별 전략에서 고르세요.</li>
+</ol>
+<div class="caution">120개를 같은 데이터로 돌리면 일부는 운으로 좋게 나옵니다. 뒤 기간 성적이 제일 좋은 전략을 고르면 같은 함정에 다시 빠지니, "추천"(양쪽 기간 모두 수익인 전략 중 앞 기간 1위)을 기준으로 삼고 소액으로 실전 기록을 쌓아 확인하세요.</div>
 
 <h2>여러 기기에서 같은 기록 쓰기</h2>
 <ul>
