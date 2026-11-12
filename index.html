@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>삼역호전 스캐너</title>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0d7468"><meta name="mobile-web-app-capable" content="yes"><link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"></head><body><title>삼역호전 스캐너</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
@@ -277,6 +277,51 @@ table.orders tr.gain td:last-child{color:var(--up)}
 .scen b{display:block;font-family:var(--f-mono);font-size:15px;color:var(--ink)}
 .verdict.poor{background:var(--warn-soft);color:var(--warn)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:8px;font-size:13px;z-index:20;max-width:90vw}
+/* 매매일지 · 순자산 */
+input[type=month],textarea{font:inherit;font-family:var(--f-mono);font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink);width:100%;min-width:0}
+textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
+.jbody{padding:14px 16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.jstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.jstats>div{background:var(--soft);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.jstats span{font-size:12px;color:var(--muted)}
+.jstats b{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.jstats small{font-size:11px;color:var(--muted)}
+.jrule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.jrule>div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.jrule h4{margin:0;font-size:13px}
+.jrule .kept{border-top:3px solid var(--accent)} .jrule .broke{border-top:3px solid var(--down)}
+.svgbox{width:100%;min-width:0;overflow:hidden}
+.svgbox svg{display:block;width:100%;height:auto}
+.svgbox text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+.rulebanner{border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.6;background:var(--warn-soft);color:var(--ink);border:1px solid transparent}
+.rulebanner.done{background:var(--accent-soft)}
+.rulebanner .bar{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}
+.rulebanner .bar i{display:block;height:100%;background:var(--warn)}
+.rulebanner.done .bar i{background:var(--accent)}
+.bkbanner{border-radius:10px;padding:10px 14px;font-size:13px;background:var(--warn-soft);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.chkline{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5}
+.chkline input{margin-top:3px;width:18px;height:18px;flex:none}
+.rulebtn{min-width:40px;padding:4px 8px;font-family:var(--f-mono)}
+.rulebtn.y{color:var(--accent)} .rulebtn.n{color:var(--down)}
+.nwrows{display:flex;flex-direction:column;gap:8px}
+.nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
+.nwrow .k{font-size:12px;color:var(--muted)}
+.acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.mtrades{display:flex;flex-direction:column;gap:6px}
+.mtrades>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+@media (max-width:760px){.jrule{grid-template-columns:minmax(0,1fr)}.nwrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nwrow .k{grid-column:1/-1}.acctrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.acctrow>button{grid-column:1/-1}}
+/* 휴대폰 (갤럭시 S21 등 360px): 탭 가로 스크롤, 손가락 크기 버튼 */
+@media (max-width:760px){
+  .tabs{overflow-x:auto;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg)}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none;padding:12px 12px;white-space:nowrap}
+  .kv{grid-template-columns:minmax(0,1fr)}
+  .lvgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
+@media (max-width:760px){.steps3{display:none!important}.lede{display:none}.jstats b{font-size:15px}.jstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (pointer:coarse){button,.btn{min-height:40px}.seg button{min-height:38px}input[type=number],input[type=text],input[type=date],input[type=month],select{font-size:16px;min-height:40px}}
+@media (display-mode:standalone){body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}}
 @media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.detail{position:static}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.controls>section:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
 @media (max-width:900px){.acct-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.steps3{grid-template-columns:minmax(0,1fr)}.guide .twoway{grid-template-columns:minmax(0,1fr)}.guide{padding:16px}.controls{grid-template-columns:minmax(0,1fr)}.controls>section+section{border-left:0;border-top:1px solid var(--line)}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.fields{grid-template-columns:minmax(0,1fr)}}
@@ -287,7 +332,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <header class="top">
     <div>
       <h1>삼역호전 스캐너</h1>
-      <p class="lede">오늘 살 종목, 살 수량, 손절가와 익절가를 정해진 규칙대로 계산합니다.</p>
+      <p class="lede sigonly">오늘 살 종목, 살 수량, 손절가와 익절가를 정해진 규칙대로 계산합니다.</p>
     </div>
     <div class="status" id="status"></div>
   </header>
@@ -298,13 +343,13 @@ table.orders tr.gain td:last-child{color:var(--up)}
     <button type="button" class="linkbtn" data-goto="guide">설치 방법 보기</button>
   </div>
 
-  <ol class="steps3">
+  <ol class="steps3 sigonly">
     <li><b>시세 받기</b><span>장 마감 후 PC 프로그램에서 [국장 시세 받기]</span></li>
     <li><b>매수 후보 고르기</b><span>초록색 "매수 후보" 종목을 누르기</span></li>
     <li><b>주문 넣기</b><span>살 수량·손절가·익절가를 증권사 감시주문에 그대로</span></li>
   </ol>
 
-  <div class="panel local" id="localPanel" hidden>
+  <div class="panel local sigonly" id="localPanel" hidden>
     <div class="localin">
       <div class="label">시세 받기 · PC 프로그램</div>
       <div class="row">
@@ -320,7 +365,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
     </div>
   </div>
 
-  <div class="panel local" id="pagesPanel" hidden>
+  <div class="panel local sigonly" id="pagesPanel" hidden>
     <div class="localin">
       <div class="label">시세 · GitHub 자동 수집</div>
       <div id="pagesJobs" class="jobs"></div>
@@ -332,12 +377,12 @@ table.orders tr.gain td:last-child{color:var(--up)}
     </div>
   </div>
 
-  <div class="panel acct">
+  <div class="panel acct sigonly">
     <div class="acctin">
       <div class="label">내 계좌</div>
       <div class="acct-fields">
-        <label class="field"><span>국장 시드 (원)</span><input id="seedKR" type="number" min="0" step="100000"></label>
-        <label class="field"><span>미장 시드 (원)</span><input id="seedUS" type="number" min="0" step="100000"></label>
+        <label class="field"><span>국장 운용 자산 (원)</span><input id="seedKR" type="number" min="0" step="100000"></label>
+        <label class="field"><span>미장 운용 자산 (원)</span><input id="seedUS" type="number" min="0" step="100000"></label>
         <label class="field"><span>한 번에 잃어도 되는 돈 (시드의 %)</span><input id="risk" type="number" min="0.1" max="5" step="0.1"></label>
         <label class="field"><span>한 종목에 넣을 최대 금액 (시드의 %)</span><input id="capPct" type="number" min="5" max="100" step="5"></label>
       </div>
@@ -350,6 +395,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
         <div class="note" style="grid-column:1/-1">매일 쓰는 전략은 시장별로 둘 중에서 고릅니다. 기본값은 이 앱 백테스트에서 더 나았던 쪽입니다: <b>국장 = 미너비니 SEPA</b>, <b>미장 = 5일선 눌림목</b>. 나머지 전략은 [고수 전략 검증] 탭에서 비교용으로만 봅니다.</div>
         <label class="field"><span>국장 매일 쓰는 전략</span><select id="stratKR"></select></label>
         <label class="field"><span>미장 매일 쓰는 전략</span><select id="stratUS"></select></label>
+        <div id="stratWarn" style="grid-column:1/-1"></div>
         <h4>데이터</h4>
         <div class="row" style="grid-column:1/-1">
           <label class="btn" for="file">JSON·CSV 파일 불러오기</label>
@@ -384,11 +430,14 @@ table.orders tr.gain td:last-child{color:var(--up)}
 
   <div class="tabs" role="tablist">
     <button type="button" role="tab" id="tabSig" data-goto="sig" aria-selected="true">오늘 살 종목</button>
-    <button type="button" role="tab" id="tabPos" data-goto="pos" aria-selected="false">내 주문 · 보유 <span class="cnt" id="posCnt" hidden></span></button>
+    <button type="button" role="tab" id="tabPos" data-goto="pos" aria-selected="false">매매일지 <span class="cnt" id="posCnt" hidden></span></button>
+    <button type="button" role="tab" id="tabNet" data-goto="net" aria-selected="false">순자산</button>
     <button type="button" role="tab" id="tabLab" data-goto="lab" aria-selected="false">고수 전략 검증</button>
     <button type="button" role="tab" id="tabBt" data-goto="bt" aria-selected="false" hidden>전략 검증</button>
     <button type="button" role="tab" id="tabGuide" data-goto="guide" aria-selected="false">사용법 · 설치</button>
   </div>
+
+  <div class="bkbanner" id="bkBanner" hidden></div>
 
   <div id="viewSig" class="bt">
     <div class="summary" id="summary"></div>
@@ -413,7 +462,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
             </div>
           </div>
           <div class="row">
-            <button type="button" id="saveAll" title="지금 목록의 매수 후보를 모두 내 주문에 저장">매수 후보 전부 저장</button>
+            <button type="button" id="saveAll" title="지금 목록의 매수 후보를 모두 예약 주문으로 저장">매수 후보 전부 저장</button>
             <label class="chk"><input id="fAfford" type="checkbox"> 내 시드로 살 수 있는 것만</label>
             <input id="q" class="search" type="text" placeholder="종목 검색">
           </div>
@@ -431,6 +480,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
   </div>
 
   <div id="viewPos" class="bt" hidden>
+    <div class="rulebanner" id="ruleBanner"></div>
     <div class="panel" id="syncPanel" hidden>
       <div class="bthead"><div><div class="label">여러 기기 기록 연동 · GitHub 비공개 저장소</div><p id="syncStatus"></p></div><button type="button" id="syncToggle">연결하기</button></div>
       <div id="syncBody" class="syncbody" hidden></div>
@@ -446,13 +496,57 @@ table.orders tr.gain td:last-child{color:var(--up)}
       <div id="holdList" class="poslist"></div>
     </div>
     <div class="panel">
-      <div class="bthead"><div><div class="label">③ 매매 일지 · 다 판 종목</div><p id="journalSum">아직 다 판 종목이 없습니다.</p></div></div>
+      <div class="bthead"><div><div class="label">③ 성과 · 원칙 지킨 매매와 어긴 매매</div><p id="journalSum">아직 다 판 종목이 없습니다.</p></div>
+        <div class="seg" id="jMkt"><button type="button" data-v="ALL" aria-pressed="true">전체</button><button type="button" data-v="KR" aria-pressed="false">국장</button><button type="button" data-v="US" aria-pressed="false">미장</button></div></div>
+      <div class="jbody">
+        <div class="jstats" id="jStats"></div>
+        <div class="jrule" id="jRule"></div>
+        <div class="jcurve"><div class="label">계좌 곡선 · 실현 손익 누적 (판 날 기준)</div><div id="jCurve" class="svgbox"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">④ 월간 복기</div><p>한 달에 한 번, 그달 판 종목을 보며 원칙을 지켰는지 돌아보고 메모를 남깁니다. 메모는 기록 저장소에 함께 저장됩니다.</p></div>
+        <label class="field" style="min-width:140px"><span>달</span><select id="jMonthSel"></select></label></div>
+      <div class="jbody" id="jMonth"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">⑤ 다 판 종목</div><p>원칙 칸을 누르면 ✓(지킴) → ✗(어김) → ?(모름) 순서로 바꿀 수 있습니다.</p></div></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>종목</th><th>산 날</th><th>판 날</th><th class="r">산 가격</th><th class="r">수량</th><th class="r">손익</th><th class="r">R</th><th>마지막 사유</th><th></th></tr></thead>
+        <thead><tr><th>종목</th><th>산 날</th><th>판 날</th><th class="r">산 가격</th><th class="r">수량</th><th class="r">손익</th><th class="r">R</th><th>원칙</th><th>마지막 사유</th><th></th></tr></thead>
         <tbody id="journalBody"></tbody>
       </table></div>
     </div>
     <p class="note" id="posStore"></p>
+  </div>
+
+  <div id="viewNet" class="bt" hidden>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">순자산 요약</div><p id="nwNote">한 달에 한 번, 계좌별 잔액과 그달 수입·지출을 적어 두면 순자산 변화와 목표 달성 예상일을 계산합니다. 계좌번호는 적지 않습니다.</p></div></div>
+      <div class="jbody"><div class="jstats" id="nwSum"></div><div class="label">순자산 추이</div><div id="nwChart" class="svgbox"></div><div id="nwCash" class="svgbox"></div></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">월 기록 입력</div><p>매달 말일(또는 월급날) 기준 잔액을 적습니다. 부채(대출·카드값)는 갚을 금액을 양수로 적으면 순자산에서 뺍니다.</p></div>
+        <label class="field" style="min-width:150px"><span>기준 달</span><input type="month" id="nwMonth"></label></div>
+      <div class="jbody" id="nwForm"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">목표 금액</div><p id="nwGoalNote">목표 순자산을 넣으면 지금까지의 추세로 언제 닿을지 계산합니다.</p></div></div>
+      <div class="jbody" id="nwGoal"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">계좌 관리</div><p>계좌 이름과 종류만 적습니다. 종류를 <b>투자 · 국장 주식</b>이나 <b>투자 · 미장 주식</b>으로 두면 최근 달 잔액이 스캐너의 운용 자산(수량 계산 기준)에 자동으로 들어갑니다.</p></div>
+        <button type="button" id="nwAddAcct">계좌 추가</button></div>
+      <div class="jbody" id="nwAccts"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">월별 기록</div></div></div>
+      <div class="tablewrap"><table><thead id="nwHead"></thead><tbody id="nwBody"></tbody></table></div>
+    </div>
+    <div class="panel" id="bkPanel">
+      <div class="bthead"><div><div class="label">백업</div><p id="bkNote"></p></div></div>
+      <div class="jbody"><div class="row"><button type="button" class="primary" id="bkExport">백업 파일 내보내기</button><label class="btn" for="bkFile">백업 파일 불러오기</label><input id="bkFile" type="file" accept=".json,application/json" hidden></div>
+        <div class="note">매매 기록·순자산 기록·월간 복기 메모·설정을 JSON 파일 하나로 저장합니다. 불러오면 지금 기록과 합칩니다(같은 기록은 더 최근에 고친 쪽을 남김). GitHub 토큰은 백업 파일에 넣지 않습니다.</div></div>
+    </div>
   </div>
 
   <div id="viewLab" class="bt" hidden>
@@ -563,7 +657,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
       <li><b>Permissions → Repository permissions</b>: <b>Contents: Read and write</b>, <b>Actions: Read and write</b> (Actions는 [지금 시세 다시 받기] 버튼용)</li>
       <li><b>Generate token</b> → <code>github_pat_</code>로 시작하는 토큰을 복사해 메모장 등 안전한 곳에 보관</li>
     </ul></li>
-  <li>사이트의 <b>[내 주문 · 보유]</b> 탭 맨 위 <b>"여러 기기 기록 연동" → [연결하기]</b> → 토큰을 붙여 넣고 <b>[연결]</b>.</li>
+  <li>사이트의 <b>[매매일지]</b> 탭 맨 위 <b>"여러 기기 기록 연동" → [연결하기]</b> → 토큰을 붙여 넣고 <b>[연결]</b>.</li>
   <li>다른 컴퓨터나 휴대폰에서도 사이트를 열고 같은 토큰으로 연결하면 끝입니다.</li>
 </ol>
 <div class="caution">토큰은 비밀번호와 같습니다. 다른 사람에게 보여 주거나 PC방 같은 공용 컴퓨터에 넣지 마세요. 잃어버리거나 노출됐으면 GitHub 설정 → Developer settings → Personal access tokens에서 지우고 새로 만드세요.</div>
@@ -573,7 +667,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <li>사이트를 엽니다. 맨 위 "시세 · GitHub 자동 수집"에 오늘 수집 시각이 보이면 최신 시세입니다. PC 프로그램이라면 <b>[국장 시세 받기]</b>를 누릅니다.</li>
   <li><b>오늘 살 종목</b> 탭에서 초록색 <b>"매수 후보"</b> 종목을 누릅니다.</li>
   <li>오른쪽 <b>주문표</b>의 <b>살 수량 · 손절가 · 1차 익절가 · 2차 익절가</b>를 증권사 앱의 감시주문(스탑로스/OCO)에 그대로 넣습니다. [복사] 버튼으로 메모를 복사해 두면 편합니다.</li>
-  <li>예약 주문을 걸었다면 <b>[이 주문 계획 저장]</b>을 눌러 둡니다 (아래 "예약 주문을 걸었다면" 참고).</li>
+  <li>예약 주문을 걸었다면 <b>[예약 주문 저장]</b>, 이미 샀다면 <b>[매수 기록]</b>을 누릅니다 (아래 "매매일지" 참고).</li>
 </ol>
 <table>
   <thead><tr><th>시장</th><th>최신 시세가 들어오는 시각 (한국시간)</th></tr></thead>
@@ -596,23 +690,42 @@ table.orders tr.gain td:last-child{color:var(--up)}
     <tr><td>1차 익절가 <span class="c-up">(빨간색)</span></td><td>여기 오면 절반 팔고, 남은 절반의 손절가를 산 가격으로 올림</td><td>감시주문으로 미리 걸어 둠</td></tr>
   </tbody>
 </table>
-<p><b>"내 계좌"</b> 칸에 시드를 넣으면 살 수량과 예상 손익이 모두 그 금액에 맞춰 다시 계산됩니다. 실제로 산 가격이 오늘 종가와 다르면 주문표 아래 칸에 입력하세요.</p>
+<p><b>"내 계좌"</b> 칸에 운용 자산(시드)을 넣으면 살 수량과 예상 손익이 모두 그 금액에 맞춰 다시 계산됩니다. 실제로 산 가격이 오늘 종가와 다르면 주문표 아래 칸에 입력하세요.</p>
 <p><b>전략 검증</b> 탭은 기본 세 전략과 지금 쓰는 전략을 자세히 비교하고, <b>전략 연구소</b> 탭은 120개 전략을 한꺼번에 비교합니다.</p>
 
-<h2>예약 주문을 걸었다면: 저장 → 다음 날 체결 확인 → 보유 관리</h2>
+<h2>매매일지: 기록 → 매일 점검 → 원칙 체크 → 복기</h2>
 <ol>
-  <li><b>전날:</b> 매수 후보 종목의 주문표에서 <b>[이 주문 계획 저장]</b>을 누릅니다. 여러 종목이면 목록 위 <b>[매수 후보 전부 저장]</b>.</li>
-  <li><b>다음 날 (장 마감 후 시세가 들어온 뒤):</b> <b>[내 주문 · 보유]</b> 탭의 "① 체결 확인 대기"에서 실제로 사진 종목은 <b>[체결됨]</b>, 안 사진 종목은 <b>[안 사짐]</b>.
-    <ul>
-      <li>시장가로 샀다면 산 가격 칸에 그날 시가가 자동으로 들어갑니다. 증권사 체결 내역과 다르면 고쳐 주세요.</li>
-      <li>산 가격이 바뀌면 손절가는 그대로 두고 1차·2차 익절가를 그 가격 기준으로 다시 계산합니다.</li>
-    </ul></li>
-  <li><b>보유하는 동안:</b> "② 보유 중"에 <b>지금 걸어 둘 손절·익절 주문</b>이 항상 보이고, 새 시세가 들어올 때마다 손절가·익절가에 닿았는지 점검해 알려줍니다.
-    <ul>
-      <li>1차 익절이 체결되면 <b>[1차 익절 체결 기록]</b> → 남은 수량의 손절가가 산 가격(본절)으로 바뀝니다.</li>
-      <li>손절이나 나머지 매도가 체결되면 <b>[매도 기록]</b> → 다 팔면 "③ 매매 일지"로 옮겨집니다.</li>
-    </ul></li>
-  <li>저장을 깜빡하고 이미 샀다면 "② 보유 중"의 <b>[직접 추가]</b>로 종목코드, 산 가격, 수량, 손절가를 넣으세요.</li>
+  <li><b>샀을 때:</b> [오늘 살 종목]에서 종목을 누르고 주문표의 <b>[매수 기록]</b>. 종목·날짜·진입가·손절가·1R·수량이 채워져 있으니 <b>실제 체결가와 수량만</b> 고치고 [보유 종목으로 기록]. 체결가를 바꾸면 손절가·1R·익절가가 그 가격 기준으로 다시 계산됩니다.
+    <ul><li>예약만 걸어 둔 경우는 <b>[예약 주문 저장]</b> → 다음 날 [매매일지] "① 체결 확인 대기"에서 [체결됨]/[안 사짐].</li>
+    <li>신호대로 산 게 아니면(추격 매수, 수량 초과 등) "원칙대로 샀다" 체크를 끄세요.</li></ul></li>
+  <li><b>보유하는 동안:</b> "② 보유 중"이 새 시세가 들어올 때마다 <b>그 종목을 산 전략의 규칙</b>으로 점검합니다. 미너비니는 손절 −7%, +15% 뒤 본전 손절, 종가 50일선 이탈. 5일선 눌림목은 손절 −5%, +3·6·9% 분할 익절, 종가 10일선 이탈, 15거래일.</li>
+  <li><b>팔았을 때:</b> [매도 기록] → 판 날·가격·수량·사유를 적고 <b>"원칙대로 팔았다"</b>를 체크합니다. 알림이 떠서 판 경우만 체크하고, 겁이 나서 일찍 팔았거나 손절가를 무시하고 버틴 경우는 체크하지 않습니다.</li>
+  <li><b>성과 보기:</b> "③ 성과"에 승률, 거래당 평균 R, 누적 손익, 최대 낙폭, 계좌 곡선이 나오고, <b>원칙 지킨 매매와 어긴 매매</b>를 나눠 비교합니다.</li>
+  <li><b>한 달에 한 번:</b> "④ 월간 복기"에서 그달 판 종목과 원칙 준수율을 보고 메모를 남깁니다.</li>
+  <li><b>30건 규칙:</b> 판 종목이 30건이 될 때까지 맨 위에 <b>"기법 변경 금지"</b>가 뜨고, 설정에서 전략을 바꾸려 하면 한 번 더 확인합니다. 표본이 적으면 좋은 규칙도 연속 손절이 나오기 때문입니다.</li>
+</ol>
+
+<h2>순자산 · 현금흐름</h2>
+<ol>
+  <li>[순자산] 탭 → <b>[기본 계좌 만들기]</b> 또는 [계좌 추가]. 이름과 종류만 적습니다(계좌번호는 적지 않습니다).</li>
+  <li>매달 말일(또는 월급날) "월 기록 입력"에 계좌별 잔액, 그달 수입·지출을 적고 저장합니다. 지난달 값과 같으면 [같게]를 누르면 됩니다. 부채는 남은 금액을 양수로 적습니다.</li>
+  <li>순자산 그래프, 수입·지출 막대, 저축률(=(수입−지출)÷수입), 목표 금액 달성 예상일(순자산 추세 기준 / 저축액만 기준)이 계산됩니다.</li>
+  <li>종류가 <b>투자 · 국장 주식</b> / <b>투자 · 미장 주식</b>인 계좌의 최근 달 잔액은 위 "내 계좌"의 <b>국장·미장 운용 자산</b>에 자동으로 들어가 매수 수량 계산에 쓰입니다(계좌 관리의 체크로 끌 수 있음). 미장 계좌는 원화로 환산해 적습니다.</li>
+</ol>
+
+<h2>백업</h2>
+<ul>
+  <li>[순자산] 탭 맨 아래 <b>[백업 파일 내보내기]</b> → 매매 기록·순자산·복기 메모·설정이 <code>samyeok-backup-날짜.json</code> 파일 하나로 다운로드 폴더에 저장됩니다. 구글 드라이브 등에 옮겨 두세요. GitHub 토큰은 들어가지 않습니다.</li>
+  <li>마지막 백업 후 7일이 지나면 화면 위에 <b>주간 백업 알림</b>이 뜹니다.</li>
+  <li><b>[백업 파일 불러오기]</b>는 지금 기록과 합칩니다(같은 기록은 더 최근에 고친 쪽을 남김). 휴대폰을 바꿨을 때도 이걸로 옮기면 됩니다.</li>
+</ul>
+
+<h2>갤럭시(안드로이드) 홈 화면에 앱처럼 추가</h2>
+<ol>
+  <li>휴대폰 <b>Chrome</b>에서 사이트를 엽니다.</li>
+  <li>오른쪽 위 <b>⋮</b> → <b>홈 화면에 추가</b>(버전에 따라 <b>앱 설치</b>) → [추가]. 삼성 인터넷이라면 아래 <b>≡</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b>.</li>
+  <li>홈 화면의 "스캐너" 아이콘으로 열면 주소창 없이 앱처럼 열립니다. 마지막으로 보던 탭(매매일지·순자산)에서 시작합니다.</li>
+  <li>휴대폰에서도 "여러 기기 기록 연동"에 같은 토큰을 한 번 넣으면 PC와 같은 기록이 보입니다. 인터넷이 끊겨도 마지막으로 받은 화면은 열립니다.</li>
 </ol>
 
 <h2>매매 전략: 국장 미너비니 SEPA · 미장 5일선 눌림목</h2>
@@ -647,10 +760,10 @@ table.orders tr.gain td:last-child{color:var(--up)}
 <h2>여러 기기에서 같은 기록 쓰기</h2>
 <ul>
   <li>위 "기록 저장소 연결"을 각 기기에서 한 번씩 하면, 집에서 저장하거나 체결 처리한 종목이 회사 PC나 휴대폰에도 그대로 보입니다. 반대도 마찬가지입니다.</li>
-  <li>계좌 시드, 전략 선택, 세부 설정도 함께 맞춰집니다.</li>
+  <li>운용 자산, 전략 선택, 세부 설정, 순자산 기록, 월간 복기 메모도 함께 맞춰집니다.</li>
   <li>화면을 켜 둔 동안 30초마다 다른 기기의 변경을 확인합니다. 반영되면 화면 아래에 알림이 뜹니다.</li>
   <li>같은 종목을 두 기기에서 동시에 고치면 <b>나중에 고친 쪽</b>이 남습니다. 같은 날 같은 종목을 두 기기에서 각각 저장했다면 하나로 자동 정리됩니다.</li>
-  <li>기록은 <code>samyeok-records</code> 저장소의 <code>trades.json</code>, <code>settings.json</code>에 저장되고, GitHub에 변경 이력이 모두 남아 실수로 지워도 되돌릴 수 있습니다.</li>
+  <li>기록은 <code>samyeok-records</code> 저장소의 <code>trades.json</code>(매매), <code>settings.json</code>(설정), <code>ledger.json</code>(순자산·복기)에 저장되고, GitHub에 변경 이력이 모두 남아 실수로 지워도 되돌릴 수 있습니다.</li>
 </ul>
 
 <h2>업데이트 받는 법</h2>
@@ -1591,7 +1704,8 @@ const DEMO = (() => {
     const won = v => fmtInt(v) + '원';
     let h = '국장: 1회 최대 손실 <b>' + won(k * rp / 100) + '</b> · 종목당 최대 <b>' + won(k * cp / 100) + '</b>';
     h += '<br>미장: ' + (u > 0 ? '1회 최대 손실 <b>$' + fmtN(usd * rp / 100, 2) + '</b> · 종목당 최대 <b>$' + fmtN(usd * cp / 100, 2) + '</b> (≈' + won(u * cp / 100) + ')' : '시드 0원 (미장 신호는 수량 계산 안 함)');
-    h += '<br>동시 보유 최대 <b>' + maxPos() + '종목</b> · 6연속 손절 시 시드 약 <b>−' + fmtN((1 - Math.pow(1 - rp / 100, 6)) * 100, 1) + '%</b>';
+    h += '<br>동시 보유 최대 <b>' + maxPos() + '종목</b> · 6연속 손절 시 운용 자산 약 <b>−' + fmtN((1 - Math.pow(1 - rp / 100, 6)) * 100, 1) + '%</b>';
+    h += '<br>총 운용 자산 <b>' + won(k + u) + '</b>' + (state.autoSeedFrom ? ' <span class="tag live">순자산 탭 ' + state.autoSeedFrom + ' 투자 계좌 잔액 자동 반영</span>' : '');
     $('fundSum').innerHTML = h;
   }
   function filtered() {
@@ -1667,9 +1781,10 @@ const DEMO = (() => {
         '<div class="note">' + (p.stopRule && p.stopRule.type !== 'fixed' ? '손절가·수량을 산 가격 기준으로 다시 계산합니다 (' + p.slSource + ').' : '손절가는 그대로 두고 수량과 익절가만 다시 계산합니다.') + (m === 'KR' ? ' 가격은 호가 단위에 맞췄습니다 (손절가 내림, 익절가 올림).' : '') + '</div></div>';
       const saved = tradeFor(m, s.symbol, r.basisDate || r.lastDate);
       const stillOk = !r.still || r.still.state === 'ok';
-      const saveBtn = p.valid && p.qty > 0 && stillOk ? (saved ? '<button type="button" data-goto="pos" class="savedbtn">' + (saved.status === 'open' ? '보유 중 · 확인하기' : '저장됨 · 내 주문에서 보기') + '</button>' : '<button type="button" class="primary" id="savePlan">이 주문 계획 저장</button>') : '';
+      const saveBtn = '<span class="row">' + (p.valid && p.qty > 0 && stillOk ? (saved ? '<button type="button" data-goto="pos" class="savedbtn">' + (saved.status === 'open' ? '보유 중 · 매매일지에서 보기' : '예약 저장됨 · 매매일지에서 보기') + '</button>' : '<button type="button" id="savePlan">예약 주문 저장</button>') : '') +
+        (p.valid && !(saved && saved.status === 'open') ? '<button type="button" class="primary" id="buyRec">매수 기록</button>' : '') + '</span>';
       html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">' + (r.gap === 0 ? '주문표' : '주문표 (참고용 · 지금은 사면 안 됨)') + (state.entry[ekey] ? ' · 체결가 ' + P(p.entry) + ' 기준' : r.back ? ' · 내일 시가 매수, 매수가는 오늘 종가로 추정' : '') + '</div>' + saveBtn + '</div>';
-      if (p.valid && p.qty > 0 && !saved && stillOk) html += '<div class="note">예약 주문을 걸었다면 저장해 두세요. 내일 [내 주문 · 보유]에서 [체결됨]만 누르면 손절가·익절가가 계속 보입니다.</div>';
+      if (p.valid && !(saved && saved.status === 'open')) html += '<div class="note">' + (p.qty > 0 && !saved && stillOk ? '예약만 걸었다면 [예약 주문 저장] → 다음 날 [매매일지]에서 [체결됨]. ' : '') + '이미 샀다면 [매수 기록]: 종목·날짜·진입가·손절가·1R·수량이 채워지고 실제 체결가와 수량만 고치면 됩니다.</div><div class="posform" id="buyForm" hidden></div>';
       if (!p.valid) html += '<div class="warnbox">체결가(' + P(p.entry) + ')가 손절가(' + P(p.sl) + ') 이하라 진입하면 안 됩니다. 규칙상 이 신호는 건너뜁니다.</div>' + calcHtml + '</div>';
       else {
         const blockedMsg = { noseed: '미장 시드가 0원이라 수량을 계산하지 않았습니다. 위 "미장 시드"에 금액을 넣으세요.',
@@ -1727,7 +1842,7 @@ const DEMO = (() => {
               : p.entryType === 'limit' ? '오늘 저녁: 내일 <b>' + P(p.entry) + cur(m) + ' 지정가 매수 ' + fmtQ(p.qty, p.frac) + '주</b> 예약 (오늘 5일선 가격 · 시가가 더 낮으면 시가 근처에서 체결). 내일 안 사지면 저녁에 앱을 다시 열어 새 5일선 가격으로 다시 겁니다. 장대양봉 뒤 6거래일이 지나면 그만둡니다'
               : '오늘 저녁: 내일 <b>시가 예약 매수 ' + fmtQ(p.qty, p.frac) + '주</b>');
             if (isFinite(p.tp1)) steps.push('익절 감시주문: <b>' + P(p.tp1) + '</b> (' + (ST.targetText || '목표가') + ') 도달 시 전량 매도');
-            if (p.scale) steps.push('사지면 바로 익절 지정가 매도 3개: ' + p.scale.filter(z => z.q > 0).map(z => '<b>' + P(z.px) + '</b>(+' + z.pct + '%) ' + fmtQ(z.q, p.frac) + '주').join(' · ') + '. 실제 체결가가 다르면 [내 주문 · 보유]에 나오는 가격으로 고칩니다');
+            if (p.scale) steps.push('사지면 바로 익절 지정가 매도 3개: ' + p.scale.filter(z => z.q > 0).map(z => '<b>' + P(z.px) + '</b>(+' + z.pct + '%) ' + fmtQ(z.q, p.frac) + '주').join(' · ') + '. 실제 체결가가 다르면 [매매일지]에 나오는 가격으로 고칩니다');
             if (p.trailN) steps.push('보유하는 동안 <b>매일 저녁</b> 손절 감시주문을 "' + p.trailText + '(오늘 기준 ' + P(lowN(p.trailN)) + ')"과 지금 손절가 중 <b>높은 값</b>으로 바꿉니다. 손절가는 내리지 않습니다');
             if (p.breakeven) steps.push('주가가 <b>' + P(p.entry * p.breakeven) + '</b>(+' + Math.round((p.breakeven - 1) * 100) + '%) 이상 오르면 손절가를 산 가격 <b>' + P(p.entry) + '</b>로 올립니다');
             if (p.exitText) steps.push('매일 장 마감 후 확인: <b>' + p.exitText + '</b>하면 다음 날 시가 예약 매도');
@@ -1761,7 +1876,9 @@ const DEMO = (() => {
     }
     box.innerHTML = html + tail;
     const sp = $('savePlan');
-    if (sp) sp.onclick = async () => { if (await savePlan(r)) { await saveTrades(); toast('저장했습니다. 내일 [내 주문 · 보유]에서 체결 여부를 누르세요'); renderTable(); renderDetail(); } };
+    if (sp) sp.onclick = async () => { if (await savePlan(r)) { await saveTrades(); toast('저장했습니다. 내일 [매매일지]에서 체결 여부를 누르세요'); renderTable(); renderDetail(); } };
+    const br = $('buyRec');
+    if (br) br.onclick = () => { openBuyForm(r, $('buyForm')); $('buyForm').scrollIntoView({ block: 'nearest' }); };
     const ei = $('entryIn');
     if (ei) {
       ei.onchange = () => { const v = parseFloat(ei.value); if (v > 0) state.entry[ekey] = v; else delete state.entry[ekey]; run(); };
@@ -2094,6 +2211,7 @@ const DEMO = (() => {
       }
     } catch {}
     try { if (applySettings(await remoteSettings())) { run(); toast('다른 기기에서 바꾼 설정을 반영했습니다'); } } catch {}
+    if (!(document.activeElement && document.activeElement.closest && document.activeElement.closest('#viewNet, #jMonth'))) try { const r = await remoteLedger(); if (r && ledgerSig(mergeLedger(state.ledger, r)) !== ledgerSig(state.ledger)) { state.ledger = mergeLedger(state.ledger, r); store.set('ledger', state.ledger); if (applyAutoSeed()) run(); if (state.tab === 'net') renderNet(); if (state.tab === 'pos') renderPositions(); } } catch {}
     if (changed) { renderPosBadge(); renderTable(); renderDetail(); if (state.tab === 'pos') renderPositions(); toast('다른 기기의 주문 기록을 반영했습니다'); }
     if (state.tab === 'pos') renderSyncStatus();
   }
@@ -2188,9 +2306,10 @@ const DEMO = (() => {
         '<div class="posform"><label class="field"><span>산 날</span><input type="date" data-f="date" value="' + fillD + '"></label>' +
         '<label class="field"><span>실제 산 가격</span><input type="number" step="any" data-f="price" value="' + fillP + '"></label>' +
         '<label class="field"><span>산 수량</span><input type="number" step="any" data-f="qty" value="' + tr.planQty + '"></label>' +
+        '<label class="chkline" style="grid-column:1/-1"><input type="checkbox" data-f="rule" checked><span>계획(신호·가격·수량)대로 샀다 — 원칙 준수 기록용</span></label>' +
         '<div class="row"><button type="button" class="primary" data-act="fill">체결됨</button><button type="button" data-act="nofill">안 사짐</button></div></div>' +
         '<div class="note preview" data-f="preview"></div></div>';
-    }).join('') : '<div class="empty">저장한 예약 주문이 없습니다. [오늘 살 종목]에서 종목을 고른 뒤 [이 주문 계획 저장]을 누르세요.</div>';
+    }).join('') : '<div class="empty">저장한 예약 주문이 없습니다. [오늘 살 종목]에서 종목을 고른 뒤 [예약 주문 저장](예약만 건 경우) 또는 [매수 기록](이미 산 경우)을 누르세요.</div>';
     for (const card of $('pendList').querySelectorAll('.poscard')) {
       const tr = state.trades.find(t => t.id === card.dataset.id), f = n => card.querySelector('[data-f="' + n + '"]');
       const scaleOf = (px, q) => tr.scale && S[tr.strat] && S[tr.strat].scale ? ENGINE.scaleLevels(tr.market, px, q, S[tr.strat].scale, q % 1 !== 0) : null;
@@ -2203,7 +2322,7 @@ const DEMO = (() => {
         const px = parseFloat(f('price').value), q = parseFloat(f('qty').value), dt = f('date').value;
         if (!(px > 0) || !(q > 0) || !dt) { toast('산 날, 가격, 수량을 모두 넣어 주세요'); return; }
         const L = lv(px, q);
-        Object.assign(tr, { status: 'open', fillDate: dt, fill: px, qty: q, sold: 0, sl: L.sl, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [] });
+        Object.assign(tr, { status: 'open', fillDate: dt, fill: px, qty: q, sold: 0, sl: L.sl, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [], ruleEntry: f('rule').checked });
         if (L.scale) tr.scale = L.scale;
         await saveTrades(); renderPositions(); toast((tr.market === 'KR' ? tr.name : tr.symbol) + ' 보유 중으로 옮겼습니다');
       };
@@ -2268,6 +2387,8 @@ const DEMO = (() => {
           '<label class="field"><span>판 가격</span><input type="number" step="any" data-g="price" value="' + px + '"></label>' +
           '<label class="field"><span>판 수량 (남은 ' + fmtQ(rq, rq % 1 !== 0) + '주)</span><input type="number" step="any" data-g="qty" value="' + q + '"></label>' +
           '<label class="field"><span>사유</span><select data-g="why">' + Object.entries(REASONS).map(([k, v]) => '<option value="' + k + '"' + (k === why ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></label>' +
+          '<label class="field" style="grid-column:1/-1"><span>메모 (선택 · 왜 팔았는지, 감정 상태 등)</span><input type="text" data-g="memo" maxlength="200"></label>' +
+          '<label class="chkline" style="grid-column:1/-1"><input type="checkbox" data-g="rule"' + (a0 || kind === 'tp1' ? ' checked' : '') + '><span><b>원칙대로 팔았다</b> — 위 알림(손절가·익절가·청산 조건)에 따라 판 경우만 체크. 알림 없이 겁이 나서 또는 욕심에 판 경우는 체크하지 마세요.</span></label>' +
           '<div class="row"><button type="button" class="primary" data-g="ok">저장</button><button type="button" data-g="cancel">닫기</button></div>';
         const g = n => form.querySelector('[data-g="' + n + '"]');
         g('cancel').onclick = () => { form.hidden = true; };
@@ -2275,10 +2396,10 @@ const DEMO = (() => {
           const d = g('date').value, p = parseFloat(g('price').value), qq = parseFloat(g('qty').value), w = g('why').value;
           if (!d || !(p > 0) || !(qq > 0)) { toast('날짜, 가격, 수량을 확인하세요'); return; }
           if (qq > remQty(tr) + 1e-9) { toast('남은 수량보다 많이 팔 수 없습니다'); return; }
-          tr.events = tr.events || []; tr.events.push({ date: d, price: p, qty: qq, reason: w });
+          tr.events = tr.events || []; tr.events.push({ date: d, price: p, qty: qq, reason: w, rule: g('rule').checked, memo: g('memo').value.trim() || undefined });
           tr.sold = +((tr.sold || 0) + qq).toFixed(4);
           if (w === 'tp1' && !tr.stage) { tr.stage = 1; tr.stageDate = d; }
-          if (remQty(tr) <= 1e-9) { tr.status = 'closed'; tr.closeDate = d; }
+          if (remQty(tr) <= 1e-9) { tr.status = 'closed'; tr.closeDate = d; delete tr.rule; tr.rule = ruleOf(tr); }
           await saveTrades(); renderPositions();
           toast(tr.status === 'closed' ? '다 팔았습니다. 매매 일지에 기록했습니다' : w === 'tp1' ? '1차 익절을 기록했습니다. 남은 수량의 손절가를 ' + fmtP(tr.fill, tr.market) + '(본절)로 올리세요' : '매도를 기록했습니다');
         };
@@ -2292,27 +2413,7 @@ const DEMO = (() => {
       };
     }
 
-    // ③ 매매 일지
-    const rOf = tr => tr.R > 0 ? realized(tr) / (tr.qty * tr.R) : NaN;
-    $('journalBody').innerHTML = done.map(tr => { const m = tr.market, pnl = realized(tr), r = rOf(tr), last = (tr.events || []).at(-1);
-      return '<tr data-id="' + tr.id + '"><td><b>' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span></td><td class="mono">' + tr.fillDate + '</td><td class="mono">' + (tr.closeDate || '') + '</td>' +
-        '<td class="r num">' + fmtP(tr.fill, m) + '</td><td class="r num">' + fmtQ(tr.qty, tr.qty % 1 !== 0) + '</td><td class="r num ' + (pnl >= 0 ? 'c-up' : 'c-down') + '">' + sgnM(m, pnl) + '</td>' +
-        '<td class="r num">' + fmtR(r) + '</td><td>' + (last ? REASONS[last.reason] || '' : '') + '</td><td><button type="button" class="ghost" data-undo="' + tr.id + '">되돌리기</button></td></tr>'; }).join('');
-    for (const b of $('journalBody').querySelectorAll('[data-undo]')) b.onclick = async () => {
-      const tr = state.trades.find(t => t.id === b.dataset.undo); const ev = tr.events.pop(); tr.sold = +((tr.sold || 0) - ev.qty).toFixed(4); tr.status = 'open'; delete tr.closeDate;
-      if (ev.reason === 'tp1') { tr.stage = 0; delete tr.stageDate; }
-      await saveTrades(); renderPositions(); toast('마지막 매도 기록을 되돌렸습니다');
-    };
-    if (done.length) {
-      const rs = done.map(rOf).filter(v => !isNaN(v)), wins = rs.filter(v => v > 0).length, avg = rs.reduce((a, b) => a + b, 0) / (rs.length || 1);
-      const sumM = m => done.filter(t => t.market === m).reduce((a, t) => a + realized(t), 0);
-      let txt = '총 <b>' + done.length + '회</b> · 승률 <b>' + fmtN(wins / (rs.length || 1) * 100, 0) + '%</b> · 거래당 평균 <b class="' + (avg >= 0 ? 'c-up' : 'c-down') + '">' + fmtR(avg) + '</b>';
-      if (done.some(t => t.market === 'KR')) txt += ' · 국장 누적 <b>' + sgnM('KR', sumM('KR')) + '</b>';
-      if (done.some(t => t.market === 'US')) txt += ' · 미장 누적 <b>' + sgnM('US', sumM('US')) + '</b>';
-      txt += done.length < 30 ? ' · 규칙 검증 목표 30회까지 <b>' + (30 - done.length) + '회</b> 남음' : ' · 30회를 채웠습니다. [전략 검증] 탭의 거래당 평균과 비교해 보세요';
-      txt += '<br><span class="note">손익은 수수료·세금을 빼기 전 금액입니다.</span>';
-      $('journalSum').innerHTML = txt;
-    } else $('journalSum').textContent = '아직 다 판 종목이 없습니다. 보유 종목을 모두 팔면 여기에 쌓이고, 30회가 모이면 규칙이 실제로 통하는지 판단할 수 있습니다.';
+    renderJournal(done);
   }
   function renderManual() {
     const f = $('manualForm');
@@ -2338,6 +2439,385 @@ const DEMO = (() => {
         fillDate: h('date').value, fill: px, qty: q, sold: 0, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [], createdAt: new Date().toISOString() });
       await saveTrades(); f.hidden = true; renderPositions(); toast('보유 종목에 추가했습니다');
     };
+  }
+
+  // ---------- 매매일지: 원칙 · 성과 · 월간 복기 ----------
+  const RULE_MIN = 30;
+  // 받침에 따라 '로/으로' (ㄹ 받침은 '로')
+  const josaRo = w => { const c = String(w).charCodeAt(String(w).length - 1); if (!(c >= 0xAC00 && c <= 0xD7A3)) return '로'; const j = (c - 0xAC00) % 28; return j === 0 || j === 8 ? '로' : '으로'; };   // 기법 평가에 필요한 최소 청산 건수
+  // 원칙 준수: 산 때와 판 때 모두 '원칙대로'면 지킴, 하나라도 어기면 어김, 체크가 없던 예전 기록은 모름
+  const ruleCalc = tr => { const v = [tr.ruleEntry].concat((tr.events || []).map(e => e.rule)).filter(x => x !== undefined && x !== null); if (v.some(x => x === false)) return false; return v.length && v.every(x => x === true) ? true : null; };
+  const ruleOf = tr => 'rule' in tr ? tr.rule : ruleCalc(tr);
+  const rOf = tr => tr.R > 0 && tr.qty > 0 ? realized(tr) / (tr.qty * tr.R) : NaN;
+  const krw = tr => realized(tr) * (tr.market === 'US' ? state.fx : 1);
+  const closedAll = () => state.trades.filter(t => t.status === 'closed');
+  const won = v => v == null || !isFinite(v) ? '–' : fmtInt(v) + '원';
+  const swon = v => v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : v < 0 ? '−' : '') + fmtInt(Math.abs(v)) + '원';
+  const cls2 = v => v > 0 ? 'c-up' : v < 0 ? 'c-down' : '';
+  function jStats(list) {
+    const rs = list.map(rOf).filter(isFinite), wins = rs.filter(v => v > 0).length;
+    const sorted = list.slice().sort((a, b) => (a.closeDate || '') < (b.closeDate || '') ? -1 : 1);
+    const base = state.seedKR + state.seedUS;
+    let cum = 0, peak = 0, mdd = 0, cumR = 0, peakR = 0, mddR = 0, eqPeak = base, mddPct = 0;
+    const pts = [];
+    for (const t of sorted) {
+      cum += krw(t); peak = Math.max(peak, cum); mdd = Math.max(mdd, peak - cum);
+      const eq = base + cum; eqPeak = Math.max(eqPeak, eq); if (eqPeak > 0) mddPct = Math.max(mddPct, (eqPeak - eq) / eqPeak);
+      const r = rOf(t); if (isFinite(r)) { cumR += r; peakR = Math.max(peakR, cumR); mddR = Math.max(mddR, peakR - cumR); }
+      pts.push({ x: t.closeDate || '', y: cum });
+    }
+    return { n: list.length, nR: rs.length, wins, win: rs.length ? wins / rs.length : NaN, avgR: rs.length ? rs.reduce((a, b) => a + b, 0) / rs.length : NaN,
+      pnl: cum, mdd, mddPct, mddR, sumR: cumR, pts, base,
+      best: sorted.reduce((a, t) => !a || krw(t) > krw(a) ? t : a, null), worst: sorted.reduce((a, t) => !a || krw(t) < krw(a) ? t : a, null) };
+  }
+  // 선 그래프 (SVG, 화면 너비에 맞춰 다시 그림)
+  function svgLine(box, pts, o = {}) {
+    if (!box) return;
+    if (!pts.length) { box.innerHTML = '<div class="empty">' + (o.empty || '기록이 쌓이면 그래프가 나옵니다.') + '</div>'; return; }
+    const W = Math.max(280, box.clientWidth || 640), H = o.h || 200, L = 64, R = 10, T = 12, B = 24;
+    const ys = pts.map(p => p.y).concat(o.zero ? [0] : []), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || Math.abs(hi) || 1;
+    const y0 = lo - span * 0.08, y1 = hi + span * 0.08, X = i => L + (pts.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (pts.length - 1)), Y = v => T + (y1 - v) / (y1 - y0) * (H - T - B);
+    const fy = o.fy || (v => fmtInt(v));
+    let g = '';
+    for (let k = 0; k <= 3; k++) { const v = y0 + (y1 - y0) * k / 3; g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" style="stroke:var(--line)" stroke-width="1"/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + esc(fy(v)) + '</text>'; }
+    if (o.zero && y0 < 0 && y1 > 0) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" style="stroke:var(--muted)" stroke-dasharray="3 3"/>';
+    if (o.goal != null && o.goal >= y0 && o.goal <= y1) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(o.goal) + '" y2="' + Y(o.goal) + '" style="stroke:var(--warn)" stroke-dasharray="5 4"/><text x="' + (W - R) + '" y="' + (Y(o.goal) - 4) + '" text-anchor="end" style="fill:var(--warn)">목표</text>';
+    const d = pts.map((p, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.y).toFixed(1)).join(' ');
+    const xl = [0, Math.floor((pts.length - 1) / 2), pts.length - 1].filter((v, i, a) => a.indexOf(v) === i);
+    g += xl.map(i => '<text x="' + X(i) + '" y="' + (H - 6) + '" text-anchor="' + (i === 0 && pts.length > 1 ? 'start' : i === pts.length - 1 && pts.length > 1 ? 'end' : 'middle') + '">' + esc(pts[i].x) + '</text>').join('');
+    g += '<path d="' + d + '" fill="none" style="stroke:var(--' + (o.color || 'accent') + ')" stroke-width="2" stroke-linejoin="round"/>';
+    g += pts.map((p, i) => '<circle cx="' + X(i) + '" cy="' + Y(p.y) + '" r="' + (pts.length > 40 ? 1.5 : 3) + '" style="fill:var(--' + (o.color || 'accent') + ')"><title>' + esc(p.x + ' · ' + fy(p.y)) + '</title></circle>').join('');
+    box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(o.label || '그래프') + '">' + g + '</svg>';
+  }
+  // 묶음 막대 (월 수입·지출)
+  function svgBars(box, rows, o = {}) {
+    if (!box) return;
+    if (!rows.length) { box.innerHTML = ''; return; }
+    const W = Math.max(280, box.clientWidth || 640), H = o.h || 170, L = 64, R = 10, T = 22, B = 24;
+    const hi = Math.max(1, ...rows.flatMap(r => [r.a || 0, r.b || 0])), Y = v => T + (1 - v / hi) * (H - T - B), cw = (W - L - R) / rows.length, bw = Math.max(3, Math.min(18, cw / 2 - 3));
+    let g = '<text x="' + L + '" y="12" style="fill:var(--up)">■ 수입</text><text x="' + (L + 56) + '" y="12" style="fill:var(--down)">■ 지출</text>';
+    for (let k = 0; k <= 2; k++) { const v = hi * k / 2; g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" style="stroke:var(--line)"/><text x="' + (L - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + esc(manwon(v)) + '</text>'; }
+    rows.forEach((r, i) => { const cx = L + cw * i + cw / 2;
+      if (r.a > 0) g += '<rect x="' + (cx - bw - 1) + '" y="' + Y(r.a) + '" width="' + bw + '" height="' + (Y(0) - Y(r.a)) + '" rx="2" style="fill:var(--up)"><title>' + esc(r.x + ' 수입 ' + won(r.a)) + '</title></rect>';
+      if (r.b > 0) g += '<rect x="' + (cx + 1) + '" y="' + Y(r.b) + '" width="' + bw + '" height="' + (Y(0) - Y(r.b)) + '" rx="2" style="fill:var(--down)"><title>' + esc(r.x + ' 지출 ' + won(r.b)) + '</title></rect>';
+      if (rows.length <= 12 || i % Math.ceil(rows.length / 12) === 0) g += '<text x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle">' + esc(r.x.slice(2)) + '</text>'; });
+    box.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="월별 수입과 지출">' + g + '</svg>';
+  }
+  const manwon = v => Math.abs(v) >= 1e8 ? fmtN(v / 1e8, Math.abs(v) >= 1e9 ? 0 : 1) + '억' : Math.abs(v) >= 1e4 ? fmtInt(v / 1e4) + '만' : fmtInt(v);
+  function renderRuleBanner() {
+    const n = closedAll().length, b = $('ruleBanner'); if (!b) return;
+    const kept = closedAll().filter(t => ruleOf(t) === true).length, chk = closedAll().filter(t => ruleOf(t) !== null).length;
+    b.className = 'rulebanner' + (n >= RULE_MIN ? ' done' : '');
+    b.innerHTML = n < RULE_MIN
+      ? '<b>기법 변경 금지 · 청산 ' + n + ' / ' + RULE_MIN + '건</b><br>30건이 모일 때까지 전략·손절·익절 규칙을 바꾸지 마세요. 표본이 적으면 좋은 규칙도 연속 손절이 나오고, 나쁜 규칙도 운 좋게 수익이 납니다. 지금 할 일은 규칙을 <b>그대로 지키며 기록하는 것</b>입니다.' + (chk ? ' 지금까지 원칙 준수율 <b>' + fmtN(kept / chk * 100, 0) + '%</b>.' : '') + '<div class="bar"><i style="width:' + Math.min(100, n / RULE_MIN * 100) + '%"></i></div>'
+      : '<b>청산 ' + n + '건 · 평가할 수 있는 표본이 모였습니다</b><br>아래 "원칙 지킨 매매"의 거래당 평균 R을 [고수 전략 검증] 탭의 같은 전략 결과와 비교해 보세요. 비슷하면 규칙대로 가고, 크게 낮으면 원인(체결가 차이·원칙 위반·시장 변화)을 먼저 찾습니다.' + (chk ? ' 원칙 준수율 <b>' + fmtN(kept / chk * 100, 0) + '%</b>.' : '') + '<div class="bar"><i style="width:100%"></i></div>';
+  }
+  function renderJournal(doneAll) {
+    renderRuleBanner();
+    const fm = state.jMkt || 'ALL', done = doneAll.filter(t => fm === 'ALL' || t.market === fm);
+    const st = jStats(done);
+    $('journalSum').innerHTML = done.length ? '손익은 수수료·세금을 빼기 전 금액이고, 미장은 지금 환율(' + fmtInt(state.fx) + '원)로 원화 환산했습니다. 최대 낙폭 %는 지금 운용 자산(' + won(st.base) + ')에서 시작했다고 보고 계산합니다.'
+      : '아직 다 판 종목이 없습니다. 보유 종목을 모두 팔면 여기에 쌓입니다.';
+    $('jStats').innerHTML = [['청산 건수', st.n + '건', st.n < RULE_MIN ? '평가까지 ' + (RULE_MIN - st.n) + '건' : '표본 충분'], ['승률', isFinite(st.win) ? fmtN(st.win * 100, 0) + '%' : '–', st.nR ? st.wins + '승 ' + (st.nR - st.wins) + '패' : ''],
+      ['거래당 평균', fmtR(st.avgR), '1R = 산 가격 − 첫 손절가'], ['누적 손익', swon(st.pnl), '누적 ' + fmtR(st.sumR)], ['최대 낙폭', st.mdd > 0 ? '−' + won(st.mdd) : '0원', (st.mddPct > 0 ? '−' + fmtN(st.mddPct * 100, 1) + '% · ' : '') + '−' + fmtN(st.mddR, 2) + 'R']]
+      .map(([k, v, sub]) => '<div><span>' + k + '</span><b class="' + (k === '누적 손익' || k === '거래당 평균' ? cls2(k === '누적 손익' ? st.pnl : st.avgR) : '') + '">' + v + '</b><small>' + sub + '</small></div>').join('');
+    const grp = (lst, title, c) => { const g = jStats(lst); return '<div class="' + c + '"><h4>' + title + ' · ' + g.n + '건</h4>' + (g.n ? '<div class="kv"><div><span>승률</span><b>' + (isFinite(g.win) ? fmtN(g.win * 100, 0) + '%' : '–') + '</b></div><div><span>거래당 평균</span><b class="' + cls2(g.avgR) + '">' + fmtR(g.avgR) + '</b></div><div><span>손익 합계</span><b class="' + cls2(g.pnl) + '">' + swon(g.pnl) + '</b></div><div><span>건당 손익</span><b class="' + cls2(g.pnl) + '">' + swon(g.pnl / g.n) + '</b></div></div>' : '<div class="note">아직 없습니다.</div>') + '</div>'; };
+    const kept = done.filter(t => ruleOf(t) === true), broke = done.filter(t => ruleOf(t) === false), unk = done.length - kept.length - broke.length;
+    let cmp = '';
+    if (kept.length && broke.length) { const a = jStats(kept), b = jStats(broke); cmp = '<div class="note" style="grid-column:1/-1">원칙을 지킨 매매가 어긴 매매보다 거래당 <b class="' + cls2(a.avgR - b.avgR) + '">' + fmtR(a.avgR - b.avgR) + '</b> ' + (a.avgR >= b.avgR ? '좋았습니다. 어긴 매매 ' + broke.length + '건이 없었다면 손익이 ' + swon(-b.pnl) + ' 달라졌습니다.' : '나빴습니다. 표본이 적을 때는 우연일 수 있으니 30건 이후에 다시 보세요.') + '</div>'; }
+    $('jRule').innerHTML = grp(kept, '✓ 원칙 지킨 매매', 'kept') + grp(broke, '✗ 원칙 어긴 매매', 'broke') + cmp + (unk ? '<div class="note" style="grid-column:1/-1">원칙 체크가 없는 예전 기록 ' + unk + '건은 비교에서 뺐습니다. 아래 ⑤ 표의 원칙 칸을 눌러 채울 수 있습니다.</div>' : '');
+    svgLine($('jCurve'), st.pts.map(p => ({ x: p.x.slice(2), y: p.y })), { zero: true, fy: manwon, label: '실현 손익 누적', empty: '다 판 종목이 생기면 계좌 곡선이 나옵니다.' });
+    renderMonth(done);
+    // ⑤ 표
+    $('journalBody').innerHTML = done.length ? done.map(tr => { const m = tr.market, pnl = realized(tr), r = rOf(tr), last = (tr.events || []).at(-1), rl = ruleOf(tr);
+      return '<tr data-id="' + tr.id + '"><td><b>' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span></td><td class="mono">' + tr.fillDate + '</td><td class="mono">' + (tr.closeDate || '') + '</td>' +
+        '<td class="r num">' + fmtP(tr.fill, m) + '</td><td class="r num">' + fmtQ(tr.qty, tr.qty % 1 !== 0) + '</td><td class="r num ' + (pnl >= 0 ? 'c-up' : 'c-down') + '">' + sgnM(m, pnl) + '</td>' +
+        '<td class="r num">' + fmtR(r) + '</td><td><button type="button" class="ghost rulebtn ' + (rl === true ? 'y' : rl === false ? 'n' : '') + '" data-rule="' + tr.id + '" title="원칙 준수 여부 바꾸기">' + (rl === true ? '✓' : rl === false ? '✗' : '?') + '</button></td><td>' + (last ? REASONS[last.reason] || '' : '') + (last && last.memo ? ' <span class="note">' + esc(last.memo) + '</span>' : '') + '</td><td><button type="button" class="ghost" data-undo="' + tr.id + '">되돌리기</button></td></tr>'; }).join('')
+      : '<tr><td colspan="10" class="empty">아직 다 판 종목이 없습니다.</td></tr>';
+    for (const b of $('journalBody').querySelectorAll('[data-undo]')) b.onclick = async () => {
+      const tr = state.trades.find(t => t.id === b.dataset.undo); const ev = tr.events.pop(); tr.sold = +((tr.sold || 0) - ev.qty).toFixed(4); tr.status = 'open'; delete tr.closeDate; delete tr.rule;
+      if (ev.reason === 'tp1') { tr.stage = 0; delete tr.stageDate; }
+      await saveTrades(); renderPositions(); toast('마지막 매도 기록을 되돌렸습니다');
+    };
+    for (const b of $('journalBody').querySelectorAll('[data-rule]')) b.onclick = async () => {
+      const tr = state.trades.find(t => t.id === b.dataset.rule), cur = ruleOf(tr);
+      tr.rule = cur === true ? false : cur === false ? null : true;
+      await saveTrades(); renderPositions();
+    };
+  }
+  function renderMonth(done) {
+    const ym = d => String(d || '').slice(0, 7), now = todayKST().slice(0, 7);
+    const months = [...new Set(done.map(t => ym(t.closeDate)).filter(Boolean).concat([now]))].sort().reverse();
+    if (!state.jMonth || !months.includes(state.jMonth)) state.jMonth = months.find(m => done.some(t => ym(t.closeDate) === m)) || now;
+    const sel = $('jMonthSel'); sel.innerHTML = months.map(m => '<option value="' + m + '"' + (m === state.jMonth ? ' selected' : '') + '>' + m.replace('-', '년 ') + '월</option>').join('');
+    sel.onchange = () => { state.jMonth = sel.value; renderMonth(done); };
+    const mo = state.jMonth, list = done.filter(t => ym(t.closeDate) === mo), g = jStats(list), rv = (state.ledger.reviews || {})[mo];
+    const chk = list.filter(t => ruleOf(t) !== null), kept = chk.filter(t => ruleOf(t) === true);
+    // 이번 달 보유 중 · 산 종목
+    const bought = state.trades.filter(t => ym(t.fillDate) === mo && (t.status === 'open' || t.status === 'closed'));
+    let h = '<div class="jstats">' + [['판 종목', g.n + '건', '이번 달 산 종목 ' + bought.length + '건'], ['승률', isFinite(g.win) ? fmtN(g.win * 100, 0) + '%' : '–', g.nR ? g.wins + '승 ' + (g.nR - g.wins) + '패' : ''], ['거래당 평균', fmtR(g.avgR), ''], ['손익', swon(g.pnl), fmtR(g.sumR)], ['원칙 준수율', chk.length ? fmtN(kept.length / chk.length * 100, 0) + '%' : '–', chk.length ? kept.length + ' / ' + chk.length + '건' : '체크한 기록 없음']]
+      .map(([k, v, sub]) => '<div><span>' + k + '</span><b class="' + (k === '손익' ? cls2(g.pnl) : k === '거래당 평균' ? cls2(g.avgR) : '') + '">' + v + '</b><small>' + sub + '</small></div>').join('') + '</div>';
+    h += list.length ? '<div class="mtrades">' + list.sort((a, b) => a.closeDate < b.closeDate ? -1 : 1).map(t => { const rl = ruleOf(t), ev = (t.events || []); return '<div><b>' + esc(t.market === 'KR' ? t.name : t.symbol) + '</b><span class="note">' + (t.stratName || '') + ' · ' + t.fillDate.slice(5) + ' → ' + (t.closeDate || '').slice(5) + '</span><span class="num ' + cls2(realized(t)) + '">' + sgnM(t.market, realized(t)) + ' (' + fmtR(rOf(t)) + ')</span><span class="' + (rl === true ? 'c-up' : rl === false ? 'c-down' : 'note') + '">' + (rl === true ? '✓ 원칙 지킴' : rl === false ? '✗ 원칙 어김' : '? 체크 없음') + '</span><span class="note">' + ev.map(e => (REASONS[e.reason] || '') + (e.memo ? ': ' + esc(e.memo) : '')).join(' / ') + '</span></div>'; }).join('') + '</div>'
+      : '<div class="note">이 달에 다 판 종목이 없습니다.</div>';
+    if (g.n) {
+      const tips = [];
+      if (chk.length && kept.length < chk.length) tips.push('원칙을 어긴 매매 ' + (chk.length - kept.length) + '건: 왜 어겼는지(손절이 아까워서, 수익을 빨리 챙기고 싶어서 등) 메모에 한 줄씩 적으세요.');
+      if (g.best && realized(g.best) > 0) tips.push('가장 잘 된 매매: ' + esc(g.best.market === 'KR' ? g.best.name : g.best.symbol) + ' ' + fmtR(rOf(g.best)) + '. 규칙대로 들고 간 덕분인지 확인하세요.');
+      if (g.worst && realized(g.worst) < 0) tips.push('가장 큰 손실: ' + esc(g.worst.market === 'KR' ? g.worst.name : g.worst.symbol) + ' ' + fmtR(rOf(g.worst)) + (rOf(g.worst) < -1.3 ? '. 손절가보다 훨씬 많이 잃었습니다. 감시주문이 걸려 있었는지, 갭 하락이었는지 확인하세요.' : '. 1R 안쪽이면 규칙이 제대로 작동한 손절입니다.'));
+      h += '<div class="alert info">' + tips.map(x => '· ' + x).join('<br>') + '</div>';
+    }
+    h += '<label class="field"><span>' + mo.replace('-', '년 ') + '월 복기 메모 ' + (rv && rv.updatedAt ? '<span class="note">(' + rv.updatedAt.slice(0, 10) + ' 저장)</span>' : '') + '</span><textarea id="jReview" rows="4" placeholder="잘한 점 / 원칙을 어긴 이유 / 다음 달에 지킬 한 가지">' + esc(rv && rv.text || '') + '</textarea></label><div class="row"><button type="button" class="primary" id="jReviewSave">메모 저장</button></div>';
+    // 월별 한눈에
+    const ms = [...new Set(done.map(t => ym(t.closeDate)).filter(Boolean))].sort().reverse();
+    if (ms.length > 1) h += '<div class="tablewrap"><table><thead><tr><th>달</th><th class="r">건수</th><th class="r">승률</th><th class="r">평균 R</th><th class="r">손익</th><th class="r">원칙 준수</th></tr></thead><tbody>' + ms.map(m => { const l = done.filter(t => ym(t.closeDate) === m), x = jStats(l), c = l.filter(t => ruleOf(t) !== null), k = c.filter(t => ruleOf(t) === true).length;
+      return '<tr><td class="mono">' + m + '</td><td class="r num">' + x.n + '</td><td class="r num">' + (isFinite(x.win) ? fmtN(x.win * 100, 0) + '%' : '–') + '</td><td class="r num ' + cls2(x.avgR) + '">' + fmtR(x.avgR) + '</td><td class="r num ' + cls2(x.pnl) + '">' + swon(x.pnl) + '</td><td class="r num">' + (c.length ? fmtN(k / c.length * 100, 0) + '%' : '–') + '</td></tr>'; }).join('') + '</tbody></table></div>';
+    $('jMonth').innerHTML = h;
+    $('jReviewSave').onclick = async () => { state.ledger.reviews = state.ledger.reviews || {}; state.ledger.reviews[mo] = { text: $('jReview').value, updatedAt: new Date().toISOString() }; await saveLedger(); renderMonth(done); toast(mo + ' 복기 메모를 저장했습니다'); };
+  }
+
+  // ---------- 순자산 · 현금흐름 (ledger.json) ----------
+  const KINDS = { invKR: '투자 · 국장 주식', invUS: '투자 · 미장 주식', invEtc: '투자 · 기타 (펀드·연금·코인 등)', bank: '예금 · 적금 · 입출금', cash: '현금 · 기타 자산', home: '부동산 · 전세보증금', debt: '부채 (대출 · 카드값)' };
+  const newLedger = () => ({ v: 1, accounts: [], snaps: {}, reviews: {}, goal: null, autoSeed: { on: true, updatedAt: '' } });
+  state.ledger = Object.assign(newLedger(), store.get('ledger', null) || {});
+  const newer = (a, b) => !a ? b : !b ? a : String(b.updatedAt || '') > String(a.updatedAt || '') ? b : a;
+  function mergeLedger(a, b) {
+    a = Object.assign(newLedger(), a || {}); b = Object.assign(newLedger(), b || {});
+    const acc = new Map(); for (const x of a.accounts.concat(b.accounts)) if (x && x.id) acc.set(x.id, newer(acc.get(x.id), x));
+    const keyed = (p, q) => { const o = Object.assign({}, p); for (const [k, v] of Object.entries(q || {})) o[k] = newer(o[k], v); return o; };
+    return { v: 1, accounts: [...acc.values()].sort((x, y) => ((x.order ?? 0) - (y.order ?? 0)) || (String(x.id) < String(y.id) ? -1 : 1)), snaps: keyed(a.snaps, b.snaps), reviews: keyed(a.reviews, b.reviews), goal: newer(a.goal, b.goal), autoSeed: newer(a.autoSeed, b.autoSeed) || { on: true, updatedAt: '' } };
+  }
+  const ledgerSig = l => JSON.stringify(mergeLedger(l, null));
+  async function remoteLedger() {
+    if (backend() === 'github') return (await ghRead('ledger.json')).data;
+    if (backend() === 'server') return await api('/api/ledger');
+    return null;
+  }
+  async function writeLedger(l) {
+    const b = backend();
+    if (b === 'github') {
+      for (let i = 0; i < 3; i++) {
+        try { const cur = await ghRead('ledger.json'); const merged = mergeLedger(cur.data, l); await ghWrite('ledger.json', merged, cur.sha, '순자산·복기 기록 업데이트'); return merged; }
+        catch (e) { if ((e.status === 409 || e.status === 422) && i < 2) continue; toast('순자산 기록을 GitHub에 저장하지 못했습니다: ' + e.message + ' (이 기기에는 저장됨)'); return null; }
+      }
+    } else if (b === 'server') {
+      try { return await api('/api/ledger', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(l) }, 15000); } catch (e) { toast('순자산 기록을 파일에 저장하지 못했습니다: ' + e.message); }
+    }
+    return null;
+  }
+  async function loadLedger() {
+    let remote = null; try { remote = await remoteLedger(); } catch {}
+    const merged = mergeLedger(state.ledger, remote);
+    const changed = ledgerSig(merged) !== ledgerSig(state.ledger);
+    state.ledger = merged; store.set('ledger', merged);
+    if (remote !== null && ledgerSig(remote) !== ledgerSig(merged)) { const w = await writeLedger(merged); if (w) { state.ledger = mergeLedger(merged, w); store.set('ledger', state.ledger); } }
+    if (applyAutoSeed()) run();
+    return changed;
+  }
+  let ledgerChain = Promise.resolve();
+  function saveLedger() {
+    ledgerChain = ledgerChain.then(async () => {
+      store.set('ledger', state.ledger);
+      const w = await writeLedger(state.ledger);
+      if (w) { state.ledger = mergeLedger(state.ledger, w); store.set('ledger', state.ledger); }
+      if (applyAutoSeed()) run();
+      renderBackupBanner();
+    }).catch(() => {});
+    return ledgerChain;
+  }
+  const liveAccts = () => state.ledger.accounts.filter(a => !a.deleted);
+  const snapMonths = () => Object.keys(state.ledger.snaps).filter(k => !state.ledger.snaps[k].deleted).sort();
+  function snapTotals(mo) {
+    const sp = state.ledger.snaps[mo]; if (!sp || sp.deleted) return null;
+    let asset = 0, debt = 0, inv = 0, invKR = 0, invUS = 0, any = false;
+    for (const a of state.ledger.accounts) { const v = sp.bal && sp.bal[a.id]; if (!(typeof v === 'number' && isFinite(v))) continue; any = true;
+      if (a.kind === 'debt') debt += v; else asset += v;
+      if (a.kind && a.kind.startsWith('inv')) inv += v; if (a.kind === 'invKR') invKR += v; if (a.kind === 'invUS') invUS += v; }
+    const inc = +sp.income || 0, exp = +sp.expense || 0;
+    return { mo, asset, debt, net: asset - debt, inv, invKR, invUS, any, income: sp.income, expense: sp.expense, save: inc - exp, rate: inc > 0 ? (inc - exp) / inc : NaN };
+  }
+  // 투자 계좌 잔액 → 스캐너 운용 자산
+  function applyAutoSeed() {
+    if (!state.ledger.autoSeed || !state.ledger.autoSeed.on) return false;
+    const ms = snapMonths(); if (!ms.length) return false;
+    const mo = ms.at(-1), t = snapTotals(mo), sp = state.ledger.snaps[mo]; let ch = false;
+    const has = kind => liveAccts().some(a => a.kind === kind && typeof (sp.bal || {})[a.id] === 'number');
+    if (has('invKR') && Math.round(t.invKR) !== Math.round(state.seedKR)) { state.seedKR = Math.round(t.invKR); store.set('seedKR', state.seedKR); ch = true; }
+    if (has('invUS') && Math.round(t.invUS) !== Math.round(state.seedUS)) { state.seedUS = Math.round(t.invUS); store.set('seedUS', state.seedUS); ch = true; }
+    state.autoSeedFrom = (has('invKR') || has('invUS')) ? mo : null;
+    if (ch) { refreshInputs(); state.bt = {}; pushSettings(); }
+    return ch;
+  }
+  // 목표 달성 예상: 최근 12개월 순자산 추세(최소제곱 기울기)와 최근 6개월 평균 저축액 두 가지로 계산
+  function goalEta(goal) {
+    const ms = snapMonths().map(snapTotals).filter(t => t && t.any); if (!ms.length || !(goal > 0)) return null;
+    const cur = ms.at(-1), need = goal - cur.net;
+    const addM = (mo, k) => { const [y, m] = mo.split('-').map(Number), d = new Date(Date.UTC(y, m - 1 + k, 1)); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
+    if (need <= 0) return { done: true, cur };
+    const idx = mo => { const [y, m] = mo.split('-').map(Number); return y * 12 + m; };
+    const last = ms.slice(-12); let slope = NaN;
+    if (last.length >= 2) { const xs = last.map(t => idx(t.mo)), ys = last.map(t => t.net), mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+      const sxx = xs.reduce((a, x) => a + (x - mx) ** 2, 0); slope = sxx > 0 ? xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / sxx : NaN; }
+    const sv = ms.slice(-6).filter(t => isFinite(+t.income) && +t.income > 0), avgSave = sv.length ? sv.reduce((a, t) => a + t.save, 0) / sv.length : NaN;
+    const eta = per => per > 0 ? { months: Math.ceil(need / per), date: addM(cur.mo, Math.ceil(need / per)), per } : null;
+    return { cur, need, trend: eta(slope), slope, save: eta(avgSave), avgSave, nTrend: last.length, nSave: sv.length };
+  }
+  function renderNet() {
+    const L = state.ledger, accts = liveAccts(), ms = snapMonths(), tots = ms.map(snapTotals).filter(t => t && t.any), cur = tots.at(-1), prev = tots.at(-2);
+    if (!$('nwMonth').value) $('nwMonth').value = todayKST().slice(0, 7);
+    // 요약
+    const s6 = tots.slice(-6).filter(t => +t.income > 0), avgRate = s6.length ? s6.reduce((a, t) => a + t.save, 0) / s6.reduce((a, t) => a + (+t.income), 0) : NaN;
+    $('nwSum').innerHTML = cur ? [['순자산', won(cur.net), cur.mo + ' 기준'], ['전달 대비', prev ? swon(cur.net - prev.net) : '–', prev ? prev.mo + ' → ' + cur.mo : '두 달 이상 기록하면 계산'], ['자산 · 부채', manwon(cur.asset) + ' · ' + manwon(cur.debt), '원'],
+      ['저축률', isFinite(cur.rate) ? fmtN(cur.rate * 100, 0) + '%' : '–', isFinite(cur.rate) ? '수입 ' + manwon(+cur.income) + ' − 지출 ' + manwon(+cur.expense) : '수입을 적으면 계산'], ['6개월 평균 저축률', isFinite(avgRate) ? fmtN(avgRate * 100, 0) + '%' : '–', s6.length ? s6.length + '개월' : ''],
+      ['투자 계좌', won(cur.inv), state.autoSeedFrom ? '스캐너 운용 자산에 반영 중' : '자동 반영 꺼짐/투자 계좌 없음']]
+      .map(([k, v, sub]) => '<div><span>' + k + '</span><b class="' + (k === '전달 대비' && prev ? cls2(cur.net - prev.net) : '') + '">' + v + '</b><small>' + sub + '</small></div>').join('')
+      : '<div><span>순자산</span><b>–</b><small>아래에서 계좌를 만들고 이번 달 잔액을 적으세요</small></div>';
+    svgLine($('nwChart'), tots.map(t => ({ x: t.mo, y: t.net })), { fy: manwon, label: '월별 순자산', goal: L.goal && L.goal.amount > 0 ? L.goal.amount : null, empty: '월 기록을 저장하면 순자산 그래프가 나옵니다.' });
+    svgBars($('nwCash'), tots.filter(t => t.income != null || t.expense != null).map(t => ({ x: t.mo, a: +t.income || 0, b: +t.expense || 0 })));
+    // 입력 폼
+    const mo = $('nwMonth').value || todayKST().slice(0, 7), sp = L.snaps[mo] && !L.snaps[mo].deleted ? L.snaps[mo] : null;
+    const pm = ms.filter(m => m < mo).at(-1), psp = pm ? L.snaps[pm] : null;
+    if (!accts.length) $('nwForm').innerHTML = '<div class="note">계좌가 없습니다. 기본 계좌(입출금 통장, 국장 주식 계좌, 미장 주식 계좌, 대출)를 만들고 이름을 바꿔 쓰거나, 아래 [계좌 관리]에서 직접 추가하세요.</div><div class="row"><button type="button" class="primary" id="nwDefault">기본 계좌 만들기</button></div>';
+    else {
+      $('nwForm').innerHTML = '<div class="nwrows">' + accts.map(a => { const v = sp && sp.bal ? sp.bal[a.id] : undefined, pv = psp && psp.bal ? psp.bal[a.id] : undefined;
+        return '<div class="nwrow"><div class="k"><b style="color:var(--ink)">' + esc(a.name) + '</b><br>' + KINDS[a.kind] + '</div><label class="field"><span>' + (a.kind === 'debt' ? '남은 빚 (원)' : a.kind === 'invUS' ? '평가금액 (원화 환산)' : a.kind && a.kind.startsWith('inv') ? '평가금액 (원)' : '잔액 (원)') + '</span><input type="number" inputmode="numeric" step="1" min="0" data-bal="' + a.id + '" value="' + (typeof v === 'number' ? v : '') + '"></label><div class="note">' + (typeof pv === 'number' ? pm + ': ' + won(pv) + ' <button type="button" class="ghost" data-copy="' + a.id + '" style="padding:2px 6px;min-height:0">같게</button>' : '') + (a.kind === 'invKR' && L.autoSeed.on ? '<br>→ 국장 운용 자산' : a.kind === 'invUS' && L.autoSeed.on ? '<br>→ 미장 운용 자산' : '') + '</div></div>'; }).join('') + '</div>' +
+        '<div class="nwrow"><div class="k"><b style="color:var(--ink)">이 달 현금흐름</b><br>월급·부수입 / 생활비·카드값 합계</div><label class="field"><span>수입 (원)</span><input type="number" inputmode="numeric" step="1" min="0" id="nwInc" value="' + (sp && sp.income != null ? sp.income : '') + '"></label><label class="field"><span>지출 (원)</span><input type="number" inputmode="numeric" step="1" min="0" id="nwExp" value="' + (sp && sp.expense != null ? sp.expense : '') + '"></label></div>' +
+        '<div class="note" id="nwPreview"></div>' +
+        '<div class="row"><button type="button" class="primary" id="nwSave">' + mo.replace('-', '년 ') + '월 기록 저장</button>' + (sp ? '<button type="button" class="ghost" id="nwDel">이 달 기록 지우기</button>' : '') + '</div>';
+      const pv = () => { let a = 0, d = 0; for (const el of $('nwForm').querySelectorAll('[data-bal]')) { const v = parseFloat(el.value), ac = accts.find(x => x.id === el.dataset.bal); if (isFinite(v)) { if (ac.kind === 'debt') d += v; else a += v; } }
+        const inc = parseFloat($('nwInc').value), ex = parseFloat($('nwExp').value);
+        $('nwPreview').innerHTML = '저장하면 → 순자산 <b>' + won(a - d) + '</b>' + (isFinite(inc) && inc > 0 ? ' · 저축 ' + swon(inc - (isFinite(ex) ? ex : 0)) + ' (저축률 ' + fmtN((inc - (isFinite(ex) ? ex : 0)) / inc * 100, 0) + '%)' : ''); };
+      for (const el of $('nwForm').querySelectorAll('input')) el.oninput = pv; pv();
+      for (const b of $('nwForm').querySelectorAll('[data-copy]')) b.onclick = () => { const el = $('nwForm').querySelector('[data-bal="' + b.dataset.copy + '"]'); el.value = psp.bal[b.dataset.copy]; pv(); };
+      $('nwSave').onclick = async () => {
+        const bal = {}; for (const el of $('nwForm').querySelectorAll('[data-bal]')) { const v = parseFloat(el.value); if (isFinite(v) && v >= 0) bal[el.dataset.bal] = v; }
+        if (!Object.keys(bal).length) { toast('잔액을 하나 이상 적어 주세요'); return; }
+        const inc = parseFloat($('nwInc').value), ex = parseFloat($('nwExp').value);
+        L.snaps[mo] = { bal, income: isFinite(inc) ? inc : null, expense: isFinite(ex) ? ex : null, updatedAt: new Date().toISOString() };
+        await saveLedger(); renderNet(); toast(mo + ' 기록을 저장했습니다' + (state.autoSeedFrom === mo ? '. 투자 계좌 잔액을 스캐너 운용 자산에 반영했습니다' : ''));
+      };
+      if ($('nwDel')) { const b = $('nwDel'); b.onclick = async () => { if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = '한 번 더 누르면 지웁니다'; return; } L.snaps[mo] = { deleted: true, updatedAt: new Date().toISOString() }; await saveLedger(); renderNet(); toast('지웠습니다'); }; }
+    }
+    if ($('nwDefault')) $('nwDefault').onclick = async () => { const now = new Date().toISOString(), id = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      L.accounts.push({ id: id(), name: '입출금 통장', kind: 'bank', order: 1, updatedAt: now }, { id: id(), name: '국장 주식 계좌', kind: 'invKR', order: 2, updatedAt: now }, { id: id(), name: '미장 주식 계좌', kind: 'invUS', order: 3, updatedAt: now }, { id: id(), name: '대출', kind: 'debt', order: 4, updatedAt: now });
+      await saveLedger(); renderNet(); };
+    // 목표
+    const goal = L.goal && L.goal.amount > 0 ? L.goal.amount : null, e = goalEta(goal);
+    let gh2 = '<div class="calc"><label class="field"><span>목표 순자산 (원)</span><input type="number" inputmode="numeric" step="1000000" min="0" id="nwGoalIn" value="' + (goal || '') + '"></label><button type="button" class="primary" id="nwGoalSave">목표 저장</button></div>';
+    if (goal && e) {
+      if (e.done) gh2 += '<div class="alert tp"><b>달성</b> ' + e.cur.mo + ' 순자산 ' + won(e.cur.net) + '로 목표 ' + won(goal) + '를 넘었습니다.</div>';
+      else {
+        gh2 += '<div class="jstats"><div><span>남은 금액</span><b>' + won(e.need) + '</b><small>' + e.cur.mo + ' 순자산 ' + manwon(e.cur.net) + '원 기준</small></div>' +
+          '<div><span>순자산 추세로</span><b>' + (e.trend ? e.trend.date.replace('-', '년 ') + '월' : '–') + '</b><small>' + (e.trend ? '약 ' + e.trend.months + '개월 · 월 ' + swon(e.slope) + ' 증가 추세 (' + e.nTrend + '개월)' : e.nTrend < 2 ? '두 달 이상 기록하면 계산' : '최근 순자산이 늘지 않아 계산 불가') + '</small></div>' +
+          '<div><span>저축액만으로</span><b>' + (e.save ? e.save.date.replace('-', '년 ') + '월' : '–') + '</b><small>' + (e.save ? '약 ' + e.save.months + '개월 · 최근 ' + e.nSave + '개월 평균 저축 ' + swon(e.avgSave) : '수입·지출을 적으면 계산') + '</small></div></div>' +
+          '<div class="note">추세 기준은 투자 수익·손실까지 포함한 실제 순자산 변화, 저축액 기준은 투자 수익이 0이라고 가정한 보수적인 계산입니다. 둘 다 지금까지와 같은 속도가 이어진다는 가정이라 참고용입니다.</div>';
+      }
+    } else if (goal) gh2 += '<div class="note">월 기록을 저장하면 예상일을 계산합니다.</div>';
+    $('nwGoal').innerHTML = gh2;
+    $('nwGoalSave').onclick = async () => { const v = parseFloat($('nwGoalIn').value); L.goal = { amount: isFinite(v) && v > 0 ? v : 0, updatedAt: new Date().toISOString() }; await saveLedger(); renderNet(); toast('목표를 저장했습니다'); };
+    // 계좌 관리
+    $('nwAccts').innerHTML = (accts.length ? accts.map(a => '<div class="acctrow" data-acct="' + a.id + '"><label class="field"><span>계좌 이름 (예: 토스 입출금, 키움 주식)</span><input type="text" data-a="name" maxlength="40" value="' + esc(a.name) + '"></label><label class="field"><span>종류</span><select data-a="kind">' + Object.entries(KINDS).map(([k, v]) => '<option value="' + k + '"' + (k === a.kind ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></label><button type="button" class="ghost" data-a="del">삭제</button></div>').join('') : '<div class="note">아직 계좌가 없습니다.</div>') +
+      '<label class="chkline"><input type="checkbox" id="nwAuto"' + (L.autoSeed.on ? ' checked' : '') + '><span>가장 최근 달의 <b>투자 · 국장 주식</b> 잔액 합계를 국장 운용 자산에, <b>투자 · 미장 주식</b> 잔액 합계를 미장 운용 자산에 자동으로 넣기 (수량 계산 기준이 바뀝니다)</span></label>';
+    for (const row of $('nwAccts').querySelectorAll('[data-acct]')) {
+      const a = L.accounts.find(x => x.id === row.dataset.acct), q = n => row.querySelector('[data-a="' + n + '"]');
+      q('name').onchange = async () => { a.name = q('name').value.trim() || '이름 없는 계좌'; a.updatedAt = new Date().toISOString(); await saveLedger(); renderNet(); };
+      q('kind').onchange = async () => { a.kind = q('kind').value; a.updatedAt = new Date().toISOString(); await saveLedger(); renderNet(); };
+      const d = q('del'); d.onclick = async () => { if (!d.dataset.armed) { d.dataset.armed = 1; d.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { if (d.isConnected) { delete d.dataset.armed; d.textContent = '삭제'; } }, 3000); return; }
+        a.deleted = true; a.updatedAt = new Date().toISOString(); await saveLedger(); renderNet(); toast('계좌를 지웠습니다 (지난 달 기록의 잔액은 합계에서 빠집니다)'); };
+    }
+    $('nwAuto').onchange = async () => { L.autoSeed = { on: $('nwAuto').checked, updatedAt: new Date().toISOString() }; await saveLedger(); renderNet(); renderFund(); };
+    // 월별 표
+    $('nwHead').innerHTML = '<tr><th>달</th><th class="r">순자산</th><th class="r">증감</th><th class="r">수입</th><th class="r">지출</th><th class="r">저축률</th><th class="r">투자 계좌</th></tr>';
+    $('nwBody').innerHTML = tots.length ? tots.slice().reverse().map((t, i, arr) => { const p = arr[i + 1]; return '<tr><td class="mono"><button type="button" class="ghost" data-mo="' + t.mo + '" style="padding:2px 6px">' + t.mo + '</button></td><td class="r num">' + won(t.net) + '</td><td class="r num ' + (p ? cls2(t.net - p.net) : '') + '">' + (p ? swon(t.net - p.net) : '–') + '</td><td class="r num">' + (t.income != null ? won(+t.income) : '–') + '</td><td class="r num">' + (t.expense != null ? won(+t.expense) : '–') + '</td><td class="r num">' + (isFinite(t.rate) ? fmtN(t.rate * 100, 0) + '%' : '–') + '</td><td class="r num">' + won(t.inv) + '</td></tr>'; }).join('')
+      : '<tr><td colspan="7" class="empty">아직 월 기록이 없습니다.</td></tr>';
+    for (const b of $('nwBody').querySelectorAll('[data-mo]')) b.onclick = () => { $('nwMonth').value = b.dataset.mo; renderNet(); $('nwMonth').scrollIntoView({ block: 'center' }); };
+    renderBackupNote();
+  }
+
+  // ---------- 백업 (내보내기·불러오기 · 주 1회 알림) ----------
+  const WEEK = 7 * 864e5;
+  const hasRecords = () => state.trades.length > 0 || liveAccts().length > 0 || snapMonths().length > 0;
+  function renderBackupNote() {
+    const at = store.get('backupAt', null);
+    $('bkNote').innerHTML = (at ? '이 기기에서 마지막으로 백업한 날: <b>' + new Date(at).toLocaleDateString('ko-KR') + '</b> (' + Math.floor((Date.now() - new Date(at)) / 864e5) + '일 전)' : '이 기기에서 아직 백업 파일을 만든 적이 없습니다.') +
+      ' 일주일에 한 번 백업 파일을 만들어 구글 드라이브나 PC에 보관하세요.' + (ghCfg() ? ' GitHub에도 저장되고 있지만, 토큰 만료나 실수로 지운 경우를 대비한 두 번째 보관입니다.' : '');
+  }
+  function renderBackupBanner() {
+    const b = $('bkBanner'), at = store.get('backupAt', null), snooze = store.get('backupSnooze', 0);
+    const due = hasRecords() && (!at || Date.now() - new Date(at) > WEEK) && Date.now() > snooze;
+    b.hidden = !due; if (!due) return;
+    b.innerHTML = '<span><b>주간 백업 알림</b> ' + (at ? '마지막 백업 후 ' + Math.floor((Date.now() - new Date(at)) / 864e5) + '일이 지났습니다.' : '아직 백업한 적이 없습니다.') + ' 매매·순자산 기록을 파일로 저장해 두세요.</span><span class="row"><button type="button" class="primary" data-bk="now">지금 백업</button><button type="button" class="ghost" data-bk="later">내일 다시 알림</button></span>';
+    b.querySelector('[data-bk="now"]').onclick = exportBackup;
+    b.querySelector('[data-bk="later"]').onclick = () => { store.set('backupSnooze', Date.now() + 864e5); renderBackupBanner(); };
+  }
+  function exportBackup() {
+    const now = new Date(), obj = { app: 'samyeok-scanner', kind: 'backup', v: 1, exportedAt: now.toISOString(), trades: allTrades(), ledger: state.ledger, settings: settingsObj() };
+    const blob = new Blob([JSON.stringify(obj, null, 1)], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = 'samyeok-backup-' + todayKST().replace(/-/g, '') + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+    store.set('backupAt', now.toISOString()); store.set('backupSnooze', 0);
+    renderBackupBanner(); renderBackupNote();
+    toast('백업 파일을 내려받았습니다 (다운로드 폴더). 구글 드라이브 등에 옮겨 두세요');
+  }
+  async function importBackup(file) {
+    let o; try { o = JSON.parse(await file.text()); } catch { toast('백업 파일을 읽지 못했습니다'); return; }
+    if (!o || o.app !== 'samyeok-scanner' || !Array.isArray(o.trades)) { toast('이 앱의 백업 파일이 아닙니다'); return; }
+    const before = state.trades.length;
+    const merged = cleanDupes(mergeTrades(allTrades(), o.trades)); setTrades(merged); store.set('trades', merged); state.tSnap = new Map();
+    await writeRemote(merged); snapTrades();
+    if (o.ledger) { state.ledger = mergeLedger(state.ledger, o.ledger); await saveLedger(); }
+    if (o.settings && applySettings(o.settings)) pushSettings();
+    run(); renderPosBadge(); if (state.tab === 'pos') renderPositions(); if (state.tab === 'net') renderNet();
+    toast('백업을 합쳤습니다 · 매매 기록 ' + before + '건 → ' + state.trades.length + '건');
+  }
+  $('bkExport').onclick = exportBackup;
+  $('bkFile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importBackup(f); };
+
+  // ---------- 신호 종목에서 바로 "매수 기록" ----------
+  // 계획(전략·손절 규칙)은 그대로 두고 실제 체결가·수량으로 손절가·1R·익절가를 다시 계산
+  function levelsAt(tr, px, q) {
+    if (tr.exit === 'custom') { const slx = tr.stopRule ? ENGINE.floorPx(tr.market, ENGINE.stopFrom(tr.stopRule, px)) : tr.sl; const Sx = S[tr.strat];
+      return { sl: slx, R: px - slx, tp1: tr.planTp1, tp2: NaN, scale: tr.scale && Sx && Sx.scale ? ENGINE.scaleLevels(tr.market, px, q, Sx.scale, q % 1 !== 0) : null }; }
+    return Object.assign({ sl: tr.sl }, ENGINE.levels(tr.market, px, tr.sl, tr.exit));
+  }
+  function openBuyForm(r, box) {
+    const p = r.plan, s = r.stock, m = s.market, P = v => fmtP(v, m);
+    const existing = tradeFor(m, s.symbol, r.basisDate || r.lastDate), base = existing && existing.status === 'planned' ? existing : planRecord(r);
+    const okDefault = (!r.still || r.still.state === 'ok') && r.gap === 0;
+    box.hidden = false;
+    box.innerHTML = '<div class="label" style="grid-column:1/-1">매수 기록 · ' + esc(m === 'KR' ? s.name + ' (' + s.symbol + ')' : s.symbol + ' · ' + s.name) + ' · ' + esc(S[r.key].short) + ' · 신호일 ' + (r.basisDate || r.lastDate) + '</div>' +
+      '<label class="field"><span>산 날</span><input type="date" data-b="date" value="' + todayKST() + '"></label>' +
+      '<label class="field"><span>실제 체결가 (계획 ' + P(p.entry) + ')</span><input type="number" step="any" inputmode="decimal" data-b="price" value="' + p.entry + '"></label>' +
+      '<label class="field"><span>실제 수량 (계획 ' + fmtQ(p.qty, p.frac) + '주)</span><input type="number" step="any" inputmode="decimal" data-b="qty" value="' + (p.qty > 0 ? p.qty : 1) + '"></label>' +
+      '<label class="field"><span>손절가 (체결가 기준 자동)</span><input type="number" step="any" inputmode="decimal" data-b="sl"></label>' +
+      '<div class="note" data-b="pv" style="grid-column:1/-1"></div>' +
+      '<label class="chkline" style="grid-column:1/-1"><input type="checkbox" data-b="rule"' + (okDefault ? ' checked' : '') + '><span><b>원칙대로 샀다</b> — 신호가 나온 종목을 계획한 방식(예약·지정가·감시 매수)과 수량으로 산 경우만 체크' + (okDefault ? '' : ' <span class="c-down">(이 신호는 지금 추격 금지/보류 상태라 기본으로 체크하지 않았습니다)</span>') + '</span></label>' +
+      '<div class="row" style="grid-column:1/-1"><button type="button" class="primary" data-b="ok">보유 종목으로 기록</button><button type="button" data-b="cancel">닫기</button></div>';
+    const b = n => box.querySelector('[data-b="' + n + '"]');
+    let slTouched = false;
+    const calc = () => { const px = parseFloat(b('price').value), q = parseFloat(b('qty').value); const L = levelsAt(base, px, q); if (!slTouched && isFinite(L.sl)) b('sl').value = L.sl; const sl = parseFloat(b('sl').value), R = px - sl;
+      b('pv').innerHTML = R > 0 ? '1R(1주당 손절 손실) <b>' + P(R) + '</b> · 손절 시 총 손실 <b class="c-down">' + monM(m, R * (q || 0)) + '</b>' + (acct(m).equity > 0 ? ' (운용 자산의 ' + fmtN(R * (q || 0) / acct(m).equity * 100, 2) + '%)' : '') + (L.scale ? ' · 익절 지정가 ' + L.scale.filter(z => z.q > 0).map(z => P(z.px) + '×' + fmtQ(z.q, z.q % 1 !== 0)).join(' / ') : isFinite(L.tp1) ? ' · 1차 익절가 ' + P(L.tp1) : '') : '<span class="c-down">손절가가 체결가 이상입니다. 숫자를 확인하세요.</span>'; return { px, q, sl, R, L }; };
+    b('price').oninput = calc; b('qty').oninput = calc; b('sl').oninput = () => { slTouched = true; calc(); }; calc();
+    b('cancel').onclick = () => { box.hidden = true; };
+    b('ok').onclick = async () => {
+      const { px, q, sl, R, L } = calc(), dt = b('date').value;
+      if (!(px > 0) || !(q > 0) || !dt) { toast('산 날, 체결가, 수량을 넣어 주세요'); return; }
+      if (!(R > 0)) { toast('손절가는 체결가보다 낮아야 합니다'); return; }
+      Object.assign(base, { status: 'open', fillDate: dt, fill: px, qty: q, sold: 0, sl, R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [], ruleEntry: b('rule').checked });
+      if (L.scale) base.scale = L.scale;
+      if (!state.trades.includes(base)) state.trades.push(base);
+      await saveTrades(); renderTable(); renderDetail(); toast((m === 'KR' ? s.name : s.symbol) + ' 매수를 기록했습니다. [매매일지]에서 매일 손절·익절을 점검합니다');
+    };
+  }
+
+  // ---------- 전략 변경 잠금 (청산 30건 전) ----------
+  function guardStrat(m, k, apply) {
+    const n = closedAll().length, w = $('stratWarn');
+    if (n >= RULE_MIN || state.strat[m] === k) { w.innerHTML = ''; apply(); return; }
+    refreshStratSelects();
+    w.innerHTML = '<div class="warnbox"><b>기법 변경 금지 기간입니다 (청산 ' + n + ' / ' + RULE_MIN + '건).</b> ' + (m === 'KR' ? '국장' : '미장') + ' 전략을 "' + esc(S[k].short) + '"' + josaRo(S[k].short) + ' 바꾸면 지금까지의 기록과 섞여 어느 규칙이 통하는지 판단할 수 없게 됩니다. 정말 바꾸려면 아래 버튼을 누르세요. <div class="row" style="margin-top:6px"><button type="button" data-sw="go">그래도 바꾸기</button><button type="button" class="ghost" data-sw="no">그대로 두기</button></div></div>';
+    w.querySelector('[data-sw="go"]').onclick = () => { w.innerHTML = ''; apply(); };
+    w.querySelector('[data-sw="no"]').onclick = () => { w.innerHTML = ''; };
+    if (state.tab !== 'sig') { setTab('sig'); }
+    $('adv').open = true; w.scrollIntoView({ block: 'center' });
   }
 
   // ---------- 고수 전략 검증 ----------
@@ -2420,12 +2900,12 @@ const DEMO = (() => {
     $('proCards').innerHTML = html;
     for (const b of $('proCards').querySelectorAll('[data-use]')) b.onclick = () => {
       const k = b.dataset.use, r = L && L.res[k];
-      state.strat[m] = k; store.set('strat', state.strat); pushSettings(); refreshStratSelects(); state.bt = {}; state.selected = null; run(); renderLab();
-      toast(mk + ' [오늘 살 종목]이 "' + S[k].short + '" 기준으로 바뀌었습니다' + (r && r.verdict !== 'pass' ? ' (주의: 검증을 통과하지 못한 전략입니다)' : ''));
+      guardStrat(m, k, () => { state.strat[m] = k; store.set('strat', state.strat); pushSettings(); refreshStratSelects(); state.bt = {}; state.selected = null; run(); renderLab();
+      toast(mk + ' [오늘 살 종목]이 "' + S[k].short + '" 기준으로 바뀌었습니다' + (r && r.verdict !== 'pass' ? ' (주의: 검증을 통과하지 못한 전략입니다)' : '')); });
     };
   }
 
-  function render() { renderStatus(); renderSummary(); renderTable(); renderDetail(); if (state.tab === 'bt') renderBacktest(); if (state.tab === 'pos') renderPositions(); renderPosBadge(); }
+  function render() { renderStatus(); renderSummary(); renderTable(); renderDetail(); if (state.tab === 'bt') renderBacktest(); if (state.tab === 'pos') renderPositions(); if (state.tab === 'net') renderNet(); renderPosBadge(); }
 
   // ---------- 설정 바인딩 ----------
   const bindNum = (id, key, target, fn) => { const el = $(id); el.value = target[key]; el.addEventListener('change', () => { const v = parseFloat(el.value); if (isFinite(v) && v >= 0) { target[key] = v; fn(); } else el.value = target[key]; }); };
@@ -2434,6 +2914,7 @@ const DEMO = (() => {
     if (k === 'capPct') { state.capPct = Math.min(100, Math.max(1, state.capPct)); $('capPct').value = state.capPct; }
     if (k === 'fx') { state.fx = Math.max(1, state.fx); $('fx').value = state.fx; }
     store.set(k, state[k]); state.bt = {}; run(); pushSettings();
+    if ((k === 'seedKR' || k === 'seedUS') && state.autoSeedFrom && liveAccts().some(a => a.kind === (k === 'seedKR' ? 'invKR' : 'invUS'))) toast('순자산 탭의 자동 반영이 켜져 있어, 다음에 월 기록을 저장하면 투자 계좌 잔액으로 다시 바뀝니다');
   };
   for (const k of ['seedKR', 'seedUS', 'fx', 'capPct']) bindNum(k, k, state, saveAcct(k));
   $('fractional').checked = state.fractional;
@@ -2445,7 +2926,7 @@ const DEMO = (() => {
   for (const [id, key] of [['volEx', 'volAvgExcludeToday']]) { const el = $(id); el.checked = !!state.cfg[key]; el.onchange = () => { state.cfg[key] = el.checked; saveCfg(); }; }
   function refreshStratSelects() { for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? '고수 · ' + S[k].who.split(' · ')[0] + ': ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m]; } }
   for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? '고수 · ' + S[k].who.split(' · ')[0] + ': ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m];
-    el.onchange = () => { state.strat[m] = el.value; store.set('strat', state.strat); state.selected = null; run(); pushSettings(); refreshStratSelects(); }; }
+    el.onchange = () => { const k = el.value; guardStrat(m, k, () => { state.strat[m] = k; store.set('strat', state.strat); state.selected = null; run(); pushSettings(); refreshStratSelects(); }); }; }
   const seg = (id, fn) => $(id).addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; for (const x of $(id).children) x.setAttribute('aria-pressed', x === b); fn(b.dataset.v); });
   seg('fScore', v => { state.fGap = +v; renderTable(); });
   seg('fDay', v => { state.day = +v; state.selected = null; run(); });
@@ -2456,6 +2937,11 @@ const DEMO = (() => {
   seg('labMkt', v => { state.labMkt = v; renderLab(); });
 
   $('manualBtn').onclick = renderManual;
+  seg('jMkt', v => { state.jMkt = v; renderPositions(); });
+  $('nwMonth').onchange = () => renderNet();
+  $('nwAddAcct').onclick = async () => { const L = state.ledger, ord = Math.max(0, ...L.accounts.map(a => a.order || 0)) + 1;
+    L.accounts.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: '새 계좌', kind: 'bank', order: ord, updatedAt: new Date().toISOString() });
+    await saveLedger(); renderNet(); const rows = $('nwAccts').querySelectorAll('[data-acct]'); const last = rows[rows.length - 1]; if (last) { const i = last.querySelector('[data-a="name"]'); i.focus(); i.select(); } };
   $('syncToggle').onclick = () => renderSync($('syncBody').hidden);
   $('saveAll').onclick = async () => {
     const list = filtered().filter(r => r.gap === 0 && r.afford);
@@ -2464,11 +2950,13 @@ const DEMO = (() => {
     toast(n ? n + '개 종목의 주문 계획을 저장했습니다' : list.length ? '이미 모두 저장되어 있습니다' : '저장할 매수 후보가 없습니다');
   };
   const setTab = t => {
-    state.tab = t;
-    for (const [id, v] of [['tabSig', 'sig'], ['tabPos', 'pos'], ['tabLab', 'lab'], ['tabBt', 'bt'], ['tabGuide', 'guide']]) $(id).setAttribute('aria-selected', t === v);
-    $('viewSig').hidden = t !== 'sig'; $('viewPos').hidden = t !== 'pos'; $('viewLab').hidden = t !== 'lab'; $('viewBt').hidden = t !== 'bt'; $('viewGuide').hidden = t !== 'guide';
-    if (t === 'bt') renderBacktest(); else if (t === 'sig') renderDetail(); else if (t === 'pos') renderPositions(); else if (t === 'lab') renderLab();
-    if (t === 'guide') $('tabGuide').scrollIntoView({ block: 'start', behavior: 'auto' });
+    state.tab = t; document.body.dataset.tab = t;
+    for (const [id, v] of [['tabSig', 'sig'], ['tabPos', 'pos'], ['tabNet', 'net'], ['tabLab', 'lab'], ['tabBt', 'bt'], ['tabGuide', 'guide']]) $(id).setAttribute('aria-selected', t === v);
+    $('viewSig').hidden = t !== 'sig'; $('viewPos').hidden = t !== 'pos'; $('viewNet').hidden = t !== 'net'; $('viewLab').hidden = t !== 'lab'; $('viewBt').hidden = t !== 'bt'; $('viewGuide').hidden = t !== 'guide';
+    if (t === 'bt') renderBacktest(); else if (t === 'sig') renderDetail(); else if (t === 'pos') renderPositions(); else if (t === 'net') renderNet(); else if (t === 'lab') renderLab();
+    try { store.set('tab', t); } catch {}
+    if (innerWidth <= 760) $('tab' + { sig: 'Sig', pos: 'Pos', net: 'Net', lab: 'Lab', bt: 'Bt', guide: 'Guide' }[t]).scrollIntoView({ inline: 'center', block: 'nearest' });
+    if (t === 'guide' && innerWidth > 760) $('tabGuide').scrollIntoView({ block: 'start', behavior: 'auto' });
   };
   document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) setTab(g.dataset.goto); });
   $('q').addEventListener('input', e => { state.q = e.target.value; renderTable(); });
@@ -2477,7 +2965,7 @@ const DEMO = (() => {
   $('demoBtn').onclick = () => { loadDemo(); toast('가상 데이터로 전환했습니다'); };
   document.addEventListener('dragover', e => e.preventDefault());
   document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer?.files?.length) loadFiles([...e.dataTransfer.files]); });
-  const redraw = () => { state.tab === 'bt' ? renderBacktest() : renderDetail(); };
+  const redraw = () => { state.tab === 'bt' ? renderBacktest() : state.tab === 'pos' ? renderPositions() : state.tab === 'net' ? renderNet() : renderDetail(); };
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redraw, 120); });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
   new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -2585,7 +3073,7 @@ const DEMO = (() => {
     const firstB = document.querySelector('.steps3 li b'); if (firstB) firstB.textContent = '시세 확인';
     $('dispatchBtn').onclick = async () => {
       const g = ghCfg(), url = 'https://github.com/' + site.owner + '/' + site.repo + '/actions/workflows/update.yml';
-      if (!g) { toast('[내 주문 · 보유]에서 GitHub에 먼저 연결하거나, 열리는 GitHub 화면에서 Run workflow를 누르세요'); window.open(url, '_blank', 'noopener'); return; }
+      if (!g) { toast('[매매일지]에서 GitHub에 먼저 연결하거나, 열리는 GitHub 화면에서 Run workflow를 누르세요'); window.open(url, '_blank', 'noopener'); return; }
       try { await gh('POST', '/repos/' + site.owner + '/' + site.repo + '/actions/workflows/update.yml/dispatches', { ref: 'main', inputs: { market: 'ALL' } }); pages.waiting = true; renderPagesJobs(); toast('시세 수집을 요청했습니다. 몇 분 뒤 자동으로 반영됩니다'); clearTimeout(pages.timer); pages.timer = setTimeout(pagesPoll, 60000); }
       catch (e) { toast('요청 실패(' + e.message + '). 토큰에 ' + site.repo + ' Actions 권한이 없으면 GitHub 화면에서 Run workflow를 누르세요'); window.open(url, '_blank', 'noopener'); }
     };
@@ -2599,6 +3087,9 @@ const DEMO = (() => {
     const isLocal = await initLocal();
     const pagesData = !isLocal && await initPages();
     await loadTrades();
+    try { await loadLedger(); } catch {}
+    renderBackupBanner();
+    { const t0 = store.get('tab', 'sig'); if (['pos', 'net'].includes(t0)) setTab(t0); }
     if (isLocal || site) {
       try { applySettings(await remoteSettings()); } catch {}
       renderSync();
@@ -2612,6 +3103,8 @@ const DEMO = (() => {
     else loadDemo();
   })();
   if (document.fonts?.ready) document.fonts.ready.then(redraw);
+  // 홈 화면 앱(갤럭시 '홈 화면에 추가'): GitHub 사이트에서만 서비스 워커 등록
+  if (site && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
 </script>
 </body></html>

@@ -12,7 +12,7 @@ on:
         default: "ALL"
   push:
     branches: [main]
-    paths: ["index.html", "GUIDE.html"]
+    paths: ["index.html", "GUIDE.html", "manifest.webmanifest", "sw.js", "icons/**"]
 
 permissions:
   contents: write
@@ -71,6 +71,8 @@ jobs:
         run: |
           cp index.html site/
           [ -f GUIDE.html ] && cp GUIDE.html site/ || true
+          for f in manifest.webmanifest sw.js; do [ -f "$f" ] && cp "$f" site/ || true; done
+          [ -d icons ] && cp -r icons site/ || true
           touch site/.nojekyll
           date -u +%Y-%m-%dT%H:%M:%SZ > site/data/last_run.txt
 

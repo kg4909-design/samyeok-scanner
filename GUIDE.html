@@ -273,6 +273,51 @@ table.orders tr.gain td:last-child{color:var(--up)}
 .scen b{display:block;font-family:var(--f-mono);font-size:15px;color:var(--ink)}
 .verdict.poor{background:var(--warn-soft);color:var(--warn)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:8px;font-size:13px;z-index:20;max-width:90vw}
+/* 매매일지 · 순자산 */
+input[type=month],textarea{font:inherit;font-family:var(--f-mono);font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink);width:100%;min-width:0}
+textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
+.jbody{padding:14px 16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.jstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.jstats>div{background:var(--soft);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.jstats span{font-size:12px;color:var(--muted)}
+.jstats b{font-family:var(--f-mono);font-size:18px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.jstats small{font-size:11px;color:var(--muted)}
+.jrule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.jrule>div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.jrule h4{margin:0;font-size:13px}
+.jrule .kept{border-top:3px solid var(--accent)} .jrule .broke{border-top:3px solid var(--down)}
+.svgbox{width:100%;min-width:0;overflow:hidden}
+.svgbox svg{display:block;width:100%;height:auto}
+.svgbox text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+.rulebanner{border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.6;background:var(--warn-soft);color:var(--ink);border:1px solid transparent}
+.rulebanner.done{background:var(--accent-soft)}
+.rulebanner .bar{height:6px;border-radius:3px;background:var(--line);margin-top:6px;overflow:hidden}
+.rulebanner .bar i{display:block;height:100%;background:var(--warn)}
+.rulebanner.done .bar i{background:var(--accent)}
+.bkbanner{border-radius:10px;padding:10px 14px;font-size:13px;background:var(--warn-soft);display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.chkline{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5}
+.chkline input{margin-top:3px;width:18px;height:18px;flex:none}
+.rulebtn{min-width:40px;padding:4px 8px;font-family:var(--f-mono)}
+.rulebtn.y{color:var(--accent)} .rulebtn.n{color:var(--down)}
+.nwrows{display:flex;flex-direction:column;gap:8px}
+.nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
+.nwrow .k{font-size:12px;color:var(--muted)}
+.acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.mtrades{display:flex;flex-direction:column;gap:6px}
+.mtrades>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
+@media (max-width:760px){.jrule{grid-template-columns:minmax(0,1fr)}.nwrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nwrow .k{grid-column:1/-1}.acctrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.acctrow>button{grid-column:1/-1}}
+/* 휴대폰 (갤럭시 S21 등 360px): 탭 가로 스크롤, 손가락 크기 버튼 */
+@media (max-width:760px){
+  .tabs{overflow-x:auto;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg)}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:none;padding:12px 12px;white-space:nowrap}
+  .kv{grid-template-columns:minmax(0,1fr)}
+  .lvgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
+@media (max-width:760px){.steps3{display:none!important}.lede{display:none}.jstats b{font-size:15px}.jstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (pointer:coarse){button,.btn{min-height:40px}.seg button{min-height:38px}input[type=number],input[type=text],input[type=date],input[type=month],select{font-size:16px;min-height:40px}}
+@media (display-mode:standalone){body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}}
 @media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.detail{position:static}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.controls>section:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
 @media (max-width:900px){.acct-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){.steps3{grid-template-columns:minmax(0,1fr)}.guide .twoway{grid-template-columns:minmax(0,1fr)}.guide{padding:16px}.controls{grid-template-columns:minmax(0,1fr)}.controls>section+section{border-left:0;border-top:1px solid var(--line)}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.fields{grid-template-columns:minmax(0,1fr)}}
@@ -304,7 +349,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
       <li><b>Permissions → Repository permissions</b>: <b>Contents: Read and write</b>, <b>Actions: Read and write</b> (Actions는 [지금 시세 다시 받기] 버튼용)</li>
       <li><b>Generate token</b> → <code>github_pat_</code>로 시작하는 토큰을 복사해 메모장 등 안전한 곳에 보관</li>
     </ul></li>
-  <li>사이트의 <b>[내 주문 · 보유]</b> 탭 맨 위 <b>"여러 기기 기록 연동" → [연결하기]</b> → 토큰을 붙여 넣고 <b>[연결]</b>.</li>
+  <li>사이트의 <b>[매매일지]</b> 탭 맨 위 <b>"여러 기기 기록 연동" → [연결하기]</b> → 토큰을 붙여 넣고 <b>[연결]</b>.</li>
   <li>다른 컴퓨터나 휴대폰에서도 사이트를 열고 같은 토큰으로 연결하면 끝입니다.</li>
 </ol>
 <div class="caution">토큰은 비밀번호와 같습니다. 다른 사람에게 보여 주거나 PC방 같은 공용 컴퓨터에 넣지 마세요. 잃어버리거나 노출됐으면 GitHub 설정 → Developer settings → Personal access tokens에서 지우고 새로 만드세요.</div>
@@ -314,7 +359,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <li>사이트를 엽니다. 맨 위 "시세 · GitHub 자동 수집"에 오늘 수집 시각이 보이면 최신 시세입니다. PC 프로그램이라면 <b>[국장 시세 받기]</b>를 누릅니다.</li>
   <li><b>오늘 살 종목</b> 탭에서 초록색 <b>"매수 후보"</b> 종목을 누릅니다.</li>
   <li>오른쪽 <b>주문표</b>의 <b>살 수량 · 손절가 · 1차 익절가 · 2차 익절가</b>를 증권사 앱의 감시주문(스탑로스/OCO)에 그대로 넣습니다. [복사] 버튼으로 메모를 복사해 두면 편합니다.</li>
-  <li>예약 주문을 걸었다면 <b>[이 주문 계획 저장]</b>을 눌러 둡니다 (아래 "예약 주문을 걸었다면" 참고).</li>
+  <li>예약 주문을 걸었다면 <b>[예약 주문 저장]</b>, 이미 샀다면 <b>[매수 기록]</b>을 누릅니다 (아래 "매매일지" 참고).</li>
 </ol>
 <table>
   <thead><tr><th>시장</th><th>최신 시세가 들어오는 시각 (한국시간)</th></tr></thead>
@@ -337,23 +382,42 @@ table.orders tr.gain td:last-child{color:var(--up)}
     <tr><td>1차 익절가 <span class="c-up">(빨간색)</span></td><td>여기 오면 절반 팔고, 남은 절반의 손절가를 산 가격으로 올림</td><td>감시주문으로 미리 걸어 둠</td></tr>
   </tbody>
 </table>
-<p><b>"내 계좌"</b> 칸에 시드를 넣으면 살 수량과 예상 손익이 모두 그 금액에 맞춰 다시 계산됩니다. 실제로 산 가격이 오늘 종가와 다르면 주문표 아래 칸에 입력하세요.</p>
+<p><b>"내 계좌"</b> 칸에 운용 자산(시드)을 넣으면 살 수량과 예상 손익이 모두 그 금액에 맞춰 다시 계산됩니다. 실제로 산 가격이 오늘 종가와 다르면 주문표 아래 칸에 입력하세요.</p>
 <p><b>전략 검증</b> 탭은 기본 세 전략과 지금 쓰는 전략을 자세히 비교하고, <b>전략 연구소</b> 탭은 120개 전략을 한꺼번에 비교합니다.</p>
 
-<h2>예약 주문을 걸었다면: 저장 → 다음 날 체결 확인 → 보유 관리</h2>
+<h2>매매일지: 기록 → 매일 점검 → 원칙 체크 → 복기</h2>
 <ol>
-  <li><b>전날:</b> 매수 후보 종목의 주문표에서 <b>[이 주문 계획 저장]</b>을 누릅니다. 여러 종목이면 목록 위 <b>[매수 후보 전부 저장]</b>.</li>
-  <li><b>다음 날 (장 마감 후 시세가 들어온 뒤):</b> <b>[내 주문 · 보유]</b> 탭의 "① 체결 확인 대기"에서 실제로 사진 종목은 <b>[체결됨]</b>, 안 사진 종목은 <b>[안 사짐]</b>.
-    <ul>
-      <li>시장가로 샀다면 산 가격 칸에 그날 시가가 자동으로 들어갑니다. 증권사 체결 내역과 다르면 고쳐 주세요.</li>
-      <li>산 가격이 바뀌면 손절가는 그대로 두고 1차·2차 익절가를 그 가격 기준으로 다시 계산합니다.</li>
-    </ul></li>
-  <li><b>보유하는 동안:</b> "② 보유 중"에 <b>지금 걸어 둘 손절·익절 주문</b>이 항상 보이고, 새 시세가 들어올 때마다 손절가·익절가에 닿았는지 점검해 알려줍니다.
-    <ul>
-      <li>1차 익절이 체결되면 <b>[1차 익절 체결 기록]</b> → 남은 수량의 손절가가 산 가격(본절)으로 바뀝니다.</li>
-      <li>손절이나 나머지 매도가 체결되면 <b>[매도 기록]</b> → 다 팔면 "③ 매매 일지"로 옮겨집니다.</li>
-    </ul></li>
-  <li>저장을 깜빡하고 이미 샀다면 "② 보유 중"의 <b>[직접 추가]</b>로 종목코드, 산 가격, 수량, 손절가를 넣으세요.</li>
+  <li><b>샀을 때:</b> [오늘 살 종목]에서 종목을 누르고 주문표의 <b>[매수 기록]</b>. 종목·날짜·진입가·손절가·1R·수량이 채워져 있으니 <b>실제 체결가와 수량만</b> 고치고 [보유 종목으로 기록]. 체결가를 바꾸면 손절가·1R·익절가가 그 가격 기준으로 다시 계산됩니다.
+    <ul><li>예약만 걸어 둔 경우는 <b>[예약 주문 저장]</b> → 다음 날 [매매일지] "① 체결 확인 대기"에서 [체결됨]/[안 사짐].</li>
+    <li>신호대로 산 게 아니면(추격 매수, 수량 초과 등) "원칙대로 샀다" 체크를 끄세요.</li></ul></li>
+  <li><b>보유하는 동안:</b> "② 보유 중"이 새 시세가 들어올 때마다 <b>그 종목을 산 전략의 규칙</b>으로 점검합니다. 미너비니는 손절 −7%, +15% 뒤 본전 손절, 종가 50일선 이탈. 5일선 눌림목은 손절 −5%, +3·6·9% 분할 익절, 종가 10일선 이탈, 15거래일.</li>
+  <li><b>팔았을 때:</b> [매도 기록] → 판 날·가격·수량·사유를 적고 <b>"원칙대로 팔았다"</b>를 체크합니다. 알림이 떠서 판 경우만 체크하고, 겁이 나서 일찍 팔았거나 손절가를 무시하고 버틴 경우는 체크하지 않습니다.</li>
+  <li><b>성과 보기:</b> "③ 성과"에 승률, 거래당 평균 R, 누적 손익, 최대 낙폭, 계좌 곡선이 나오고, <b>원칙 지킨 매매와 어긴 매매</b>를 나눠 비교합니다.</li>
+  <li><b>한 달에 한 번:</b> "④ 월간 복기"에서 그달 판 종목과 원칙 준수율을 보고 메모를 남깁니다.</li>
+  <li><b>30건 규칙:</b> 판 종목이 30건이 될 때까지 맨 위에 <b>"기법 변경 금지"</b>가 뜨고, 설정에서 전략을 바꾸려 하면 한 번 더 확인합니다. 표본이 적으면 좋은 규칙도 연속 손절이 나오기 때문입니다.</li>
+</ol>
+
+<h2>순자산 · 현금흐름</h2>
+<ol>
+  <li>[순자산] 탭 → <b>[기본 계좌 만들기]</b> 또는 [계좌 추가]. 이름과 종류만 적습니다(계좌번호는 적지 않습니다).</li>
+  <li>매달 말일(또는 월급날) "월 기록 입력"에 계좌별 잔액, 그달 수입·지출을 적고 저장합니다. 지난달 값과 같으면 [같게]를 누르면 됩니다. 부채는 남은 금액을 양수로 적습니다.</li>
+  <li>순자산 그래프, 수입·지출 막대, 저축률(=(수입−지출)÷수입), 목표 금액 달성 예상일(순자산 추세 기준 / 저축액만 기준)이 계산됩니다.</li>
+  <li>종류가 <b>투자 · 국장 주식</b> / <b>투자 · 미장 주식</b>인 계좌의 최근 달 잔액은 위 "내 계좌"의 <b>국장·미장 운용 자산</b>에 자동으로 들어가 매수 수량 계산에 쓰입니다(계좌 관리의 체크로 끌 수 있음). 미장 계좌는 원화로 환산해 적습니다.</li>
+</ol>
+
+<h2>백업</h2>
+<ul>
+  <li>[순자산] 탭 맨 아래 <b>[백업 파일 내보내기]</b> → 매매 기록·순자산·복기 메모·설정이 <code>samyeok-backup-날짜.json</code> 파일 하나로 다운로드 폴더에 저장됩니다. 구글 드라이브 등에 옮겨 두세요. GitHub 토큰은 들어가지 않습니다.</li>
+  <li>마지막 백업 후 7일이 지나면 화면 위에 <b>주간 백업 알림</b>이 뜹니다.</li>
+  <li><b>[백업 파일 불러오기]</b>는 지금 기록과 합칩니다(같은 기록은 더 최근에 고친 쪽을 남김). 휴대폰을 바꿨을 때도 이걸로 옮기면 됩니다.</li>
+</ul>
+
+<h2>갤럭시(안드로이드) 홈 화면에 앱처럼 추가</h2>
+<ol>
+  <li>휴대폰 <b>Chrome</b>에서 사이트를 엽니다.</li>
+  <li>오른쪽 위 <b>⋮</b> → <b>홈 화면에 추가</b>(버전에 따라 <b>앱 설치</b>) → [추가]. 삼성 인터넷이라면 아래 <b>≡</b> → <b>현재 페이지 추가</b> → <b>홈 화면</b>.</li>
+  <li>홈 화면의 "스캐너" 아이콘으로 열면 주소창 없이 앱처럼 열립니다. 마지막으로 보던 탭(매매일지·순자산)에서 시작합니다.</li>
+  <li>휴대폰에서도 "여러 기기 기록 연동"에 같은 토큰을 한 번 넣으면 PC와 같은 기록이 보입니다. 인터넷이 끊겨도 마지막으로 받은 화면은 열립니다.</li>
 </ol>
 
 <h2>매매 전략: 국장 미너비니 SEPA · 미장 5일선 눌림목</h2>
@@ -388,10 +452,10 @@ table.orders tr.gain td:last-child{color:var(--up)}
 <h2>여러 기기에서 같은 기록 쓰기</h2>
 <ul>
   <li>위 "기록 저장소 연결"을 각 기기에서 한 번씩 하면, 집에서 저장하거나 체결 처리한 종목이 회사 PC나 휴대폰에도 그대로 보입니다. 반대도 마찬가지입니다.</li>
-  <li>계좌 시드, 전략 선택, 세부 설정도 함께 맞춰집니다.</li>
+  <li>운용 자산, 전략 선택, 세부 설정, 순자산 기록, 월간 복기 메모도 함께 맞춰집니다.</li>
   <li>화면을 켜 둔 동안 30초마다 다른 기기의 변경을 확인합니다. 반영되면 화면 아래에 알림이 뜹니다.</li>
   <li>같은 종목을 두 기기에서 동시에 고치면 <b>나중에 고친 쪽</b>이 남습니다. 같은 날 같은 종목을 두 기기에서 각각 저장했다면 하나로 자동 정리됩니다.</li>
-  <li>기록은 <code>samyeok-records</code> 저장소의 <code>trades.json</code>, <code>settings.json</code>에 저장되고, GitHub에 변경 이력이 모두 남아 실수로 지워도 되돌릴 수 있습니다.</li>
+  <li>기록은 <code>samyeok-records</code> 저장소의 <code>trades.json</code>(매매), <code>settings.json</code>(설정), <code>ledger.json</code>(순자산·복기)에 저장되고, GitHub에 변경 이력이 모두 남아 실수로 지워도 되돌릴 수 있습니다.</li>
 </ul>
 
 <h2>업데이트 받는 법</h2>
