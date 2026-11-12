@@ -303,6 +303,11 @@ textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
 .nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
 .nwrow .k{font-size:12px;color:var(--muted)}
 .acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.rpctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}
+.rpctl .field{min-width:150px}
+.rpctl .seg button{white-space:nowrap}
+.rpev td{background:var(--soft);font-size:13px;line-height:1.7}
+tr.rprow{cursor:pointer}
 .mtrades{display:flex;flex-direction:column;gap:6px}
 .mtrades>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
 @media (max-width:760px){.jrule{grid-template-columns:minmax(0,1fr)}.nwrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nwrow .k{grid-column:1/-1}.acctrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.acctrow>button{grid-column:1/-1}}
@@ -395,6 +400,15 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li><b>성과 보기:</b> "③ 성과"에 승률, 거래당 평균 R, 누적 손익, 최대 낙폭, 계좌 곡선이 나오고, <b>원칙 지킨 매매와 어긴 매매</b>를 나눠 비교합니다.</li>
   <li><b>한 달에 한 번:</b> "④ 월간 복기"에서 그달 판 종목과 원칙 준수율을 보고 메모를 남깁니다.</li>
   <li><b>30건 규칙:</b> 판 종목이 30건이 될 때까지 맨 위에 <b>"기법 변경 금지"</b>가 뜨고, 설정에서 전략을 바꾸려 하면 한 번 더 확인합니다. 표본이 적으면 좋은 규칙도 연속 손절이 나오기 때문입니다.</li>
+</ol>
+
+<h2>되돌려보기: 그날 신호를 샀다면 지금은?</h2>
+<ol>
+  <li>[되돌려보기] 탭에서 시장·전략을 고르고, 신호 날짜를 달력이나 <b>1·5·10·20·60일 전</b> 버튼으로 정합니다. 휴장일을 고르면 그 전 거래일로 바뀝니다.</li>
+  <li><b>그날 하루 신호:</b> 그날 장 마감 기준으로 검색된 종목을 다음 거래일에 전략 방식(미너비니 = 시가, 5일선 눌림목 = 그날 5일선 지정가)으로 샀다고 보고, 오늘까지 전략 규칙대로 손절·익절·청산을 따라갑니다. 지정가가 안 닿았으면 <b>미체결</b>로 표시합니다.</li>
+  <li><b>그날부터 오늘까지 매일 신호:</b> 그 기간 매일 나온 신호를 모두 따라갑니다(같은 종목은 판 뒤의 다음 신호부터). 계좌 기준 누적 손익 그래프가 함께 나옵니다.</li>
+  <li>결과: 종목마다 <b>보유 중이면 현재가와 수익률</b>, 팔렸으면 <b>판 날·판 가격·사유(손절·본전 손절·분할 익절·종가 청산)</b>와 수익률·R. 위에는 승률, 같은 금액씩 샀을 때의 평균 수익률, 내 운용 자산·1회 손실 규칙·동시 보유 한도로 샀을 때의 손익과 누적 수익률이 나옵니다. 행을 누르면 매수·매도 과정이 날짜별로 펼쳐집니다.</li>
+  <li>일봉만으로 계산하므로, 하루 안에서 손절가와 익절가가 둘 다 닿은 날은 손절이 먼저라고 보고, 지정가로 산 날의 익절은 다음 날부터 인정합니다(실제보다 조금 보수적).</li>
 </ol>
 
 <h2>순자산 · 현금흐름</h2>

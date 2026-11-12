@@ -307,6 +307,11 @@ textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
 .nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
 .nwrow .k{font-size:12px;color:var(--muted)}
 .acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.rpctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}
+.rpctl .field{min-width:150px}
+.rpctl .seg button{white-space:nowrap}
+.rpev td{background:var(--soft);font-size:13px;line-height:1.7}
+tr.rprow{cursor:pointer}
 .mtrades{display:flex;flex-direction:column;gap:6px}
 .mtrades>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
 @media (max-width:760px){.jrule{grid-template-columns:minmax(0,1fr)}.nwrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nwrow .k{grid-column:1/-1}.acctrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.acctrow>button{grid-column:1/-1}}
@@ -431,6 +436,7 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <div class="tabs" role="tablist">
     <button type="button" role="tab" id="tabSig" data-goto="sig" aria-selected="true">오늘 살 종목</button>
     <button type="button" role="tab" id="tabPos" data-goto="pos" aria-selected="false">매매일지 <span class="cnt" id="posCnt" hidden></span></button>
+    <button type="button" role="tab" id="tabRp" data-goto="rp" aria-selected="false">되돌려보기</button>
     <button type="button" role="tab" id="tabNet" data-goto="net" aria-selected="false">순자산</button>
     <button type="button" role="tab" id="tabLab" data-goto="lab" aria-selected="false">고수 전략 검증</button>
     <button type="button" role="tab" id="tabBt" data-goto="bt" aria-selected="false" hidden>전략 검증</button>
@@ -517,6 +523,29 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
       </table></div>
     </div>
     <p class="note" id="posStore"></p>
+  </div>
+
+  <div id="viewRp" class="bt" hidden>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">되돌려보기 · 그날 신호를 다음 날 전략대로 샀다면</div>
+        <p>고른 날 장 마감 기준으로 전략 검색에 걸린 종목을, <b>다음 거래일에 전략이 정한 방식과 가격</b>(미너비니: 시가 / 5일선 눌림목: 5일선 지정가)으로 샀다고 보고 오늘까지 전략 규칙대로 손절·익절·청산을 따라갑니다. 수익률은 왕복 수수료·세금(세부 설정의 비용 값)을 뺀 값입니다. 행을 누르면 언제 얼마에 사고팔았는지 보입니다.</p></div></div>
+      <div class="rpctl">
+        <div class="seg" id="rpMkt"><button type="button" data-v="KR" aria-pressed="true">국장</button><button type="button" data-v="US" aria-pressed="false">미장</button></div>
+        <label class="field"><span>전략</span><select id="rpStrat"></select></label>
+        <div class="seg" id="rpMode"><button type="button" data-v="day" aria-pressed="true">그날 하루 신호</button><button type="button" data-v="range" aria-pressed="false">그날부터 오늘까지 매일 신호</button></div>
+        <label class="field"><span>신호 날짜 (장 마감 기준)</span><input type="date" id="rpDate"></label>
+        <div class="seg" id="rpBack"><button type="button" data-v="1" aria-pressed="false">1일 전</button><button type="button" data-v="5" aria-pressed="false">5일 전</button><button type="button" data-v="10" aria-pressed="false">10일 전</button><button type="button" data-v="20" aria-pressed="false">20일 전</button><button type="button" data-v="60" aria-pressed="false">60일 전</button></div>
+      </div>
+      <div class="jbody">
+        <div class="note" id="rpNote"></div>
+        <div class="jstats" id="rpSum"></div>
+        <div id="rpCurveWrap" hidden><div class="label">계좌 기준 누적 손익 (판 날 기준 + 오늘 보유분 평가)</div><div id="rpCurve" class="svgbox"></div></div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>종목</th><th>신호일</th><th>산 날 · 가격</th><th>상태</th><th class="r">판 가격 / 현재가</th><th class="r">수익률</th><th class="r">R</th><th class="r">계좌 기준</th></tr></thead>
+        <tbody id="rpBody"></tbody>
+      </table></div>
+    </div>
   </div>
 
   <div id="viewNet" class="bt" hidden>
@@ -703,6 +732,15 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li><b>성과 보기:</b> "③ 성과"에 승률, 거래당 평균 R, 누적 손익, 최대 낙폭, 계좌 곡선이 나오고, <b>원칙 지킨 매매와 어긴 매매</b>를 나눠 비교합니다.</li>
   <li><b>한 달에 한 번:</b> "④ 월간 복기"에서 그달 판 종목과 원칙 준수율을 보고 메모를 남깁니다.</li>
   <li><b>30건 규칙:</b> 판 종목이 30건이 될 때까지 맨 위에 <b>"기법 변경 금지"</b>가 뜨고, 설정에서 전략을 바꾸려 하면 한 번 더 확인합니다. 표본이 적으면 좋은 규칙도 연속 손절이 나오기 때문입니다.</li>
+</ol>
+
+<h2>되돌려보기: 그날 신호를 샀다면 지금은?</h2>
+<ol>
+  <li>[되돌려보기] 탭에서 시장·전략을 고르고, 신호 날짜를 달력이나 <b>1·5·10·20·60일 전</b> 버튼으로 정합니다. 휴장일을 고르면 그 전 거래일로 바뀝니다.</li>
+  <li><b>그날 하루 신호:</b> 그날 장 마감 기준으로 검색된 종목을 다음 거래일에 전략 방식(미너비니 = 시가, 5일선 눌림목 = 그날 5일선 지정가)으로 샀다고 보고, 오늘까지 전략 규칙대로 손절·익절·청산을 따라갑니다. 지정가가 안 닿았으면 <b>미체결</b>로 표시합니다.</li>
+  <li><b>그날부터 오늘까지 매일 신호:</b> 그 기간 매일 나온 신호를 모두 따라갑니다(같은 종목은 판 뒤의 다음 신호부터). 계좌 기준 누적 손익 그래프가 함께 나옵니다.</li>
+  <li>결과: 종목마다 <b>보유 중이면 현재가와 수익률</b>, 팔렸으면 <b>판 날·판 가격·사유(손절·본전 손절·분할 익절·종가 청산)</b>와 수익률·R. 위에는 승률, 같은 금액씩 샀을 때의 평균 수익률, 내 운용 자산·1회 손실 규칙·동시 보유 한도로 샀을 때의 손익과 누적 수익률이 나옵니다. 행을 누르면 매수·매도 과정이 날짜별로 펼쳐집니다.</li>
+  <li>일봉만으로 계산하므로, 하루 안에서 손절가와 익절가가 둘 다 닿은 날은 손절이 먼저라고 보고, 지정가로 산 날의 익절은 다음 날부터 인정합니다(실제보다 조금 보수적).</li>
 </ol>
 
 <h2>순자산 · 현금흐름</h2>
@@ -1179,32 +1217,54 @@ const ENGINE = (() => {
     const n = ind.c.length; if (t + 1 >= n) return null;
     const en = S.entry(ind, t), f = t + 1;
     let entry;
-    if (en.type === 'stop') { if (!(ind.h[f] >= en.level)) return { skipped: true }; entry = Math.max(ind.o[f], en.level); }
-    else if (en.type === 'limit') { if (!(ind.l[f] <= en.level)) return { skipped: true }; entry = Math.min(ind.o[f], en.level); }
+    if (en.type === 'stop') { if (!(ind.h[f] >= en.level)) return { skipped: true, en }; entry = Math.max(ind.o[f], en.level); }
+    else if (en.type === 'limit') { if (!(ind.l[f] <= en.level)) return { skipped: true, en }; entry = Math.min(ind.o[f], en.level); }
     else entry = ind.o[f];
     const sl0 = stopFrom(S.stopRule(ind, t), entry);
-    if (!(entry > sl0) || !isFinite(sl0)) return { skipped: true };
+    if (!(entry > sl0) || !isFinite(sl0)) return { skipped: true, en, badStop: true };
     const R = entry - sl0, tgt = S.target ? S.target(ind, t, entry, R) : NaN;
     const scale = (S.scale || []).map(([m, fr]) => ({ px: entry * m, fr, done: false }));
     let stop = sl0, be = false, exitIdx = -1, reason = '', rem = 1, pnl = 0;
     // 지정가로 장중에 체결된 날은 그날 고가가 체결 전에 나왔을 수 있으므로 익절은 다음 날부터 인정 (보수적)
     const upFrom = en.type === 'limit' && ind.o[f] > en.level ? f + 1 : f;
-    const sell = (px, fr) => { pnl += fr * (px - entry); rem -= fr; };
+    const events = [];   // 되돌려보기용: 언제 얼마에 얼마만큼 팔았는지
+    const sell = (px, fr, j, why) => { pnl += fr * (px - entry); rem -= fr; events.push({ j, date: ind.dates[j], px, fr, why }); };
     for (let j = f; j < n; j++) {
       if (S.trail && j > f) { const tl = S.trail(ind, j); if (isFinite(tl) && tl > stop) stop = tl; }
       if (S.breakeven && be && stop < entry) stop = entry;
       const o = ind.o[j], h = ind.h[j], l = ind.l[j], c = ind.c[j];
-      if (l <= stop) { sell(j > f && o < stop ? o : stop, rem); exitIdx = j; reason = '손절/추적 손절'; break; }
-      if (j >= upFrom) for (const s of scale) if (!s.done && h >= s.px && rem > 1e-9) { s.done = true; sell(j > f && o > s.px ? o : s.px, Math.min(s.fr, rem)); }
+      if (l <= stop) { const w = stop < sl0 + 1e-9 ? '손절' : stop >= entry - 1e-9 ? (stop > entry + 1e-9 ? '추적 손절(수익 보전)' : '본전 손절') : '추적 손절'; sell(j > f && o < stop ? o : stop, rem, j, w); exitIdx = j; reason = w; break; }
+      if (j >= upFrom) for (const [k, s] of scale.entries()) if (!s.done && h >= s.px && rem > 1e-9) { s.done = true; sell(j > f && o > s.px ? o : s.px, Math.min(s.fr, rem), j, (k + 1) + '차 익절'); }
       if (rem <= 1e-9) { exitIdx = j; reason = '분할 익절 완료'; break; }
-      if (j >= upFrom && isFinite(tgt) && h >= tgt) { sell(j > f && o > tgt ? o : tgt, rem); exitIdx = j; reason = '익절'; break; }
+      if (j >= upFrom && isFinite(tgt) && h >= tgt) { sell(j > f && o > tgt ? o : tgt, rem, j, '익절'); exitIdx = j; reason = '익절'; break; }
       if (S.breakeven && h >= entry * S.breakeven) be = true;
-      if (S.exitClose && S.exitClose(ind, j)) { if (j + 1 < n) { sell(ind.o[j + 1], rem); exitIdx = j + 1; reason = '종가 청산'; } else return { open: true, entryIdx: f, entry, R }; break; }
-      if (S.cap && j - t >= S.cap) { sell(c, rem); exitIdx = j; reason = S.cap + '일 시간청산'; break; }
+      if (S.exitClose && S.exitClose(ind, j)) { if (j + 1 < n) { sell(ind.o[j + 1], rem, j + 1, S.exitText || '종가 청산'); exitIdx = j + 1; reason = '종가 청산'; } else return { open: true, entryIdx: f, entry, R, rem, pnl, stop, sl0, events, exitNext: true }; break; }
+      if (S.cap && j - t >= S.cap) { sell(c, rem, j, S.cap + '거래일 시간 청산'); exitIdx = j; reason = S.cap + '일 시간청산'; break; }
     }
-    if (exitIdx < 0) return { open: true, entryIdx: f, entry, R };
+    if (exitIdx < 0) return { open: true, entryIdx: f, entry, R, rem, pnl, stop, sl0, events };
     const cost = (market === 'KR' ? cfg.costKR : cfg.costUS) / 100 * entry;
-    return { entryIdx: f, exitIdx, entry, R, r: (pnl - cost) / R, reason, hold: exitIdx - t };
+    return { entryIdx: f, exitIdx, entry, R, r: (pnl - cost) / R, reason, hold: exitIdx - t, events, sl0, pnl, cost };
+  }
+
+  // ---------- 되돌려보기: 그날 신호를 다음 날 전략대로 샀다면 지금 어떻게 됐을까 ----------
+  // 반환: null(그날 신호 아님) | { status: 'nofill' | 'open' | 'closed', ... } — 수익률은 비용(왕복 수수료·세금) 포함
+  function replay(stock, key, t, cfg) {
+    const S = strat(key); if (!S.custom) return null;
+    const ind = compute(stock.bars), L = ind.c.length - 1; ind._mk = stock.market;
+    if (t < 1 || t > L) return null;
+    const ev = evaluate(ind, t, key, cfg); if (!ev.all) return null;
+    const base = { ev, ind, t, signalDate: ind.dates[t], score: ind.v[t] / (ind.volAvg20[t - 1] || 1), close: ind.c[t], last: ind.c[L], lastDate: ind.dates[L] };
+    if (t >= L) return Object.assign(base, { status: 'pending', entryType: S.entry(ind, t).type, level: S.entry(ind, t).level });
+    const sim = simCustom(ind, t, S, stock.market, cfg);
+    if (!sim || sim.skipped) return Object.assign(base, { status: 'nofill', entryType: sim && sim.en ? sim.en.type : 'open', level: sim && sim.en ? sim.en.level : NaN, nextDate: ind.dates[t + 1], nextLow: ind.l[t + 1], nextHigh: ind.h[t + 1], badStop: sim && sim.badStop });
+    const costPct = (stock.market === 'KR' ? cfg.costKR : cfg.costUS) / 100;
+    const out = Object.assign(base, { entryIdx: sim.entryIdx, entryDate: ind.dates[sim.entryIdx], entry: sim.entry, R: sim.R, sl0: sim.sl0, events: sim.events, entryType: S.entry(ind, t).type });
+    if (sim.open) {
+      const unreal = sim.rem * (ind.c[L] - sim.entry), val = sim.pnl + unreal;
+      return Object.assign(out, { status: 'open', rem: sim.rem, stopNow: sim.stop, exitNext: !!sim.exitNext, ret: val / sim.entry - costPct, rNow: (val - costPct * sim.entry) / sim.R, held: L - sim.entryIdx + 1 });
+    }
+    const sold = sim.events.reduce((a, e) => a + e.fr, 0), avgExit = sold ? sim.events.reduce((a, e) => a + e.px * e.fr, 0) / sold : NaN;
+    return Object.assign(out, { status: 'closed', exitIdx: sim.exitIdx, exitDate: ind.dates[sim.exitIdx], exitPx: avgExit, reason: sim.reason, ret: sim.pnl / sim.entry - costPct, rNow: sim.r, held: sim.exitIdx - sim.entryIdx + 1, sinceExit: ind.c[L] / avgExit - 1 });
   }
   // 보유 중 맞춤 규칙 점검: 오늘 저녁 걸어 둘 손절가와 할 일
   function trackCustom(ind, tr, S, fi, L) {
@@ -1498,7 +1558,7 @@ const ENGINE = (() => {
     return res;
   }
 
-  return { _h: { X, smaX, atr, hiNX, loPrevX, hi252X, lo252X, ok }, DEFAULT_CFG, STRATS, BASE_KEYS, PRO_KEYS, CLOUD_MODES, tickKR, floorPx: (m, v) => m === 'KR' ? floorTick(v) : Math.floor(v * 100 + 1e-9) / 100, strat, attachRS, stopFrom, scaleLevels, exitMode, benchmark, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
+  return { _h: { X, smaX, atr, hiNX, loPrevX, hi252X, lo252X, ok }, DEFAULT_CFG, STRATS, BASE_KEYS, PRO_KEYS, CLOUD_MODES, tickKR, floorPx: (m, v) => m === 'KR' ? floorTick(v) : Math.floor(v * 100 + 1e-9) / 100, strat, attachRS, stopFrom, scaleLevels, replay, exitMode, benchmark, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
 })();
 
 
@@ -2575,6 +2635,108 @@ const DEMO = (() => {
     $('jReviewSave').onclick = async () => { state.ledger.reviews = state.ledger.reviews || {}; state.ledger.reviews[mo] = { text: $('jReview').value, updatedAt: new Date().toISOString() }; await saveLedger(); renderMonth(done); toast(mo + ' 복기 메모를 저장했습니다'); };
   }
 
+  // ---------- 되돌려보기 ----------
+  state.rp = Object.assign({ m: 'KR', mode: 'day', date: '', key: {} }, store.get('rp', {}));
+  function rpDates(m) {
+    // 그 시장에서 가장 많은 종목이 가진 날짜 목록(최근 = 끝)
+    const st = state.stocks.filter(s => s.market === m && s.bars.length >= 260); if (!st.length) return [];
+    const ref = st.reduce((a, s) => s.bars.length > a.bars.length ? s : a, st[0]);
+    return ref.bars.slice(253).map(b => b[0]);
+  }
+  function renderReplay(redrawOnly) {
+    const R = state.rp, m = R.m, box = $('rpBody');
+    for (const b of $('rpMkt').querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.v === m);
+    for (const b of $('rpMode').querySelectorAll('button')) b.setAttribute('aria-pressed', b.dataset.v === R.mode);
+    const keys = [...new Set(DAILY_OPTS[m].concat(ENGINE.PRO_KEYS.map(k => 'pro|' + k)))].filter(k => S[k] && S[k].custom);
+    const key = keys.includes(R.key[m]) ? R.key[m] : state.strat[m];
+    $('rpStrat').innerHTML = keys.map(k => '<option value="' + k + '"' + (k === key ? ' selected' : '') + '>' + esc(S[k].short) + (k === state.strat[m] ? ' (매일 쓰는 전략)' : DAILY_OPTS[m].includes(k) ? '' : ' (비교용)') + '</option>').join('');
+    const dates = rpDates(m);
+    if (!dates.length) { $('rpNote').textContent = '이 시장 시세가 없습니다. 먼저 시세를 받아 주세요.'; $('rpSum').innerHTML = ''; box.innerHTML = ''; $('rpCurveWrap').hidden = true; return; }
+    const di = $('rpDate'); di.min = dates[0]; di.max = dates.at(-1);
+    let date = R.date && R.date >= dates[0] && R.date <= dates.at(-1) ? R.date : dates[Math.max(0, dates.length - 1 - 5)];
+    if (!dates.includes(date)) date = dates.filter(d => d <= date).at(-1) || dates[0];   // 휴장일을 고르면 그 전 거래일
+    di.value = date;
+    const back = dates.length - 1 - dates.indexOf(date);
+    for (const b of $('rpBack').querySelectorAll('button')) b.setAttribute('aria-pressed', +b.dataset.v === back);
+    if (redrawOnly && state._rpRes && state._rpRes.sig === [m, key, R.mode, date, state.seedKR, state.seedUS, state.capPct, state.cfg.riskPct].join('|')) return drawReplay(state._rpRes);
+    ensureRS();
+    const cfg = state.cfg, ac = acct(m), stocks = state.stocks.filter(s => s.market === m && s.bars.length >= 260);
+    const rows = [];
+    for (const s of stocks) {
+      const ind = ENGINE.compute(s.bars); ind._mk = m;
+      let t = ind.dates.indexOf(date); if (t < 0) continue;
+      const L = ind.c.length - 1;
+      while (t <= L) {
+        const r = ENGINE.replay(s, key, t, cfg);
+        if (r) {
+          const pl = ENGINE.plan(ind, t, key, m, ac, cfg, 0);
+          r.stock = s; r.qty = pl && pl.valid ? pl.qty : 0;
+          if (R.mode === 'day') { rows.push(r); break; }
+          if (r.status === 'open' || r.status === 'closed') { rows.push(r); if (r.status === 'open') break; t = r.exitIdx + 1; continue; }
+          if (r.status === 'pending') { rows.push(r); break; }
+        }
+        if (R.mode === 'day') break;
+        t++;
+      }
+    }
+    // 계좌 기준: 같은 날 여러 신호면 거래량 비율 큰 순서로, 동시 보유 한도(maxPos) 안에서만 산다고 가정
+    const filled = rows.filter(r => r.status === 'open' || r.status === 'closed').sort((a, b) => a.entryDate < b.entryDate ? -1 : a.entryDate > b.entryDate ? 1 : b.score - a.score);
+    const held = [], cap = maxPos();
+    for (const r of filled) {
+      for (let i = held.length - 1; i >= 0; i--) if (held[i].status === 'closed' && held[i].exitDate < r.entryDate) held.splice(i, 1);
+      r.inAcct = r.qty > 0 && held.length < cap; if (r.inAcct) held.push(r);
+      r.pnlAcct = r.inAcct ? r.qty * r.entry * r.ret : 0;
+    }
+    state._rpRes = { sig: [m, key, R.mode, date, state.seedKR, state.seedUS, state.capPct, state.cfg.riskPct].join('|'), rows, m, key, date, back, mode: R.mode, eq: ac.equity, lastDate: dates.at(-1) };
+    drawReplay(state._rpRes);
+  }
+  function drawReplay(res) {
+    const { rows, m, key, date, mode } = res, P = v => fmtP(v, m), box = $('rpBody');
+    const filled = rows.filter(r => r.status === 'open' || r.status === 'closed'), nof = rows.filter(r => r.status === 'nofill'), pend = rows.filter(r => r.status === 'pending');
+    const wins = filled.filter(r => r.ret > 0).length, avg = filled.length ? filled.reduce((a, r) => a + r.ret, 0) / filled.length : NaN;
+    const acc = filled.filter(r => r.inAcct), pnl = acc.reduce((a, r) => a + r.pnlAcct, 0), eq = res.eq;
+    const stopN = filled.filter(r => r.status === 'closed' && /손절/.test(r.reason) && !/본전|수익 보전/.test(r.reason)).length;
+    const cost = (m === 'KR' ? state.cfg.costKR : state.cfg.costUS);
+    $('rpNote').innerHTML = '<b>' + esc(S[key].short) + '</b> · ' + (mode === 'day' ? date + ' 하루 신호' : date + '부터 ' + res.lastDate + '까지 매일 신호 (같은 종목은 판 뒤의 다음 신호부터)') + ' · 오늘 기준 ' + res.lastDate + ' 종가. 수익률은 왕복 비용 ' + cost + '%를 뺀 값입니다. ' +
+      '"계좌 기준"은 지금 운용 자산 ' + (m === 'KR' ? fmtInt(eq) + '원' : '$' + fmtN(eq, 0)) + '과 1회 손실 ' + state.cfg.riskPct + '% 규칙으로 정한 수량으로, 동시 보유 ' + maxPos() + '종목 한도 안에서 거래량이 많이 늘어난 순서로 샀다고 본 결과입니다.' +
+      (S[key].limitDaily ? ' 이 전략은 지정가 매수라 다음 날 가격이 안 내려오면 <b>미체결</b>로 표시합니다.' : '');
+    const tiles = [['신호', rows.length + '개', pend.length ? '오늘 신호 ' + pend.length + '개는 내일 매수 예정' : nof.length ? '미체결 ' + nof.length + '개' : ''],
+      ['산 종목', filled.length + '개', filled.length ? '보유 중 ' + filled.filter(r => r.status === 'open').length + ' · 청산 ' + filled.filter(r => r.status === 'closed').length + (stopN ? ' (손절 ' + stopN + ')' : '') : ''],
+      ['승률', filled.length ? fmtN(wins / filled.length * 100, 0) + '%' : '–', filled.length ? wins + '승 ' + (filled.length - wins) + '패 (보유 중은 지금 가격 기준)' : ''],
+      ['평균 수익률', pct1(avg), '모든 산 종목에 같은 금액을 넣었다면'],
+      ['계좌 기준 손익', filled.length ? sgnM(m, pnl) : '–', acc.length ? acc.length + '종목 · 운용 자산 대비 ' + pct1(eq > 0 ? pnl / eq : NaN) : eq > 0 ? '한도·수량 안에 든 종목 없음' : '운용 자산을 넣으면 계산']];
+    $('rpSum').innerHTML = tiles.map(([k, v, sub]) => '<div><span>' + k + '</span><b class="' + (k === '평균 수익률' ? cls2(avg) : k === '계좌 기준 손익' ? cls2(pnl) : '') + '">' + v + '</b><small>' + sub + '</small></div>').join('');
+    // 누적 곡선 (매일 신호 모드)
+    const showCurve = mode === 'range' && acc.length > 0; $('rpCurveWrap').hidden = !showCurve;
+    if (showCurve) { const ev = acc.map(r => ({ d: r.status === 'closed' ? r.exitDate : res.lastDate, v: r.pnlAcct })).sort((a, b) => a.d < b.d ? -1 : 1); let c = 0; const pts = []; for (const e of ev) { c += e.v; if (pts.length && pts.at(-1).x === e.d.slice(2)) pts.at(-1).y = c; else pts.push({ x: e.d.slice(2), y: c }); }
+      svgLine($('rpCurve'), pts, { zero: true, fy: v => m === 'KR' ? manwon(v) : '$' + fmtN(v, 0), label: '되돌려보기 누적 손익' }); }
+    const name = s => m === 'KR' ? '<b>' + esc(s.name) + '</b> <span class="mono note">' + s.symbol + '</span>' : '<b>' + s.symbol + '</b> <span class="note">' + esc(s.name) + '</span>';
+    const stTag = r => r.status === 'open' ? '<span class="tag live">보유 중</span>' + (r.rem < 0.999 ? ' <span class="note">' + fmtN((1 - r.rem) * 100, 0) + '% 익절함</span>' : '') + (r.exitNext ? ' <span class="c-down">내일 시가 매도 차례</span>' : '')
+      : r.status === 'closed' ? '<span class="' + (r.ret > 0 ? 'c-up' : 'c-down') + '">' + esc(r.reason) + '</span>'
+      : r.status === 'pending' ? '<span class="note">내일 매수 예정</span>' : '<span class="note">미체결</span>';
+    const order = { open: 0, closed: 1, pending: 2, nofill: 3 };
+    const list = rows.slice().sort((a, b) => mode === 'range' ? (a.signalDate < b.signalDate ? 1 : a.signalDate > b.signalDate ? -1 : 0) || order[a.status] - order[b.status] : order[a.status] - order[b.status] || (b.ret || -9) - (a.ret || -9));
+    box.innerHTML = list.length ? list.map((r, i) => {
+      const filledR = r.status === 'open' || r.status === 'closed';
+      const px = r.status === 'closed' ? P(r.exitPx) + '<br><span class="note">' + r.exitDate.slice(5) + ' 판 가격' + (r.events.length > 1 ? '(평균)' : '') + '</span>' : r.status === 'open' ? P(r.last) + '<br><span class="note">' + r.lastDate.slice(5) + ' 종가</span>' : P(r.last) + '<br><span class="note">현재가</span>';
+      const buy = filledR ? r.entryDate.slice(5) + ' · ' + P(r.entry) + '<br><span class="note">' + (r.entryType === 'limit' ? '지정가' : r.entryType === 'stop' ? '감시 매수' : '시가') + ' · 첫 손절 ' + P(r.sl0) + '</span>'
+        : r.status === 'nofill' ? '<span class="note">' + (r.badStop ? '손절가 계산 불가' : (r.entryType === 'limit' ? '지정가 ' + P(r.level) + ' → ' + r.nextDate.slice(5) + ' 저가 ' + P(r.nextLow) : r.entryType === 'stop' ? '감시가 ' + P(r.level) + ' → ' + r.nextDate.slice(5) + ' 고가 ' + P(r.nextHigh) : '')) + '</span>'
+        : '<span class="note">' + (r.entryType === 'limit' ? '내일 지정가 ' + P(r.level) : r.entryType === 'stop' ? '내일 감시 매수 ' + P(r.level) : '내일 시가') + '</span>';
+      const acct = !filledR ? '–' : r.inAcct ? fmtQ(r.qty, r.qty % 1 !== 0) + '주 · <span class="' + cls2(r.pnlAcct) + '">' + sgnM(m, r.pnlAcct) + '</span>' : '<span class="note">' + (r.qty > 0 ? '보유 한도 초과' : '1주도 못 삼') + '</span>';
+      return '<tr class="rprow" data-i="' + i + '"><td>' + name(r.stock) + '</td><td class="mono">' + r.signalDate.slice(5) + '</td><td class="mono">' + buy + '</td><td>' + stTag(r) + '</td><td class="r num">' + px + '</td>' +
+        '<td class="r num ' + (filledR ? cls2(r.ret) : '') + '">' + (filledR ? pct1(r.ret) : '–') + '</td><td class="r num">' + (filledR ? fmtR(r.rNow) : '–') + '</td><td class="r num">' + acct + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty">' + (mode === 'day' ? date + '에는 이 전략 신호가 없었습니다. 날짜를 바꾸거나 [그날부터 오늘까지 매일 신호]로 보세요.' : '이 기간에 신호가 없었습니다.') + '</td></tr>';
+    for (const tr of box.querySelectorAll('tr.rprow')) tr.onclick = () => {
+      const nx = tr.nextElementSibling; if (nx && nx.classList.contains('rpev')) { nx.remove(); return; }
+      const r = list[+tr.dataset.i]; if (!(r.status === 'open' || r.status === 'closed')) return;
+      const lines = ['신호 ' + r.signalDate + ' 종가 ' + P(r.close) + ' → ' + r.entryDate + ' ' + P(r.entry) + '에 매수 (첫 손절가 ' + P(r.sl0) + ', 1R ' + P(r.R) + ')']
+        .concat(r.events.map(e => e.date + ' ' + esc(e.why) + ' · ' + P(e.px) + ' · ' + fmtN(e.fr * 100, 0) + '% 매도 (' + pct1(e.px / r.entry - 1) + ')'))
+        .concat(r.status === 'open' ? ['지금 ' + fmtN(r.rem * 100, 0) + '% 보유 중 · ' + r.lastDate + ' 종가 ' + P(r.last) + ' (' + pct1(r.last / r.entry - 1) + ') · 오늘 기준 손절가 ' + P(r.stopNow) + ' · 보유 ' + r.held + '거래일']
+          : ['보유 ' + r.held + '거래일 · 판 뒤 지금까지 ' + pct1(r.sinceExit) + ' 움직임 (지금 ' + P(r.last) + ')']);
+      tr.insertAdjacentHTML('afterend', '<tr class="rpev"><td colspan="8">' + lines.join('<br>') + '</td></tr>');
+    };
+  }
+
   // ---------- 순자산 · 현금흐름 (ledger.json) ----------
   const KINDS = { invKR: '투자 · 국장 주식', invUS: '투자 · 미장 주식', invEtc: '투자 · 기타 (펀드·연금·코인 등)', bank: '예금 · 적금 · 입출금', cash: '현금 · 기타 자산', home: '부동산 · 전세보증금', debt: '부채 (대출 · 카드값)' };
   const newLedger = () => ({ v: 1, accounts: [], snaps: {}, reviews: {}, goal: null, autoSeed: { on: true, updatedAt: '' } });
@@ -2905,7 +3067,7 @@ const DEMO = (() => {
     };
   }
 
-  function render() { renderStatus(); renderSummary(); renderTable(); renderDetail(); if (state.tab === 'bt') renderBacktest(); if (state.tab === 'pos') renderPositions(); if (state.tab === 'net') renderNet(); renderPosBadge(); }
+  function render() { renderStatus(); renderSummary(); renderTable(); renderDetail(); if (state.tab === 'bt') renderBacktest(); if (state.tab === 'pos') renderPositions(); if (state.tab === 'net') renderNet(); if (state.tab === 'rp') renderReplay(); renderPosBadge(); }
 
   // ---------- 설정 바인딩 ----------
   const bindNum = (id, key, target, fn) => { const el = $(id); el.value = target[key]; el.addEventListener('change', () => { const v = parseFloat(el.value); if (isFinite(v) && v >= 0) { target[key] = v; fn(); } else el.value = target[key]; }); };
@@ -2938,6 +3100,12 @@ const DEMO = (() => {
 
   $('manualBtn').onclick = renderManual;
   seg('jMkt', v => { state.jMkt = v; renderPositions(); });
+  const rpSave = () => store.set('rp', state.rp);
+  seg('rpMkt', v => { state.rp.m = v; rpSave(); renderReplay(); });
+  seg('rpMode', v => { state.rp.mode = v; rpSave(); renderReplay(); });
+  seg('rpBack', v => { const d = rpDates(state.rp.m); state.rp.date = d[Math.max(0, d.length - 1 - +v)]; rpSave(); renderReplay(); });
+  $('rpStrat').onchange = () => { state.rp.key[state.rp.m] = $('rpStrat').value; rpSave(); renderReplay(); };
+  $('rpDate').onchange = () => { state.rp.date = $('rpDate').value; rpSave(); renderReplay(); };
   $('nwMonth').onchange = () => renderNet();
   $('nwAddAcct').onclick = async () => { const L = state.ledger, ord = Math.max(0, ...L.accounts.map(a => a.order || 0)) + 1;
     L.accounts.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: '새 계좌', kind: 'bank', order: ord, updatedAt: new Date().toISOString() });
@@ -2951,11 +3119,11 @@ const DEMO = (() => {
   };
   const setTab = t => {
     state.tab = t; document.body.dataset.tab = t;
-    for (const [id, v] of [['tabSig', 'sig'], ['tabPos', 'pos'], ['tabNet', 'net'], ['tabLab', 'lab'], ['tabBt', 'bt'], ['tabGuide', 'guide']]) $(id).setAttribute('aria-selected', t === v);
-    $('viewSig').hidden = t !== 'sig'; $('viewPos').hidden = t !== 'pos'; $('viewNet').hidden = t !== 'net'; $('viewLab').hidden = t !== 'lab'; $('viewBt').hidden = t !== 'bt'; $('viewGuide').hidden = t !== 'guide';
-    if (t === 'bt') renderBacktest(); else if (t === 'sig') renderDetail(); else if (t === 'pos') renderPositions(); else if (t === 'net') renderNet(); else if (t === 'lab') renderLab();
+    for (const [id, v] of [['tabSig', 'sig'], ['tabPos', 'pos'], ['tabRp', 'rp'], ['tabNet', 'net'], ['tabLab', 'lab'], ['tabBt', 'bt'], ['tabGuide', 'guide']]) $(id).setAttribute('aria-selected', t === v);
+    $('viewSig').hidden = t !== 'sig'; $('viewPos').hidden = t !== 'pos'; $('viewRp').hidden = t !== 'rp'; $('viewNet').hidden = t !== 'net'; $('viewLab').hidden = t !== 'lab'; $('viewBt').hidden = t !== 'bt'; $('viewGuide').hidden = t !== 'guide';
+    if (t === 'bt') renderBacktest(); else if (t === 'sig') renderDetail(); else if (t === 'pos') renderPositions(); else if (t === 'net') renderNet(); else if (t === 'rp') renderReplay(); else if (t === 'lab') renderLab();
     try { store.set('tab', t); } catch {}
-    if (innerWidth <= 760) $('tab' + { sig: 'Sig', pos: 'Pos', net: 'Net', lab: 'Lab', bt: 'Bt', guide: 'Guide' }[t]).scrollIntoView({ inline: 'center', block: 'nearest' });
+    if (innerWidth <= 760) $('tab' + { sig: 'Sig', pos: 'Pos', rp: 'Rp', net: 'Net', lab: 'Lab', bt: 'Bt', guide: 'Guide' }[t]).scrollIntoView({ inline: 'center', block: 'nearest' });
     if (t === 'guide' && innerWidth > 760) $('tabGuide').scrollIntoView({ block: 'start', behavior: 'auto' });
   };
   document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) setTab(g.dataset.goto); });
@@ -2965,7 +3133,7 @@ const DEMO = (() => {
   $('demoBtn').onclick = () => { loadDemo(); toast('가상 데이터로 전환했습니다'); };
   document.addEventListener('dragover', e => e.preventDefault());
   document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer?.files?.length) loadFiles([...e.dataTransfer.files]); });
-  const redraw = () => { state.tab === 'bt' ? renderBacktest() : state.tab === 'pos' ? renderPositions() : state.tab === 'net' ? renderNet() : renderDetail(); };
+  const redraw = () => { state.tab === 'bt' ? renderBacktest() : state.tab === 'pos' ? renderPositions() : state.tab === 'net' ? renderNet() : state.tab === 'rp' ? renderReplay(true) : renderDetail(); };
   let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redraw, 120); });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
   new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
