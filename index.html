@@ -307,6 +307,7 @@ textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
 .nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
 .nwrow .k{font-size:12px;color:var(--muted)}
 .acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.wonhint{display:block;font-size:12.5px;font-weight:600;color:var(--accent);min-height:1.2em;line-height:1.3;margin-top:2px;font-family:var(--f-sans);letter-spacing:0;text-transform:none}
 .rpctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}
 .rpctl .field{min-width:150px}
 .rpctl .seg button{white-space:nowrap}
@@ -386,8 +387,8 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
     <div class="acctin">
       <div class="label">내 계좌</div>
       <div class="acct-fields">
-        <label class="field"><span>국장 운용 자산 (원)</span><input id="seedKR" type="number" min="0" step="100000"></label>
-        <label class="field"><span>미장 운용 자산 (원)</span><input id="seedUS" type="number" min="0" step="100000"></label>
+        <label class="field"><span>국장 운용 자산 (원)</span><input id="seedKR" type="number" min="0" step="100000" inputmode="numeric" data-won></label>
+        <label class="field"><span>미장 운용 자산 (원)</span><input id="seedUS" type="number" min="0" step="100000" inputmode="numeric" data-won></label>
         <label class="field"><span>한 번에 잃어도 되는 돈 (시드의 %)</span><input id="risk" type="number" min="0.1" max="5" step="0.1"></label>
         <label class="field"><span>한 종목에 넣을 최대 금액 (시드의 %)</span><input id="capPct" type="number" min="5" max="100" step="5"></label>
       </div>
@@ -1646,6 +1647,25 @@ const DEMO = (() => {
   const fmtN = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toFixed(d);
   const fmtInt = v => v == null || isNaN(v) ? '–' : Math.round(v).toLocaleString('ko-KR');
   const fmtR = v => v == null || isNaN(v) ? '–' : (v > 0 ? '+' : '') + v.toFixed(2) + 'R';
+  // 금액을 한글 단위로: 12345678 → "1,234만 5,678원", 300000000 → "3억원"
+  const korWon = v => {
+    v = Math.round(Number(v)); if (!isFinite(v)) return ''; if (v === 0) return '0원';
+    const neg = v < 0; v = Math.abs(v);
+    const jo = Math.floor(v / 1e12), eok = Math.floor(v % 1e12 / 1e8), man = Math.floor(v % 1e8 / 1e4), won = v % 1e4, parts = [];
+    if (jo) parts.push(fmtInt(jo) + '조'); if (eok) parts.push(fmtInt(eok) + '억'); if (man) parts.push(fmtInt(man) + '만'); if (won) parts.push(fmtInt(won));
+    return (neg ? '−' : '') + parts.join(' ') + '원';
+  };
+  // data-won 입력칸 아래에 한글 금액을 붙임 (입력할 때마다·화면이 바뀔 때마다 갱신)
+  function wonHint(el) {
+    let h = el.nextElementSibling;
+    if (!h || !h.classList.contains('wonhint')) { h = document.createElement('small'); h.className = 'wonhint'; h.setAttribute('aria-live', 'polite'); el.after(h); }
+    const raw = el.value !== '' ? el.value : '';
+    const txt = raw !== '' && isFinite(+raw) ? korWon(+raw) : '';
+    if (h.textContent !== txt) h.textContent = txt;   // 같으면 건드리지 않음 (화면 감시가 무한 반복하지 않게)
+  }
+  const wonHints = (root = document) => { for (const el of root.querySelectorAll('input[data-won]')) wonHint(el); };
+  document.addEventListener('input', e => { if (e.target.matches && e.target.matches('input[data-won]')) wonHint(e.target); });
+  { let q = 0; new MutationObserver(() => { if (q) return; q = requestAnimationFrame(() => { q = 0; wonHints(); }); }).observe(document.body, { childList: true, subtree: true }); }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const F = { n: fmtN, int: fmtInt, mk: b => b ? '✓' : '×' };
   const fmtQ = (q, frac) => frac ? (+q.toFixed(4)).toLocaleString('en-US', { maximumFractionDigits: 4 }) : fmtInt(q);
@@ -1836,7 +1856,7 @@ const DEMO = (() => {
     const moneyT = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2) + ' (≈' + fmtInt(v * state.fx) + '원)';
     const sgn = (v, t) => (v > 0 ? '+' : v < 0 ? '−' : '') + t(Math.abs(v));
     if (p) {
-      const calcHtml = '<div class="calcbox"><div class="calc"><label class="field"><span>실제로 산 가격이 다르면 입력 (비워 두면 ' + (p.entryType === 'limit' ? '지정가 ' + P(p.entry) : p.entryType === 'stop' ? '감시 매수가 ' + P(p.entry) : '오늘 종가 ' + P(r.ind.c[r.t])) + ')</span><input id="entryIn" type="number" step="any" value="' + (state.entry[ekey] ? p.entry : '') + '" placeholder="' + P(['limit', 'stop'].includes(p.entryType) && !state.entry[ekey] ? p.entry : r.ind.c[r.t]).replace(/,/g, '') + '"></label>' +
+      const calcHtml = '<div class="calcbox"><div class="calc"><label class="field"><span>실제로 산 가격이 다르면 입력 (비워 두면 ' + (p.entryType === 'limit' ? '지정가 ' + P(p.entry) : p.entryType === 'stop' ? '감시 매수가 ' + P(p.entry) : '오늘 종가 ' + P(r.ind.c[r.t])) + ')</span><input id="entryIn" type="number" step="any"' + (m === 'KR' ? ' data-won' : '') + ' value="' + (state.entry[ekey] ? p.entry : '') + '" placeholder="' + P(['limit', 'stop'].includes(p.entryType) && !state.entry[ekey] ? p.entry : r.ind.c[r.t]).replace(/,/g, '') + '"></label>' +
         '<button type="button" id="entryReset">오늘 종가로</button></div>' +
         '<div class="note">' + (p.stopRule && p.stopRule.type !== 'fixed' ? '손절가·수량을 산 가격 기준으로 다시 계산합니다 (' + p.slSource + ').' : '손절가는 그대로 두고 수량과 익절가만 다시 계산합니다.') + (m === 'KR' ? ' 가격은 호가 단위에 맞췄습니다 (손절가 내림, 익절가 올림).' : '') + '</div></div>';
       const saved = tradeFor(m, s.symbol, r.basisDate || r.lastDate);
@@ -2245,6 +2265,7 @@ const DEMO = (() => {
     for (const k of ['cloudOffset', 'chikouOffset', 'cloudMode']) $(k).value = String(state.cfg[k]);
     refreshStratSelects();
     $('fractional').checked = !!state.fractional; $('volEx').checked = !!state.cfg.volAvgExcludeToday;
+    wonHints();
   }
   function applySettings(o) {
     if (!o || !o.updatedAt || o.updatedAt <= store.get('settingsTs', '')) return false;
@@ -2364,7 +2385,7 @@ const DEMO = (() => {
         lvBox(m, [['계획 매수가', P(tr.planEntry)], ['계획 수량', fmtQ(tr.planQty, tr.planQty % 1 !== 0) + '주'], ['손절가', P(tr.sl), tr.slSource, 'down'], tr.scale ? ['익절 지정가', tr.scale.filter(z => z.q > 0).map(z => '+' + z.pct + '%').join(' · '), tr.scale.filter(z => z.q > 0).map(z => P(z.px) + ' × ' + fmtQ(z.q, z.q % 1 !== 0) + '주').join(' / '), 'up'] : [tr.exit === 'custom' ? (isFinite(tr.planTp1) ? '익절가' : '청산 방식') : tr.exit === 'target' ? '익절가 (+2R)' : ['time5', 'time20'].includes(tr.exit) ? '청산' : '1차 익절가', tr.exit === 'custom' && !isFinite(tr.planTp1) ? '추세 추종' : ['time5', 'time20'].includes(tr.exit) ? tr.holdDays + '일째 종가' : P(tr.planTp1), '계획 기준', 'up']]) +
         '<div class="note">' + hint + '</div>' +
         '<div class="posform"><label class="field"><span>산 날</span><input type="date" data-f="date" value="' + fillD + '"></label>' +
-        '<label class="field"><span>실제 산 가격</span><input type="number" step="any" data-f="price" value="' + fillP + '"></label>' +
+        '<label class="field"><span>실제 산 가격</span><input type="number" step="any" data-f="price"' + (m === 'KR' ? ' data-won' : '') + ' value="' + fillP + '"></label>' +
         '<label class="field"><span>산 수량</span><input type="number" step="any" data-f="qty" value="' + tr.planQty + '"></label>' +
         '<label class="chkline" style="grid-column:1/-1"><input type="checkbox" data-f="rule" checked><span>계획(신호·가격·수량)대로 샀다 — 원칙 준수 기록용</span></label>' +
         '<div class="row"><button type="button" class="primary" data-act="fill">체결됨</button><button type="button" data-act="nofill">안 사짐</button></div></div>' +
@@ -2444,7 +2465,7 @@ const DEMO = (() => {
         else if (a0?.lv === 'time') why = 'time';
         form.hidden = false;
         form.innerHTML = '<label class="field"><span>판 날</span><input type="date" data-g="date" value="' + adate + '"></label>' +
-          '<label class="field"><span>판 가격</span><input type="number" step="any" data-g="price" value="' + px + '"></label>' +
+          '<label class="field"><span>판 가격</span><input type="number" step="any" data-g="price"' + (tr.market === 'KR' ? ' data-won' : '') + ' value="' + px + '"></label>' +
           '<label class="field"><span>판 수량 (남은 ' + fmtQ(rq, rq % 1 !== 0) + '주)</span><input type="number" step="any" data-g="qty" value="' + q + '"></label>' +
           '<label class="field"><span>사유</span><select data-g="why">' + Object.entries(REASONS).map(([k, v]) => '<option value="' + k + '"' + (k === why ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></label>' +
           '<label class="field" style="grid-column:1/-1"><span>메모 (선택 · 왜 팔았는지, 감정 상태 등)</span><input type="text" data-g="memo" maxlength="200"></label>' +
@@ -2841,15 +2862,15 @@ const DEMO = (() => {
     if (!accts.length) $('nwForm').innerHTML = '<div class="note">계좌가 없습니다. 기본 계좌(입출금 통장, 국장 주식 계좌, 미장 주식 계좌, 대출)를 만들고 이름을 바꿔 쓰거나, 아래 [계좌 관리]에서 직접 추가하세요.</div><div class="row"><button type="button" class="primary" id="nwDefault">기본 계좌 만들기</button></div>';
     else {
       $('nwForm').innerHTML = '<div class="nwrows">' + accts.map(a => { const v = sp && sp.bal ? sp.bal[a.id] : undefined, pv = psp && psp.bal ? psp.bal[a.id] : undefined;
-        return '<div class="nwrow"><div class="k"><b style="color:var(--ink)">' + esc(a.name) + '</b><br>' + KINDS[a.kind] + '</div><label class="field"><span>' + (a.kind === 'debt' ? '남은 빚 (원)' : a.kind === 'invUS' ? '평가금액 (원화 환산)' : a.kind && a.kind.startsWith('inv') ? '평가금액 (원)' : '잔액 (원)') + '</span><input type="number" inputmode="numeric" step="1" min="0" data-bal="' + a.id + '" value="' + (typeof v === 'number' ? v : '') + '"></label><div class="note">' + (typeof pv === 'number' ? pm + ': ' + won(pv) + ' <button type="button" class="ghost" data-copy="' + a.id + '" style="padding:2px 6px;min-height:0">같게</button>' : '') + (a.kind === 'invKR' && L.autoSeed.on ? '<br>→ 국장 운용 자산' : a.kind === 'invUS' && L.autoSeed.on ? '<br>→ 미장 운용 자산' : '') + '</div></div>'; }).join('') + '</div>' +
-        '<div class="nwrow"><div class="k"><b style="color:var(--ink)">이 달 현금흐름</b><br>월급·부수입 / 생활비·카드값 합계</div><label class="field"><span>수입 (원)</span><input type="number" inputmode="numeric" step="1" min="0" id="nwInc" value="' + (sp && sp.income != null ? sp.income : '') + '"></label><label class="field"><span>지출 (원)</span><input type="number" inputmode="numeric" step="1" min="0" id="nwExp" value="' + (sp && sp.expense != null ? sp.expense : '') + '"></label></div>' +
+        return '<div class="nwrow"><div class="k"><b style="color:var(--ink)">' + esc(a.name) + '</b><br>' + KINDS[a.kind] + '</div><label class="field"><span>' + (a.kind === 'debt' ? '남은 빚 (원)' : a.kind === 'invUS' ? '평가금액 (원화 환산)' : a.kind && a.kind.startsWith('inv') ? '평가금액 (원)' : '잔액 (원)') + '</span><input type="number" inputmode="numeric" step="1" min="0" data-bal="' + a.id + '" data-won value="' + (typeof v === 'number' ? v : '') + '"></label><div class="note">' + (typeof pv === 'number' ? pm + ': ' + won(pv) + ' <button type="button" class="ghost" data-copy="' + a.id + '" style="padding:2px 6px;min-height:0">같게</button>' : '') + (a.kind === 'invKR' && L.autoSeed.on ? '<br>→ 국장 운용 자산' : a.kind === 'invUS' && L.autoSeed.on ? '<br>→ 미장 운용 자산' : '') + '</div></div>'; }).join('') + '</div>' +
+        '<div class="nwrow"><div class="k"><b style="color:var(--ink)">이 달 현금흐름</b><br>월급·부수입 / 생활비·카드값 합계</div><label class="field"><span>수입 (원)</span><input type="number" inputmode="numeric" step="1" min="0" id="nwInc" data-won value="' + (sp && sp.income != null ? sp.income : '') + '"></label><label class="field"><span>지출 (원)</span><input type="number" inputmode="numeric" step="1" min="0" id="nwExp" data-won value="' + (sp && sp.expense != null ? sp.expense : '') + '"></label></div>' +
         '<div class="note" id="nwPreview"></div>' +
         '<div class="row"><button type="button" class="primary" id="nwSave">' + mo.replace('-', '년 ') + '월 기록 저장</button>' + (sp ? '<button type="button" class="ghost" id="nwDel">이 달 기록 지우기</button>' : '') + '</div>';
       const pv = () => { let a = 0, d = 0; for (const el of $('nwForm').querySelectorAll('[data-bal]')) { const v = parseFloat(el.value), ac = accts.find(x => x.id === el.dataset.bal); if (isFinite(v)) { if (ac.kind === 'debt') d += v; else a += v; } }
         const inc = parseFloat($('nwInc').value), ex = parseFloat($('nwExp').value);
-        $('nwPreview').innerHTML = '저장하면 → 순자산 <b>' + won(a - d) + '</b>' + (isFinite(inc) && inc > 0 ? ' · 저축 ' + swon(inc - (isFinite(ex) ? ex : 0)) + ' (저축률 ' + fmtN((inc - (isFinite(ex) ? ex : 0)) / inc * 100, 0) + '%)' : ''); };
+        $('nwPreview').innerHTML = '저장하면 → 순자산 <b>' + won(a - d) + '</b> (' + korWon(a - d) + ')' + (isFinite(inc) && inc > 0 ? ' · 저축 ' + swon(inc - (isFinite(ex) ? ex : 0)) + ' (저축률 ' + fmtN((inc - (isFinite(ex) ? ex : 0)) / inc * 100, 0) + '%)' : ''); };
       for (const el of $('nwForm').querySelectorAll('input')) el.oninput = pv; pv();
-      for (const b of $('nwForm').querySelectorAll('[data-copy]')) b.onclick = () => { const el = $('nwForm').querySelector('[data-bal="' + b.dataset.copy + '"]'); el.value = psp.bal[b.dataset.copy]; pv(); };
+      for (const b of $('nwForm').querySelectorAll('[data-copy]')) b.onclick = () => { const el = $('nwForm').querySelector('[data-bal="' + b.dataset.copy + '"]'); el.value = psp.bal[b.dataset.copy]; wonHint(el); pv(); };
       $('nwSave').onclick = async () => {
         const bal = {}; for (const el of $('nwForm').querySelectorAll('[data-bal]')) { const v = parseFloat(el.value); if (isFinite(v) && v >= 0) bal[el.dataset.bal] = v; }
         if (!Object.keys(bal).length) { toast('잔액을 하나 이상 적어 주세요'); return; }
@@ -2864,7 +2885,7 @@ const DEMO = (() => {
       await saveLedger(); renderNet(); };
     // 목표
     const goal = L.goal && L.goal.amount > 0 ? L.goal.amount : null, e = goalEta(goal);
-    let gh2 = '<div class="calc"><label class="field"><span>목표 순자산 (원)</span><input type="number" inputmode="numeric" step="1000000" min="0" id="nwGoalIn" value="' + (goal || '') + '"></label><button type="button" class="primary" id="nwGoalSave">목표 저장</button></div>';
+    let gh2 = '<div class="calc"><label class="field"><span>목표 순자산 (원)</span><input type="number" inputmode="numeric" step="1000000" min="0" id="nwGoalIn" data-won value="' + (goal || '') + '"></label><button type="button" class="primary" id="nwGoalSave">목표 저장</button></div>';
     if (goal && e) {
       if (e.done) gh2 += '<div class="alert tp"><b>달성</b> ' + e.cur.mo + ' 순자산 ' + won(e.cur.net) + '로 목표 ' + won(goal) + '를 넘었습니다.</div>';
       else {
@@ -2947,15 +2968,15 @@ const DEMO = (() => {
     box.hidden = false;
     box.innerHTML = '<div class="label" style="grid-column:1/-1">매수 기록 · ' + esc(m === 'KR' ? s.name + ' (' + s.symbol + ')' : s.symbol + ' · ' + s.name) + ' · ' + esc(S[r.key].short) + ' · 신호일 ' + (r.basisDate || r.lastDate) + '</div>' +
       '<label class="field"><span>산 날</span><input type="date" data-b="date" value="' + todayKST() + '"></label>' +
-      '<label class="field"><span>실제 체결가 (계획 ' + P(p.entry) + ')</span><input type="number" step="any" inputmode="decimal" data-b="price" value="' + p.entry + '"></label>' +
+      '<label class="field"><span>실제 체결가 (계획 ' + P(p.entry) + ')</span><input type="number" step="any" inputmode="decimal" data-b="price"' + (m === 'KR' ? ' data-won' : '') + ' value="' + p.entry + '"></label>' +
       '<label class="field"><span>실제 수량 (계획 ' + fmtQ(p.qty, p.frac) + '주)</span><input type="number" step="any" inputmode="decimal" data-b="qty" value="' + (p.qty > 0 ? p.qty : 1) + '"></label>' +
-      '<label class="field"><span>손절가 (체결가 기준 자동)</span><input type="number" step="any" inputmode="decimal" data-b="sl"></label>' +
+      '<label class="field"><span>손절가 (체결가 기준 자동)</span><input type="number" step="any" inputmode="decimal" data-b="sl"' + (m === 'KR' ? ' data-won' : '') + '></label>' +
       '<div class="note" data-b="pv" style="grid-column:1/-1"></div>' +
       '<label class="chkline" style="grid-column:1/-1"><input type="checkbox" data-b="rule"' + (okDefault ? ' checked' : '') + '><span><b>원칙대로 샀다</b> — 신호가 나온 종목을 계획한 방식(예약·지정가·감시 매수)과 수량으로 산 경우만 체크' + (okDefault ? '' : ' <span class="c-down">(이 신호는 지금 추격 금지/보류 상태라 기본으로 체크하지 않았습니다)</span>') + '</span></label>' +
       '<div class="row" style="grid-column:1/-1"><button type="button" class="primary" data-b="ok">보유 종목으로 기록</button><button type="button" data-b="cancel">닫기</button></div>';
     const b = n => box.querySelector('[data-b="' + n + '"]');
     let slTouched = false;
-    const calc = () => { const px = parseFloat(b('price').value), q = parseFloat(b('qty').value); const L = levelsAt(base, px, q); if (!slTouched && isFinite(L.sl)) b('sl').value = L.sl; const sl = parseFloat(b('sl').value), R = px - sl;
+    const calc = () => { const px = parseFloat(b('price').value), q = parseFloat(b('qty').value); const L = levelsAt(base, px, q); if (!slTouched && isFinite(L.sl)) { b('sl').value = L.sl; wonHint(b('sl')); } const sl = parseFloat(b('sl').value), R = px - sl;
       b('pv').innerHTML = R > 0 ? '1R(1주당 손절 손실) <b>' + P(R) + '</b> · 손절 시 총 손실 <b class="c-down">' + monM(m, R * (q || 0)) + '</b>' + (acct(m).equity > 0 ? ' (운용 자산의 ' + fmtN(R * (q || 0) / acct(m).equity * 100, 2) + '%)' : '') + (L.scale ? ' · 익절 지정가 ' + L.scale.filter(z => z.q > 0).map(z => P(z.px) + '×' + fmtQ(z.q, z.q % 1 !== 0)).join(' / ') : isFinite(L.tp1) ? ' · 1차 익절가 ' + P(L.tp1) : '') : '<span class="c-down">손절가가 체결가 이상입니다. 숫자를 확인하세요.</span>'; return { px, q, sl, R, L }; };
     b('price').oninput = calc; b('qty').oninput = calc; b('sl').oninput = () => { slTouched = true; calc(); }; calc();
     b('cancel').onclick = () => { box.hidden = true; };
