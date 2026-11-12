@@ -236,6 +236,32 @@ table.lab tr.recrow{background:var(--accent-soft)}
 table.lab tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .usebtn{font-size:11px;padding:4px 8px}
 @media (max-width:760px){.labcards{grid-template-columns:minmax(0,1fr)}}
+.procards{display:flex;flex-direction:column;gap:12px;padding:0 16px 16px}
+.pcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.pcard.rec{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.pcard.bench{background:var(--soft)}
+.pchd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.pchd h3{margin:0;font-size:16px}
+.pchd .who{font-size:12px;color:var(--muted)}
+.proof{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:4px}
+.proof.high{background:var(--accent);color:var(--accent-ink)} .proof.mid{background:var(--accent-soft);color:var(--accent)} .proof.low{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.pcard .ptext{font-size:12.5px;color:var(--muted);line-height:1.6}
+.pcard .rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pcard .rules>div{font-size:12.5px;line-height:1.6;background:var(--soft);border-radius:8px;padding:9px 11px}
+.pcard .rules b{display:block;font-size:11px;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.pres{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.pres>div{display:flex;flex-direction:column;gap:1px}
+.pres span{font-size:11px;color:var(--muted)}
+.pres b{font-family:var(--f-mono);font-size:15px}
+.fit{display:flex;flex-wrap:wrap;gap:6px}
+.fit span{font-size:11.5px;padding:3px 8px;border-radius:6px;background:var(--soft);border:1px solid var(--line)}
+.fit span.good{background:var(--accent-soft);border-color:transparent;color:var(--accent)} .fit span.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.pfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+details.excl{padding:12px 16px}
+details.excl summary{cursor:pointer;font-weight:600;font-size:14px}
+details.excl ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.65;color:var(--muted)}
+details.excl b{color:var(--ink)}
+@media (max-width:900px){.pres{grid-template-columns:repeat(3,minmax(0,1fr))}.pcard .rules{grid-template-columns:minmax(0,1fr)}}
 .fundsum{font-size:12px;color:var(--muted);background:var(--soft);border-radius:7px;padding:8px 10px;line-height:1.6}
 .fundsum b{color:var(--ink);font-family:var(--f-mono)}
 .calc{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
@@ -356,7 +382,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <div class="tabs" role="tablist">
     <button type="button" role="tab" id="tabSig" data-goto="sig" aria-selected="true">오늘 살 종목</button>
     <button type="button" role="tab" id="tabPos" data-goto="pos" aria-selected="false">내 주문 · 보유 <span class="cnt" id="posCnt" hidden></span></button>
-    <button type="button" role="tab" id="tabLab" data-goto="lab" aria-selected="false">전략 연구소</button>
+    <button type="button" role="tab" id="tabLab" data-goto="lab" aria-selected="false">고수 전략 검증</button>
     <button type="button" role="tab" id="tabBt" data-goto="bt" aria-selected="false">전략 검증</button>
     <button type="button" role="tab" id="tabGuide" data-goto="guide" aria-selected="false">사용법 · 설치</button>
   </div>
@@ -424,30 +450,30 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <div id="viewLab" class="bt" hidden>
     <div class="panel">
       <div class="bthead">
-        <p>받아 둔 시세로 <b>알려진 매매 신호 24가지 × 청산 방식 5가지 = 120개 전략</b>을 똑같은 조건(내 시드, 1회 손실 한도, 동시 보유 제한, 수수료·세금)으로 시뮬레이션합니다. 기간의 <b>앞 70%로 순위를 매기고, 전략이 본 적 없는 뒤 30%로 검증</b>하며, <b>전 종목을 그냥 사서 들고 있었을 때</b>와 비교합니다.</p>
+        <p>실적이 공개적으로 확인된 트레이더의 <b>공개된 매매 규칙</b>을 <b>퇴근 후 실행할 수 있는 방식</b>으로 옮겨, 내 시드·1회 손실 한도·동시 보유 제한·수수료와 세금 조건으로 검증합니다. 기간 <b>앞 70%와 뒤 30%</b>를 나눠 보여주고, <b>그냥 사서 들고 있었을 때</b>와 비교합니다.</p>
         <div class="row">
           <div class="seg" id="labMkt"><button type="button" data-v="KR" aria-pressed="true">국장</button><button type="button" data-v="US" aria-pressed="false">미장</button></div>
-          <button type="button" class="primary" id="labRun">120개 전략 시뮬레이션</button>
+          <button type="button" class="primary" id="labRun">검증 실행</button>
         </div>
       </div>
-      <div class="verdictbox" id="labVerdict">[120개 전략 시뮬레이션]을 누르면 결과가 나옵니다. 국장 300종목 기준 보통 10초 안팎 걸립니다.</div>
-      <div class="labcards" id="labCards"></div>
-      <div class="listhead">
-        <div class="row">
-          <div class="seg" id="labFilter"><button type="button" data-v="top" aria-pressed="true">앞 기간 상위 30</button><button type="button" data-v="pass" aria-pressed="false">양쪽 기간 모두 수익</button><button type="button" data-v="all" aria-pressed="false">전체 120</button></div>
-        </div>
-        <span class="note">열 이름을 누르면 그 기준으로 정렬합니다</span>
-      </div>
-      <div class="tablewrap"><table class="lab">
-        <thead><tr><th>#</th><th data-sort="name">전략 (매수 신호)</th><th data-sort="exit">청산</th><th class="r" data-sort="n">거래 수<br><small>앞 / 뒤</small></th><th class="r" data-sort="win">승률</th><th class="r" data-sort="inExp">거래당 손익<br><small>앞 기간</small></th><th class="r" data-sort="outExp">거래당 손익<br><small>뒤 기간</small></th><th class="r" data-sort="ci">내 계좌 연수익<br><small>앞 기간</small></th><th class="r" data-sort="co">내 계좌 연수익<br><small>뒤 기간</small></th><th class="r" data-sort="mo">최대 낙폭<br><small>뒤 기간</small></th><th>판정</th><th>이 전략으로 투자</th></tr></thead>
-        <tbody id="labBody"></tbody>
-      </table></div>
+      <div class="verdictbox" id="labVerdict">[검증 실행]을 누르면 받아 둔 시세로 아래 전략들을 한 번에 검증합니다 (몇 초).</div>
+      <div class="procards" id="proCards"></div>
     </div>
+    <details class="panel excl">
+      <summary>검토했지만 뺀 전략과 이유</summary>
+      <ul>
+        <li><b>래리 윌리엄스 변동성 돌파</b> — 1987년 선물 트레이딩 월드컵에서 1년간 1만 달러를 113만 7,600달러(11,376%)로 만든 기록이 있지만, 그날 시가를 보고 매수가를 정하는 방식이라 <b>장 시작 직후 주문이 필요</b>해 퇴근 후 실행이 어렵고, 매일 사고팔아 국내 증권거래세(0.20%) 부담도 큽니다.</li>
+        <li><b>윌리엄 오닐 · 데이비드 라이언 CAN SLIM</b> — 라이언은 미국 투자 챔피언십을 1985년 161%, 1986년 160%, 1987년 100% 이상으로 3연패했지만, 핵심 조건인 <b>분기 실적(EPS) 성장 같은 재무 데이터</b>가 지금 받는 시세에 없어 그대로 재현할 수 없습니다. 기술적 기준(신고가 근처, 상대강도, 7% 손절)은 미너비니 전략에 대부분 들어 있습니다.</li>
+        <li><b>국내 실전투자대회 수상자</b> — 수익률이 높게 소개된 경우가 있지만 대부분 <b>테마·뉴스 기반 단타</b>라 규칙이 숫자로 공개되지 않았고 장중 대응이 필요합니다.</li>
+        <li><b>스탠 와인스태인 30주선 단계 분석, 니콜라스 다바스 박스 이론</b> — 규칙은 유명하지만 공개 대회나 검증된 실계좌 수익 기록을 이번 조사에서 확인하지 못했습니다.</li>
+        <li><b>지난번 120개 지표 조합</b>과 <b>2주 돌파 스윙</b> — 특정 인물의 검증된 실적과 상관없는 조합이거나 검증 결과 손실이라 뺐습니다.</li>
+      </ul>
+    </details>
     <div class="panel howto">
-      <div><b>왜 앞·뒤로 나누나요?</b> 120개를 같은 데이터로 돌리면 일부는 순전히 운으로 좋게 나옵니다. 그래서 순위는 앞 70%로만 정하고, 뒤 30%는 "처음 보는 시장"에서도 통했는지 확인하는 데만 씁니다. 뒤 기간 성적으로 고르면 같은 함정에 다시 빠집니다.</div>
-      <div><b>판정 뜻</b> <span class="verdict go">통과</span> 앞·뒤 기간 모두 계좌 수익이 플러스이고 뒤 기간 거래가 30회 이상. <span class="verdict near">뒤에서 약화</span> 앞에서는 좋았지만 뒤에서 손실. <span class="verdict no">손실</span> 앞 기간부터 손실.</div>
-      <div><b>단순 보유와 비교</b> 지금 목록의 종목을 똑같은 금액으로 사서 들고만 있었을 때의 연수익입니다. 매매 전략이 이걸 못 이기면 굳이 매매할 이유가 약합니다.</div>
-      <div><b>한계</b> 종목 목록이 "지금" 시가총액 상위라서, 과거에 망한 종목이 빠져 있습니다. 그래서 단순 보유와 전략 모두 실제보다 좋게 나옵니다. 과거 결과는 미래 수익을 보장하지 않습니다.</div>
+      <div><b>실적 근거 표시</b> <span class="proof high">대회 실적</span> 실계좌로 겨루는 공개 대회 우승 기록이 있음. <span class="proof mid">공개 기록</span> 참가자·저자가 공개한 성과(독립 감사 자료는 확인 못 함). <span class="proof low">규칙만 공개</span> 수익 수치를 확인하지 못함.</div>
+      <div><b>퇴근 후 실행 버전</b> 원래 장중에 주문하는 규칙은 "종가로 신호 확인 → 다음 날 예약 주문"으로 바꿨습니다. 원래 방식보다 체결가가 조금 불리할 수 있습니다.</div>
+      <div><b>판정</b> <span class="verdict go">통과</span> 앞·뒤 기간 모두 계좌 수익 + 뒤 기간 거래 30회 이상. <span class="verdict near">뒤에서 약화</span> 앞에서는 좋았지만 뒤에서 손실. <span class="verdict no">손실</span> 앞 기간부터 손실.</div>
+      <div><b>한계</b> 종목 목록이 "지금" 시가총액 상위라 과거에 망한 종목이 빠져 있어 결과가 실제보다 좋게 나옵니다. 대회 우승자의 실력이 이 규칙만으로 재현된다는 보장도 없습니다. 과거 결과는 미래 수익을 보장하지 않습니다.</div>
     </div>
   </div>
 
@@ -581,14 +607,14 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <li>저장을 깜빡하고 이미 샀다면 "② 보유 중"의 <b>[직접 추가]</b>로 종목코드, 산 가격, 수량, 손절가를 넣으세요.</li>
 </ol>
 
-<h2>전략 연구소: 어떤 매매법이 잘 맞았는지 비교하고 골라 쓰기</h2>
+<h2>고수 전략 검증: 실적이 확인된 트레이더의 규칙으로 투자하기</h2>
 <ol>
-  <li><b>[전략 연구소]</b> 탭에서 국장/미장을 고르고 <b>[120개 전략 시뮬레이션]</b>을 누릅니다. MACD, 이동평균 골든크로스, RSI, 볼린저밴드, 신고가 돌파, 스토캐스틱, 급락 후 반등, 거래량 급증, 삼역호전 등 24가지 매수 신호 × 5가지 청산 방식을 내 시드와 같은 조건으로 돌립니다.</li>
-  <li>결과는 <b>기간 앞 70%로 순위</b>를 매기고, <b>뒤 30%(전략이 본 적 없는 기간)</b> 성적을 함께 보여줍니다. <span class="verdict go">통과</span>는 앞·뒤 모두 계좌 수익이 난 전략입니다.</li>
-  <li>맨 위 카드의 <b>"단순 보유"</b>는 같은 종목을 그냥 사서 들고 있었을 때입니다. 매매 전략이 이걸 못 이기면 굳이 매매할 이유가 약합니다.</li>
-  <li>마음에 드는 전략 줄의 <b>[국장에 쓰기]</b>(또는 미장)를 누르면 <b>오늘 살 종목·주문표·내 주문 관리가 모두 그 전략 기준</b>으로 바뀝니다. 되돌리려면 "전략 · 데이터 · 세부 설정"의 시장별 전략에서 고르세요.</li>
+  <li><b>[고수 전략 검증]</b> 탭에는 실적 근거가 있는 트레이더의 공개 규칙을 퇴근 후 실행 방식으로 옮긴 전략이 있습니다: <b>미너비니 SEPA</b>(미국 투자 챔피언십 우승), <b>터틀 시스템 1·2</b>(리처드 데니스의 터틀 실험), <b>라쉬키 홀리 그레일</b>(규칙만 공개).</li>
+  <li>국장/미장을 고르고 <b>[검증 실행]</b>을 누르면, 내 시드·1회 손실 한도·동시 보유 제한으로 기간 앞 70%와 뒤 30%를 나눠 검증하고 "그냥 들고 있기"와 비교합니다.</li>
+  <li>카드마다 <b>원래 규칙</b>, <b>퇴근 후 실행 방법</b>, <b>내 상황 적합도</b>(예약주문으로 가능한지, 평균 보유 기간, 내 시드로 살 수 있는 신호 비율)가 나옵니다.</li>
+  <li><b>[국장에 이 전략 쓰기]</b>를 누르면 오늘 살 종목, 주문표, 내 주문·보유 관리가 그 전략의 규칙대로 바뀝니다. 예를 들어 터틀은 "매일 저녁 손절가를 10일 최저가로 끌어올리기", 미너비니는 "종가가 50일선 아래면 다음 날 시가 매도"를 [내 주문 · 보유]에서 매일 알려줍니다.</li>
 </ol>
-<div class="caution">120개를 같은 데이터로 돌리면 일부는 운으로 좋게 나옵니다. 뒤 기간 성적이 제일 좋은 전략을 고르면 같은 함정에 다시 빠지니, "추천"(양쪽 기간 모두 수익인 전략 중 앞 기간 1위)을 기준으로 삼고 소액으로 실전 기록을 쌓아 확인하세요.</div>
+<div class="caution">대회 우승자의 실력이 공개된 규칙만으로 그대로 재현된다는 보장은 없습니다. 검증 결과를 참고해 소액으로 실전 기록을 쌓으며 확인하세요. 뺀 전략과 이유는 탭 아래 "검토했지만 뺀 전략과 이유"에 있습니다.</div>
 
 <h2>여러 기기에서 같은 기록 쓰기</h2>
 <ul>
@@ -767,17 +793,6 @@ const ENGINE = (() => {
     });
   }
   const smaX = (ind, n) => X(ind, 'sma' + n, () => sma(ind.c, n));
-  function macdX(ind, f, sl, g) {
-    return X(ind, 'macd' + f + '_' + sl + '_' + g, () => { const a = X(ind, 'ema' + f, () => ema(ind.c, f)), b = X(ind, 'ema' + sl, () => ema(ind.c, sl)); const m = a.map((x, i) => x - b[i]); return { m, s: ema(m, g) }; });
-  }
-  function stochX(ind) {
-    return X(ind, 'stoch', () => {
-      const L = ind.c.length, fk = NaNs(L);
-      for (let i = 13; i < L; i++) { let hi = -Infinity, lo = Infinity; for (let j = i - 13; j <= i; j++) { if (ind.h[j] > hi) hi = ind.h[j]; if (ind.l[j] < lo) lo = ind.l[j]; } fk[i] = hi > lo ? (ind.c[i] - lo) / (hi - lo) * 100 : 50; }
-      const fkClean = fk.map(v => isNaN(v) ? 0 : v), k = sma(fkClean, 3).map((v, i) => i < 15 ? NaN : v), d = sma(k.map(v => isNaN(v) ? 0 : v), 3).map((v, i) => i < 17 ? NaN : v);
-      return { k, d };
-    });
-  }
   const hiPrevX = (ind, arr, n) => X(ind, 'hi' + arr + n, () => { const m = rollMax(ind[arr], n); return m.map((_, i) => i > 0 ? m[i - 1] : NaN); });
   const volAvgAt = (ind, t, cfg) => cfg.volAvgExcludeToday ? ind.volAvg20[t - 1] : ind.volAvg20[t];
 
@@ -873,101 +888,168 @@ const ENGINE = (() => {
     }
   };
 
-  // ---------- 전략 연구소: 시중에 알려진 매매 신호 + 청산 방식 조합 ----------
-  // 키 형식: lab|가족|변형|청산   예) lab|macd|12-26-9-f|time20
-  const EXITS = {
-    market: { name: '시장별 원칙', desc: '1.5R 절반 익절 → 국장 2.5R·볼린저 / 미장 추세선 추종' },
-    swing: { name: '분할 익절 · 보유 제한', desc: '1.5R 절반 익절 → 2.5R·볼린저, 최대 보유일(기본 10일)에 정리' },
-    target: { name: '+2R 전량 익절', desc: '+2R에서 전량 익절, 최대 보유일(기본 10일)에 정리' },
-    time5: { name: '5일 보유', desc: '손절만 걸고 5거래일째 종가에 전량 매도' },
-    time20: { name: '20일 보유', desc: '손절만 걸고 20거래일째 종가에 전량 매도' }
+  // ---------- 검증된 트레이더 전략 (공개된 원래 규칙 → 퇴근 후 실행 버전) ----------
+  // custom 전략 훅: entry(ind,t) → {type:'open'} | {type:'stop', level}, stopRule(ind,t) → 첫 손절 규칙, trail(ind,j) → 그날 적용할 추적 손절가,
+  //                 exitClose(ind,j,tr) → 종가 기준 청산(다음 날 시가 매도), target(ind,t,entry,R), cap(보유 최대일)
+  function adxX(ind) {
+    return X(ind, 'adx', () => {
+      const L = ind.c.length, n = 14, adx = NaNs(L), pdi = NaNs(L), mdi = NaNs(L);
+      let tr = 0, pd = 0, md = 0, dxs = [], prevAdx = NaN;
+      for (let i = 1; i < L; i++) {
+        const up = ind.h[i] - ind.h[i - 1], dn = ind.l[i - 1] - ind.l[i];
+        const p = up > dn && up > 0 ? up : 0, m = dn > up && dn > 0 ? dn : 0;
+        const t = Math.max(ind.h[i] - ind.l[i], Math.abs(ind.h[i] - ind.c[i - 1]), Math.abs(ind.l[i] - ind.c[i - 1]));
+        if (i <= n) { tr += t; pd += p; md += m; if (i < n) continue; } else { tr = tr - tr / n + t; pd = pd - pd / n + p; md = md - md / n + m; }
+        pdi[i] = tr ? 100 * pd / tr : 0; mdi[i] = tr ? 100 * md / tr : 0;
+        const dx = pdi[i] + mdi[i] ? 100 * Math.abs(pdi[i] - mdi[i]) / (pdi[i] + mdi[i]) : 0;
+        if (isNaN(prevAdx)) { dxs.push(dx); if (dxs.length === n) { prevAdx = dxs.reduce((a, b) => a + b, 0) / n; adx[i] = prevAdx; } }
+        else { prevAdx = (prevAdx * (n - 1) + dx) / n; adx[i] = prevAdx; }
+      }
+      return { adx, pdi, mdi };
+    });
+  }
+  const loPrevX = (ind, n) => X(ind, 'lo' + n, () => { const L = ind.c.length, out = NaNs(L); for (let i = n; i < L; i++) { let m = Infinity; for (let j = i - n; j < i; j++) if (ind.l[j] < m) m = ind.l[j]; out[i] = m; } return out; });
+  const hiNX = (ind, n) => X(ind, 'hiN' + n, () => { const L = ind.c.length, out = NaNs(L); for (let i = n; i < L; i++) { let m = -Infinity; for (let j = i - n; j < i; j++) if (ind.h[j] > m) m = ind.h[j]; out[i] = m; } return out; });
+  const lo252X = ind => X(ind, 'lo252', () => { const L = ind.c.length, out = NaNs(L); for (let i = 251; i < L; i++) { let m = Infinity; for (let j = i - 251; j <= i; j++) if (ind.l[j] < m) m = ind.l[j]; out[i] = m; } return out; });
+  const hi252X = ind => X(ind, 'hi252', () => { const L = ind.c.length, out = NaNs(L); for (let i = 251; i < L; i++) { let m = -Infinity; for (let j = i - 251; j <= i; j++) if (ind.h[j] > m) m = ind.h[j]; out[i] = m; } return out; });
+  // 상대강도(RS) 백분위: IBD 방식 가중 수익률(최근 3개월 40% + 이전 3개 분기 각 20%)을 같은 날 전 종목과 비교 (0~99)
+  function attachRS(stocks) {
+    const byDate = new Map();
+    for (const s of stocks) {
+      const ind = compute(s.bars), c = ind.c, L = c.length, sc = NaNs(L);
+      for (let i = 252; i < L; i++) sc[i] = 0.4 * (c[i] / c[i - 63] - 1) + 0.2 * (c[i - 63] / c[i - 126] - 1) + 0.2 * (c[i - 126] / c[i - 189] - 1) + 0.2 * (c[i - 189] / c[i - 252] - 1);
+      ind._x.rsPct = NaNs(L);
+      for (let i = 252; i < L; i++) { const d = ind.dates[i]; if (!byDate.has(d)) byDate.set(d, []); byDate.get(d).push([sc[i], ind, i]); }
+    }
+    for (const arr of byDate.values()) { arr.sort((a, b) => a[0] - b[0]); const n = arr.length; arr.forEach(([, ind, i], k) => { ind._x.rsPct[i] = n > 1 ? Math.floor(k / (n - 1) * 99) : 50; }); }
+  }
+  const sma50 = ind => smaX(ind, 50), sma150 = ind => smaX(ind, 150);
+  const PRO = {
+    turtle1: {
+      name: '터틀 시스템 1 (20일 돌파)', short: '터틀 시스템 1', who: '리처드 데니스 · 터틀 트레이더',
+      proof: { level: 'mid', text: '1983년 리처드 데니스가 초보자를 모아 훈련한 실험. 규칙은 참가자 커티스 페이스 등이 책으로 공개. 운용 성과(5년 1억7,500만 달러 등)는 참가자·저자 기록이며 독립 감사 자료는 확인하지 못함' },
+      original: '20일 최고가 돌파 시 매수 · 10일 최저가 이탈 시 매도 · 손절 2N(N=20일 ATR) · 1회 위험 계좌의 1~2% · 직전 돌파가 수익이었으면 다음 신호는 건너뜀(이 앱은 미적용)',
+      afterWork: '종가가 20일 최고가를 넘은 날 저녁 → 다음 날 시가 예약 매수. 보유 중에는 매일 저녁 손절 감시주문을 "10일 최저가와 진입가−2N 중 높은 값"으로 갱신',
+      labels: ['종가가 직전 20일 최고가 돌파'], custom: true,
+      evaluate(ind, t) { const H = hiNX(ind, 20), N = atr(ind, 20); const x = { close: ind.c[t], hi: H[t], N: N[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] }; if (!ok(x.hi) || !ok(x.N)) return { ready: false, x }; return { ready: true, x, conds: [x.close > x.hi] }; },
+      rows: (e, P, cfg, F) => [['오늘 종가 > 직전 20일 최고가', P(e.x.close) + ' / ' + P(e.x.hi) + '<br>N(20일 ATR) ' + P(e.x.N)]],
+      entry: () => ({ type: 'open' }),
+      stopRule: (ind, t) => ({ type: 'abs', v: 2 * atr(ind, 20)[t] }), stopSrc: '진입가 − 2N',
+      trail: (ind, j) => loPrevX(ind, 10)[j], trailN: 10, trailText: '10일 최저가',
+      cap: 0
+    },
+    turtle2: {
+      name: '터틀 시스템 2 (55일 돌파)', short: '터틀 시스템 2', who: '리처드 데니스 · 터틀 트레이더',
+      proof: { level: 'mid', text: '시스템 1과 같은 출처. 더 긴 추세를 노리는 버전으로, 신호가 드물고 보유 기간이 깁니다' },
+      original: '55일 최고가 돌파 시 매수 · 20일 최저가 이탈 시 매도 · 손절 2N',
+      afterWork: '종가가 55일 최고가를 넘은 날 저녁 → 다음 날 시가 예약 매수. 매일 저녁 손절 감시주문을 "20일 최저가와 진입가−2N 중 높은 값"으로 갱신',
+      labels: ['종가가 직전 55일 최고가 돌파'], custom: true,
+      evaluate(ind, t) { const H = hiNX(ind, 55), N = atr(ind, 20); const x = { close: ind.c[t], hi: H[t], N: N[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] }; if (!ok(x.hi) || !ok(x.N)) return { ready: false, x }; return { ready: true, x, conds: [x.close > x.hi] }; },
+      rows: (e, P) => [['오늘 종가 > 직전 55일 최고가', P(e.x.close) + ' / ' + P(e.x.hi) + '<br>N(20일 ATR) ' + P(e.x.N)]],
+      entry: () => ({ type: 'open' }),
+      stopRule: (ind, t) => ({ type: 'abs', v: 2 * atr(ind, 20)[t] }), stopSrc: '진입가 − 2N',
+      trail: (ind, j) => loPrevX(ind, 20)[j], trailN: 20, trailText: '20일 최저가',
+      cap: 0
+    },
+    minervini: {
+      name: '미너비니 트렌드 템플릿 + 피벗 돌파', short: '미너비니 SEPA', who: '마크 미너비니',
+      proof: { level: 'high', text: '실계좌로 겨루는 미국 투자 챔피언십(U.S. Investing Championship) 우승: 1997년 연 155%, 2021년 연 334.8%(주최 측 발표·보도자료 기준). 규칙은 저서 『초수익 성장주 투자』 등에 공개. 같은 대회 3연패한 데이비드 라이언(오닐의 CAN SLIM)도 비슷한 기술적 기준을 씀' },
+      original: '트렌드 템플릿 8개 조건(주가>50·150·200일선, 50>150>200일선, 200일선 1개월 이상 상승, 52주 저가 대비 +30% 이상, 52주 고가의 75% 이상, 상대강도 70 이상) + 변동성이 줄어든 횡보(VCP) 후 거래량 40% 이상 늘며 피벗 돌파 매수 · 손절 7~8%',
+      afterWork: '조건을 모두 갖추고 종가가 피벗(직전 10일 고가)을 거래량과 함께 넘은 날 저녁 → 다음 날 시가 예약 매수. 손절 감시주문 −7%, +15% 오르면 손절가를 산 가격으로 올림. 종가가 50일선 아래로 마감하면 다음 날 시가 매도',
+      labels: ['트렌드 템플릿 (이평선 정배열)', '52주 고가·저가 위치', '상대강도 70 이상', '좁은 횡보 후 피벗 돌파 + 거래량'], custom: true, needsRS: true,
+      evaluate(ind, t) {
+        const s50 = sma50(ind), s150 = sma150(ind), s200 = ind.sma200, H = hiNX(ind, 10), Lo = loPrevX(ind, 10), hi52 = hi252X(ind), lo52 = lo252X(ind), rs = ind._x.rsPct;
+        const x = { close: ind.c[t], s50: s50[t], s150: s150[t], s200: s200[t], s200m: s200[t - 21], hi52: hi52[t], lo52: lo52[t], rs: rs ? rs[t] : NaN, pivot: H[t], baseLo: Lo[t], volRatio: ind.v[t] / ind.volAvg20[t - 1], rsi: ind.rsi[t] };
+        if (![x.s200, x.s200m, x.hi52, x.lo52, x.pivot, x.volRatio].every(ok)) return { ready: false, x };
+        x.depth = (x.pivot - x.baseLo) / x.pivot * 100;
+        const c1 = x.close > x.s50 && x.close > x.s150 && x.close > x.s200 && x.s50 > x.s150 && x.s150 > x.s200 && x.s200 > x.s200m;
+        const c2 = x.close >= x.lo52 * 1.3 && x.close >= x.hi52 * 0.75;
+        const c3 = ok(x.rs) && x.rs >= 70;
+        const c4 = x.depth <= 10 && x.close > x.pivot && x.volRatio >= 1.4;
+        return { ready: true, x, conds: [c1, c2, c3, c4] };
+      },
+      rows: (e, P, cfg, F) => [
+        ['주가 > 50·150·200일선, 50 > 150 > 200일선, 200일선 1개월 전보다 위', P(e.x.close) + ' · ' + P(e.x.s50) + ' / ' + P(e.x.s150) + ' / ' + P(e.x.s200)],
+        ['52주 저가 대비 +30% 이상 · 52주 고가의 75% 이상', '저가 ' + P(e.x.lo52) + ' · 고가 ' + P(e.x.hi52)],
+        ['상대강도 백분위 ≥ 70 (같은 날 전 종목 대비)', ok(e.x.rs) ? e.x.rs + '' : '–'],
+        ['직전 10일 변동폭 ≤ 10% · 종가 > 피벗(10일 고가) · 거래량 ≥ 1.4배', '변동폭 ' + F.n(e.x.depth, 1) + '% · 피벗 ' + P(e.x.pivot) + ' · ' + F.n(e.x.volRatio, 2) + '배']],
+      entry: () => ({ type: 'open' }),
+      stopRule: () => ({ type: 'pct', v: 0.07 }), stopSrc: '산 가격 − 7%',
+      breakeven: 1.15,
+      exitClose: (ind, j) => ind.c[j] < sma50(ind)[j], exitText: '종가가 50일선 아래로 마감',
+      cap: 0
+    },
+    raschke: {
+      name: '라쉬키 홀리 그레일 (강한 추세의 20일선 눌림)', short: '홀리 그레일', who: '린다 라쉬키',
+      proof: { level: 'low', text: '『시장의 마법사들』 인터뷰 트레이더, 저서 『Street Smarts』(1995, 래리 코너스 공저)에 규칙 공개. 공개 대회나 감사받은 수익률 수치는 이번 조사에서 확인하지 못함' },
+      original: 'ADX(14) 30 이상 강한 추세 → 가격이 20일 지수이평선까지 눌리면, 전날 고가 위에 매수 스탑 주문 · 손절은 새로 생긴 스윙 저점, 이후 추적',
+      afterWork: '조건이 맞은 날 저녁 → 다음 날 "오늘 고가 이상이면 매수" 감시 매수주문(증권사 지원 필요). 손절 = 최근 3일 최저가, 이후 매일 저녁 5일 최저가로 끌어올림. 익절 = 직전 20일 고가, 최대 15일 보유',
+      labels: ['ADX 30 이상 상승 추세', '20일 지수이평선까지 눌림'], custom: true, needsStopBuy: true,
+      evaluate(ind, t) { const A = adxX(ind); const x = { adx: A.adx[t], pdi: A.pdi[t], mdi: A.mdi[t], low: ind.l[t], ema20: ind.ema20[t], close: ind.c[t], high: ind.h[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
+        if (![x.adx, x.ema20].every(ok)) return { ready: false, x }; return { ready: true, x, conds: [x.adx >= 30 && x.pdi > x.mdi, x.low <= x.ema20 && x.close >= x.ema20 * 0.97] }; },
+      rows: (e, P, cfg, F) => [['ADX(14) ≥ 30, +DI > −DI', 'ADX ' + F.n(e.x.adx, 1) + ' · +DI ' + F.n(e.x.pdi, 1) + ' / −DI ' + F.n(e.x.mdi, 1)], ['오늘 저가가 20 EMA에 닿고 종가는 크게 무너지지 않음', '저가 ' + P(e.x.low) + ' · 20EMA ' + P(e.x.ema20)]],
+      entry: (ind, t) => ({ type: 'stop', level: ind.h[t] }),
+      stopRule: (ind, t) => ({ type: 'fixed', v: Math.min(ind.l[t], ind.l[t - 1], ind.l[t - 2]) }), stopSrc: '최근 3일 최저가',
+      trail: (ind, j) => loPrevX(ind, 5)[j], trailN: 5, trailText: '5일 최저가',
+      target: (ind, t, entry, R) => { const h = hiNX(ind, 20)[t]; return h > entry + 0.5 * R ? h : entry + 2 * R; }, targetText: '직전 20일 고가',
+      cap: 15
+    }
   };
-  const atrStop = (ind, t) => ({ sl: ind.c[t] - 2 * atr(ind, 14)[t], src: '종가 − 2×ATR(14)' });
-  const f200 = (ind, t) => ind.c[t] > ind.sma200[t];
-  const crossUp = (a, b, t) => a[t] > b[t] && a[t - 1] <= b[t - 1];
-  const vr = (ind, t, cfg) => ind.v[t] / volAvgAt(ind, t, cfg);
-  const FAM = {
-    macd: { variants: ['12-26-9-f', '12-26-9-n', '8-21-5-f', '8-21-5-n'],
-      build(p) { const [f, sl, g, fl] = p.split('-'); const F2 = fl === 'f';
-        return { name: 'MACD(' + f + '·' + sl + '·' + g + ') 골든크로스' + (F2 ? ' + 200일선 위' : ''), labels: ['MACD 골든크로스'].concat(F2 ? ['200일선 위'] : []),
-          evaluate(ind, t) { const M = macdX(ind, +f, +sl, +g); const x = { macd: M.m[t], sig: M.s[t], close: ind.c[t], sma200: ind.sma200[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (!ok(M.s[t - 1]) || !ok(x.sma200)) return { ready: false, x }; return { ready: true, x, conds: [crossUp(M.m, M.s, t)].concat(F2 ? [f200(ind, t)] : []) }; },
-          rows: (e, P, cfg, Fm) => [['오늘 MACD가 시그널선을 위로 교차', Fm.n(e.x.macd, 3) + ' / ' + Fm.n(e.x.sig, 3)]].concat(F2 ? [['종가 > 200일선', P(e.x.close) + ' / ' + P(e.x.sma200)]] : []) }; } },
-    ma: { variants: ['5-20', '20-60', '50-200'],
-      build(p) { const [a, b] = p.split('-').map(Number);
-        return { name: a + '일·' + b + '일 이동평균 골든크로스', labels: [a + '일선이 ' + b + '일선 상향 돌파'],
-          evaluate(ind, t) { const A = smaX(ind, a), B = smaX(ind, b); const x = { a: A[t], b: B[t], close: ind.c[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (!ok(B[t - 1])) return { ready: false, x }; return { ready: true, x, conds: [crossUp(A, B, t)] }; },
-          rows: (e, P) => [['오늘 ' + a + '일선이 ' + b + '일선을 위로 교차', P(e.x.a) + ' / ' + P(e.x.b)]] }; } },
-    rsi: { variants: ['25', '30', '35'],
-      build(p) { const th = +p;
-        return { name: 'RSI ' + th + ' 과매도 반등 + 200일선 위', labels: ['RSI ' + th + ' 위로 회복', '200일선 위'],
-          evaluate(ind, t) { const x = { rsi: ind.rsi[t], prev: ind.rsi[t - 1], close: ind.c[t], sma200: ind.sma200[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (!ok(x.prev) || !ok(x.sma200)) return { ready: false, x }; return { ready: true, x, conds: [x.prev < th && x.rsi >= th, f200(ind, t)] }; },
-          rows: (e, P, cfg, Fm) => [['어제 RSI ' + th + ' 아래 → 오늘 ' + th + ' 이상', Fm.n(e.x.prev, 1) + ' → ' + Fm.n(e.x.rsi, 1)], ['종가 > 200일선', P(e.x.close) + ' / ' + P(e.x.sma200)]] }; } },
-    bbrev: { variants: ['f', 'n'],
-      build(p) { const F2 = p === 'f';
-        return { name: '볼린저 하단 복귀(역추세)' + (F2 ? ' + 200일선 위' : ''), labels: ['볼린저 하단 아래 → 복귀'].concat(F2 ? ['200일선 위'] : []),
-          evaluate(ind, t) { const x = { close: ind.c[t], low: ind.bbLow[t], prevClose: ind.c[t - 1], prevLow: ind.bbLow[t - 1], sma200: ind.sma200[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (!ok(x.prevLow) || !ok(x.sma200)) return { ready: false, x }; return { ready: true, x, conds: [x.prevClose < x.prevLow && x.close > x.low].concat(F2 ? [f200(ind, t)] : []) }; },
-          rows: (e, P) => [['어제 종가가 하단 밴드 아래 → 오늘 위로 복귀', P(e.x.prevClose) + '/' + P(e.x.prevLow) + ' → ' + P(e.x.close) + '/' + P(e.x.low)]].concat(F2 ? [['종가 > 200일선', P(e.x.close) + ' / ' + P(e.x.sma200)]] : []) }; } },
-    bbbrk: { variants: ['v'],
-      build() {
-        return { name: '볼린저 상단 돌파 + 거래량', labels: ['볼린저 상단 돌파', '거래량 1.5배'],
-          evaluate(ind, t, cfg) { const x = { close: ind.c[t], up: ind.bbUp[t], volRatio: vr(ind, t, cfg), rsi: ind.rsi[t] };
-            if (!ok(x.up) || !ok(x.volRatio)) return { ready: false, x }; return { ready: true, x, conds: [x.close > x.up, x.volRatio >= 1.5] }; },
-          rows: (e, P, cfg, Fm) => [['종가 > 볼린저 상단', P(e.x.close) + ' / ' + P(e.x.up)], ['거래량 ≥ 20일 평균 × 1.5', Fm.n(e.x.volRatio, 2) + '배']] }; } },
-    donch: { variants: ['20', '55'],
-      build(p) { const n = +p;
-        return { name: n + '일 신고가 돌파 (터틀)', labels: ['직전 ' + n + '일 최고가 돌파'],
-          evaluate(ind, t) { const H = hiPrevX(ind, 'h', n); const x = { close: ind.c[t], hi: H[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (!ok(x.hi) || t < n + 1) return { ready: false, x }; return { ready: true, x, conds: [x.close > x.hi] }; },
-          rows: (e, P) => [['종가 > 직전 ' + n + '일 최고가', P(e.x.close) + ' / ' + P(e.x.hi)]] }; } },
-    stoch: { variants: ['f', 'n'],
-      build(p) { const F2 = p === 'f';
-        return { name: '스토캐스틱(14·3·3) 과매도 골든크로스' + (F2 ? ' + 200일선 위' : ''), labels: ['%K가 20 아래에서 %D 상향 교차'].concat(F2 ? ['200일선 위'] : []),
-          evaluate(ind, t) { const S2 = stochX(ind); const x = { k: S2.k[t], d: S2.d[t], close: ind.c[t], sma200: ind.sma200[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (!ok(S2.d[t - 1]) || !ok(x.sma200)) return { ready: false, x }; return { ready: true, x, conds: [crossUp(S2.k, S2.d, t) && S2.k[t - 1] < 20].concat(F2 ? [f200(ind, t)] : []) }; },
-          rows: (e, P, cfg, Fm) => [['%K가 %D를 위로 교차 (어제 %K < 20)', Fm.n(e.x.k, 1) + ' / ' + Fm.n(e.x.d, 1)]].concat(F2 ? [['종가 > 200일선', P(e.x.close) + ' / ' + P(e.x.sma200)]] : []) }; } },
-    rev5: { variants: ['7', '10'],
-      build(p) { const dd = +p;
-        return { name: '5일 급락 후 반등 (−' + dd + '%) + 200일선 위', labels: ['5일간 ' + dd + '% 이상 하락', '200일선 위', '오늘 양봉'],
-          evaluate(ind, t) { const x = { ret5: (ind.c[t - 1] / ind.c[t - 6] - 1) * 100, close: ind.c[t], open: ind.o[t], sma200: ind.sma200[t], rsi: ind.rsi[t], volRatio: ind.v[t] / ind.volAvg20[t - 1] };
-            if (t < 7 || !ok(x.sma200)) return { ready: false, x }; return { ready: true, x, conds: [x.ret5 <= -dd, f200(ind, t), x.close > x.open] }; },
-          rows: (e, P, cfg, Fm) => [['어제까지 5일 수익률 ≤ −' + dd + '%', Fm.n(e.x.ret5, 1) + '%'], ['종가 > 200일선', P(e.x.close) + ' / ' + P(e.x.sma200)], ['오늘 양봉', P(e.x.open) + ' → ' + P(e.x.close)]] }; } },
-    high52: { variants: ['v'],
-      build() {
-        return { name: '52주 신고가 + 거래량', labels: ['52주 신고가', '거래량 1.5배'],
-          evaluate(ind, t, cfg) { const H = hiPrevX(ind, 'c', 252); const x = { close: ind.c[t], hi: H[t], volRatio: vr(ind, t, cfg), rsi: ind.rsi[t] };
-            if (!ok(x.hi) || !ok(x.volRatio)) return { ready: false, x }; return { ready: true, x, conds: [x.close > x.hi, x.volRatio >= 1.5] }; },
-          rows: (e, P, cfg, Fm) => [['종가 > 직전 252일 최고 종가', P(e.x.close) + ' / ' + P(e.x.hi)], ['거래량 ≥ 20일 평균 × 1.5', Fm.n(e.x.volRatio, 2) + '배']] }; } },
-    vol: { variants: ['v'],
-      build() {
-        return { name: '거래량 급증 장대양봉', labels: ['거래량 2배', '3% 이상 상승 양봉', '20일선 위'],
-          evaluate(ind, t, cfg) { const A = smaX(ind, 20); const x = { volRatio: vr(ind, t, cfg), chg: (ind.c[t] / ind.c[t - 1] - 1) * 100, close: ind.c[t], open: ind.o[t], ma20: A[t], rsi: ind.rsi[t] };
-            if (!ok(x.volRatio) || !ok(x.ma20)) return { ready: false, x }; return { ready: true, x, conds: [x.volRatio >= 2, x.chg >= 3 && x.close > x.open, x.close > x.ma20] }; },
-          rows: (e, P, cfg, Fm) => [['거래량 ≥ 20일 평균 × 2', Fm.n(e.x.volRatio, 2) + '배'], ['전일 대비 +3% 이상 & 양봉', Fm.n(e.x.chg, 1) + '%'], ['종가 > 20일선', P(e.x.close) + ' / ' + P(e.x.ma20)]] }; } }
-  };
+  for (const [k, v] of Object.entries(PRO)) STRATS['pro|' + k] = Object.assign(v, { exit: 'custom', pro: k });
+  const stopFrom = (rule, entry) => rule.type === 'pct' ? entry * (1 - rule.v) : rule.type === 'abs' ? entry - rule.v : rule.v;
   const BASE_KEYS = ['trend', 'pullback', 'breakout'];
-  function buildLab(key) {
-    const [, fam, p, ex] = key.split('|');
-    if (!EXITS[ex]) return null;
-    let core;
-    if (fam === 'base') { const b = STRATS[p]; if (!b || !BASE_KEYS.includes(p)) return null; core = { name: b.name, short: b.short, labels: b.labels, evaluate: b.evaluate, rows: b.rows, stop: b.stop }; }
-    else { const F = FAM[fam]; if (!F || !F.variants.includes(p)) return null; core = F.build(p); core.stop = atrStop; }
-    const short = (core.short || core.name.replace(/ \+ 200일선 위/g, '+200일선').replace(/ \(터틀\)|\(역추세\)| 골든크로스(?=\+|$)/g, '')) + ' · ' + EXITS[ex].name;
-    return Object.assign(core, { name: core.name + ' · ' + EXITS[ex].name, short, exit: ex, lab: { fam, p, ex } });
-  }
-  function strat(key) { return STRATS[key] || (typeof key === 'string' && key.startsWith('lab|') ? (STRATS[key] = buildLab(key)) : null); }
-  function labKeys() {
-    const out = [];
-    for (const b of BASE_KEYS) for (const e of Object.keys(EXITS)) out.push('lab|base|' + b + '|' + e);
-    for (const [f, F] of Object.entries(FAM)) for (const v of F.variants) for (const e of Object.keys(EXITS)) out.push('lab|' + f + '|' + v + '|' + e);
-    return out;
-  }
-  // 청산 방식 → 실제 모드
-  const exitMode = (S, market) => (S.exit === 'market' || S.exit === 'trend') ? (market === 'US' ? 'trail' : 'kr') : S.exit;
+  const PRO_KEYS = Object.keys(PRO).map(k => 'pro|' + k);
+  function strat(key) { return STRATS[key] || null; }
+  const exitMode = (S, market) => S.custom ? 'custom' : (S.exit === 'market' || S.exit === 'trend') ? (market === 'US' ? 'trail' : 'kr') : S.exit;
   const holdOf = (mode, cfg) => mode === 'time5' ? 5 : mode === 'time20' ? 20 : (mode === 'swing' || mode === 'target') ? cfg.holdDays : 0;
+
+  // 맞춤 규칙 전략 시뮬레이션 (신호일 t 저녁 판단 → t+1 진입)
+  function simCustom(ind, t, S, market, cfg) {
+    const n = ind.c.length; if (t + 1 >= n) return null;
+    const en = S.entry(ind, t), f = t + 1;
+    let entry;
+    if (en.type === 'stop') { if (!(ind.h[f] >= en.level)) return { skipped: true }; entry = Math.max(ind.o[f], en.level); }
+    else entry = ind.o[f];
+    const sl0 = stopFrom(S.stopRule(ind, t), entry);
+    if (!(entry > sl0) || !isFinite(sl0)) return { skipped: true };
+    const R = entry - sl0, tgt = S.target ? S.target(ind, t, entry, R) : NaN;
+    let stop = sl0, be = false, exitIdx = -1, px = NaN, reason = '';
+    for (let j = f; j < n; j++) {
+      if (S.trail && j > f) { const tl = S.trail(ind, j); if (isFinite(tl) && tl > stop) stop = tl; }
+      if (S.breakeven && be && stop < entry) stop = entry;
+      const o = ind.o[j], h = ind.h[j], l = ind.l[j], c = ind.c[j];
+      if (l <= stop) { px = j > f && o < stop ? o : stop; exitIdx = j; reason = '손절/추적 손절'; break; }
+      if (isFinite(tgt) && h >= tgt) { px = j > f && o > tgt ? o : tgt; exitIdx = j; reason = '익절'; break; }
+      if (S.breakeven && h >= entry * S.breakeven) be = true;
+      if (S.exitClose && S.exitClose(ind, j)) { if (j + 1 < n) { px = ind.o[j + 1]; exitIdx = j + 1; reason = '종가 청산'; } else return { open: true, entryIdx: f, entry, R }; break; }
+      if (S.cap && j - t >= S.cap) { px = c; exitIdx = j; reason = S.cap + '일 시간청산'; break; }
+    }
+    if (exitIdx < 0) return { open: true, entryIdx: f, entry, R };
+    const cost = (market === 'KR' ? cfg.costKR : cfg.costUS) / 100 * entry;
+    return { entryIdx: f, exitIdx, entry, R, r: (px - entry - cost) / R, reason, hold: exitIdx - t };
+  }
+  // 보유 중 맞춤 규칙 점검: 오늘 저녁 걸어 둘 손절가와 할 일
+  function trackCustom(ind, tr, S, fi, L) {
+    const D = j => ind.dates[j], alerts = [];
+    let stop = tr.sl, be = false, hit = null;
+    // 신호일 당일 이전 봉은 점검하지 않음 (진입은 신호 다음 날부터)
+    let j0 = fi; while (j0 <= L && tr.signalDate && ind.dates[j0] <= tr.signalDate) j0++;
+    for (let j = j0; j <= L; j++) {
+      if (S.trail && j > fi) { const tl = S.trail(ind, j); if (isFinite(tl) && tl > stop) stop = tl; }
+      if (S.breakeven && be && stop < tr.fill) stop = tr.fill;
+      if (ind.l[j] <= stop) { hit = ['stop', D(j) + ' 저가가 그날 손절가(' + stop + ') 아래로 내려갔습니다. 감시주문이 걸려 있었다면 전량 팔렸을 가능성이 큽니다.']; break; }
+      if (isFinite(tr.tp1) && ind.h[j] >= tr.tp1) { hit = ['tp', D(j) + ' 고가가 익절가에 닿았습니다. 전량 매도 대상입니다.']; break; }
+      if (S.breakeven && ind.h[j] >= tr.fill * S.breakeven) be = true;
+      if (S.exitClose && S.exitClose(ind, j)) { hit = ['tp', D(j) + ' ' + S.exitText + ' → 다음 거래일 시가에 전량 매도할 차례입니다.']; break; }
+      if (S.cap && j - fi + 1 >= S.cap) { hit = ['time', '보유 ' + S.cap + '거래일이 지났습니다. 남은 수량을 정리하세요.']; break; }
+    }
+    // 내일 적용할 손절가 (오늘까지 데이터로 계산 → 오늘 저녁 감시주문을 이 값으로 갱신)
+    let next = stop;
+    if (!hit && S.trailN && L - S.trailN + 1 >= 0) { let m = Infinity; for (let k = L - S.trailN + 1; k <= L; k++) m = Math.min(m, ind.l[k]); if (m > next) next = m; }
+    if (!hit && S.breakeven && (be || ind.h[L] >= tr.fill * S.breakeven) && next < tr.fill) next = tr.fill;
+    if (hit) alerts.push({ lv: hit[0], text: hit[1], act: 'sell' });
+    return { alerts, stopNow: next, be };
+  }
 
   function evaluate(ind, t, key, cfg) {
     const S = strat(key);
@@ -981,16 +1063,19 @@ const ENGINE = (() => {
   // acct: { equity(거래 통화 기준 시드), capPct(종목당 최대 비중 %), fractional(소수점 매수 허용) }
   // entryOverride: 실제 체결가 (없으면 오늘 종가)
   function plan(ind, t, key, market, acct, cfg, entryOverride) {
-    const S = strat(key); const st = S.stop(ind, t), kr = market === 'KR';
-    const entry = entryOverride > 0 ? entryOverride : ind.c[t];
+    const S = strat(key), kr = market === 'KR';
+    let entry, st, en = null, rule = null;
+    if (S.custom) { en = S.entry(ind, t); entry = entryOverride > 0 ? entryOverride : en.type === 'stop' ? en.level : ind.c[t]; rule = S.stopRule(ind, t); st = { sl: stopFrom(rule, entry), src: S.stopSrc }; }
+    else { st = S.stop(ind, t); entry = entryOverride > 0 ? entryOverride : ind.c[t]; }
     const sl = kr ? floorTick(st.sl) : Math.floor(st.sl * 100 + 1e-9) / 100;   // 손절가는 호가 단위로 내림
     const R = entry - sl;
     const mode = exitMode(S, market);
     const res = { entry, sl, slSource: st.src, R, valid: R > 0, exit: mode, holdN: holdOf(mode, cfg), overridden: entryOverride > 0 };
     res.bbUp = ind.bbUp[t]; res.trailKijun = ind.kijun[t]; res.trailEma20 = ind.ema20[t];
+    if (S.custom) Object.assign(res, { entryType: en.type, stopRule: rule, trailText: S.trailText, trailN: S.trailN || 0, exitText: S.exitText, breakeven: S.breakeven, holdN: S.cap || 0 });
     if (!res.valid) return res;
     const up = v => kr ? ceilTick(v) : Math.ceil(v * 100 - 1e-9) / 100;     // 익절가는 호가 단위로 올림
-    const L0 = levels(market, entry, sl, mode); res.tp1 = L0.tp1; res.tp2 = L0.tp2;
+    const L0 = levels(market, entry, sl, mode, S.custom && S.target ? S.target(ind, t, entry, R) : NaN); res.tp1 = L0.tp1; res.tp2 = L0.tp2;
     const eq = Math.max(0, acct.equity || 0), frac = !kr && acct.fractional;
     const fl = v => frac ? Math.floor(v * 1e4 + 1e-9) / 1e4 : Math.floor(v + 1e-9);
     res.equity = eq; res.frac = frac;
@@ -1000,7 +1085,7 @@ const ENGINE = (() => {
     res.qty = Math.max(0, Math.min(res.qRisk, res.qCap));
     res.limitBy = res.qRisk <= res.qCap ? 'risk' : 'cap';
     if (res.qty <= 0) res.blocked = eq <= 0 ? 'noseed' : res.qCap <= 0 ? 'price' : 'risk';
-    res.half = mode === 'target' ? res.qty : mode.startsWith('time') ? 0 : frac ? fl(res.qty / 2) : Math.floor(res.qty / 2); res.rest = +(res.qty - res.half).toFixed(4);
+    res.half = mode === 'custom' ? (isFinite(res.tp1) ? res.qty : 0) : mode === 'target' ? res.qty : mode.startsWith('time') ? 0 : frac ? fl(res.qty / 2) : Math.floor(res.qty / 2); res.rest = +(res.qty - res.half).toFixed(4);
     res.amount = res.qty * entry; res.maxLoss = res.qty * (entry - sl);
     res.riskPctOfPrice = R / entry * 100;
     res.cost = res.amount * (kr ? cfg.costKR : cfg.costUS) / 100;                  // 왕복 비용 추정
@@ -1043,6 +1128,7 @@ const ENGINE = (() => {
   // ---------- 한 번의 매매 시뮬레이션 (신호일 t 종가 판정 → t+1 시가 진입) ----------
   function simulate(ind, t, key, market, cfg) {
     const S = strat(key); const n = ind.c.length;
+    if (S.custom) return simCustom(ind, t, S, market, cfg);
     if (t + 1 >= n) return null;
     const sl0 = S.stop(ind, t).sl, entry = ind.o[t + 1];
     if (!(entry > sl0) || !isFinite(sl0)) return { skipped: true };      // 시가가 이미 손절가 아래 → 진입 안 함
@@ -1117,10 +1203,11 @@ const ENGINE = (() => {
 
   // ---------- 체결가 기준 손절·익절 가격 ----------
   // exit: target → 익절 1개(+2R, 전량) / time5·time20 → 익절 없음(손절+시간) / 그 외 → 1.5R 절반 + 2.5R
-  function levels(market, fill, sl, exit) {
+  function levels(market, fill, sl, exit, tgt) {
     const kr = market === 'KR', R = fill - sl;
     const up = v => kr ? ceilTick(v) : Math.ceil(v * 100 - 1e-9) / 100;
     if (!(R > 0)) return { R, tp1: NaN, tp2: NaN };
+    if (exit === 'custom') return { R, tp1: isFinite(tgt) ? up(tgt) : NaN, tp2: NaN };
     if (exit === 'target') return { R, tp1: up(fill + 2 * R), tp2: NaN };
     if (exit === 'time5' || exit === 'time20') return { R, tp1: NaN, tp2: NaN };
     return { R, tp1: up(fill + 1.5 * R), tp2: up(fill + 2.5 * R) };
@@ -1147,6 +1234,10 @@ const ENGINE = (() => {
     const fi = ind.dates.findIndex(d => d >= tr.fillDate);
     if (fi < 0) { res.waiting = true; res.days = 0; return res; }   // 체결일 시세가 아직 없음
     res.days = L - fi + 1;
+    if (tr.exit === 'custom') {
+      const S = strat(tr.strat);
+      if (S) { const c = trackCustom(ind, tr, S, fi, L); res.alerts = c.alerts; res.stopNow = c.stopNow; res.custom = true; if (S.cap) res.timeLeft = Math.max(0, S.cap - res.days); return res; }
+    }
     const D = j => ind.dates[j];
     const add = (lv, text, act) => res.alerts.push({ lv, text, act });
     if (!tr.stage) {
@@ -1190,7 +1281,7 @@ const ENGINE = (() => {
     return { stock, key, ind, t, ev, plan: ev.ready ? plan(ind, t, key, stock.market, acct, cfg, entryOverride) : null, history, lastDate: stock.bars[t][0] };
   }
 
-  return { DEFAULT_CFG, STRATS, BASE_KEYS, EXITS, CLOUD_MODES, tickKR, strat, labKeys, exitMode, benchmark, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
+  return { DEFAULT_CFG, STRATS, BASE_KEYS, PRO_KEYS, CLOUD_MODES, tickKR, floorPx: (m, v) => m === 'KR' ? floorTick(v) : Math.floor(v * 100 + 1e-9) / 100, strat, attachRS, stopFrom, exitMode, benchmark, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
 })();
 
 
@@ -1251,7 +1342,7 @@ const DEMO = (() => {
     set(k, v) { try { localStorage.setItem('sy_' + k, JSON.stringify(v)); } catch {} }
   };
   const S = new Proxy({}, { get: (_, k) => typeof k === 'string' ? ENGINE.strat(k) : undefined });
-  const stratKeysFor = m => [...new Set(ENGINE.BASE_KEYS.concat([state.strat.KR, state.strat.US].filter(k => k && S[k])))];
+  const stratKeysFor = () => ['trend', 'pullback'].concat(ENGINE.PRO_KEYS);
   const state = {
     stocks: [], source: 'demo', results: [], selected: null, fGap: 0, fMkt: 'ALL', q: '', tab: 'sig', btMkt: 'KR',
     cfg: Object.assign({}, ENGINE.DEFAULT_CFG, store.get('cfg', {})),
@@ -1259,7 +1350,7 @@ const DEMO = (() => {
     capPct: store.get('capPct', 30), fractional: store.get('fractional', false), entry: {},
     strat: Object.assign({ KR: 'pullback', US: 'trend' }, store.get('strat', {})), bt: {}, trades: []
   };
-  for (const m of ['KR', 'US']) if (!S[state.strat[m]]) state.strat[m] = m === 'KR' ? 'pullback' : 'trend';
+  for (const m of ['KR', 'US']) if (!S[state.strat[m]] || state.strat[m] === 'breakout') state.strat[m] = m === 'KR' ? 'pullback' : 'trend';
   if (!ENGINE.CLOUD_MODES[state.cfg.cloudMode]) state.cfg.cloudMode = 'bull_above';
   // 시장별 계좌 (미장은 원화 시드를 환율로 달러 환산)
   const acct = m => ({ equity: m === 'KR' ? state.seedKR : state.seedUS / state.fx, capPct: state.capPct, fractional: state.fractional });
@@ -1325,6 +1416,7 @@ const DEMO = (() => {
 
   // ---------- 오늘 신호 계산 ----------
   function run() {
+    ensureRS();
     const res = [];
     for (const s of state.stocks) {
       if (s.bars.length < 260) { res.push({ stock: s, short: true, lastDate: s.bars.at(-1)?.[0] || '–' }); continue; }
@@ -1437,7 +1529,7 @@ const DEMO = (() => {
     if (p) {
       const calcHtml = '<div class="calcbox"><div class="calc"><label class="field"><span>실제로 산 가격이 다르면 입력 (비워 두면 오늘 종가 ' + P(r.ind.c[r.t]) + ')</span><input id="entryIn" type="number" step="any" value="' + (p.overridden ? p.entry : '') + '" placeholder="' + P(r.ind.c[r.t]).replace(/,/g, '') + '"></label>' +
         '<button type="button" id="entryReset">오늘 종가로</button></div>' +
-        '<div class="note">손절가는 그대로 두고 수량과 익절가만 다시 계산합니다.' + (m === 'KR' ? ' 가격은 호가 단위에 맞췄습니다 (손절가 내림, 익절가 올림).' : '') + '</div></div>';
+        '<div class="note">' + (p.stopRule && p.stopRule.type !== 'fixed' ? '손절가·수량을 산 가격 기준으로 다시 계산합니다 (' + p.slSource + ').' : '손절가는 그대로 두고 수량과 익절가만 다시 계산합니다.') + (m === 'KR' ? ' 가격은 호가 단위에 맞췄습니다 (손절가 내림, 익절가 올림).' : '') + '</div></div>';
       const saved = tradeFor(m, s.symbol, r.lastDate);
       const saveBtn = p.valid && p.qty > 0 ? (saved ? '<button type="button" data-goto="pos" class="savedbtn">' + (saved.status === 'open' ? '보유 중 · 확인하기' : '저장됨 · 내 주문에서 보기') + '</button>' : '<button type="button" class="primary" id="savePlan">이 주문 계획 저장</button>') : '';
       html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">' + (r.gap === 0 ? '주문표' : '주문표 (참고용 · 지금은 사면 안 됨)') + (p.overridden ? ' · 체결가 ' + P(p.entry) + ' 기준' : '') + '</div>' + saveBtn + '</div>';
@@ -1452,19 +1544,29 @@ const DEMO = (() => {
         else {
           const ex = p.exit, isSplit = ex === 'swing' || ex === 'kr' || ex === 'trail', hN = p.holdN || 0, isTime = ex === 'time5' || ex === 'time20';
           const mon2 = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2);
-          const rowsO = [['', '매수', p.entry, p.qty, '투자 ' + moneyT(p.amount)], ['loss', '손절 · 전량 (' + p.slSource + ')', p.sl, p.qty, sgn(-p.maxLoss, moneyT)]];
+          let rowsO = [['', '매수', p.entry, p.qty, '투자 ' + moneyT(p.amount)], ['loss', '손절 · 전량 (' + p.slSource + ')', p.sl, p.qty, sgn(-p.maxLoss, moneyT)]];
           if (isSplit) {
             rowsO.push(['gain', '1차 익절 +1.5R · 50%', p.tp1, p.half, sgn(p.pTp1, moneyT)], ['', '잔여 손절가 본절로 상향', p.entry, p.rest, '0']);
             if (ex === 'trail') rowsO.push(['gain', '잔여 · 종가가 기준선/20EMA 이탈 시', null, p.rest, '추세에 따라 변동']);
             else rowsO.push(['gain', '2차 익절 +2.5R · 잔여 전량', p.tp2, p.rest, sgn(p.pTp2, moneyT)]);
           } else if (ex === 'target') rowsO.push(['gain', '익절 +2R · 전량', p.tp1, p.qty, sgn(p.pTp1, moneyT)]);
           if (hN) rowsO.push(['', hN + '거래일째 종가 · ' + (isTime ? '전량 매도' : '남은 수량 정리'), null, isTime ? p.qty : (ex === 'target' ? p.qty : p.rest), '그날 종가에 따라']);
+          if (ex === 'custom') {
+            rowsO = [['', p.entryType === 'stop' ? '매수 · 내일 ' + P(p.entry) + ' 이상 오르면 (감시 매수)' : '매수 · 내일 시가 (예약 주문)', p.entry, p.qty, '투자 ' + moneyT(p.amount)],
+              ['loss', '첫 손절 · 전량 (' + p.slSource + ')', p.sl, p.qty, sgn(-p.maxLoss, moneyT)]];
+            if (isFinite(p.tp1)) rowsO.push(['gain', '익절 · 전량 (' + (ST.targetText || '목표가') + ')', p.tp1, p.qty, sgn(p.pTp1, moneyT)]);
+            if (p.trailN) rowsO.push(['', '매일 저녁 손절가를 ' + p.trailText + '로 끌어올림', null, p.qty, '추세에 따라']);
+            if (p.breakeven) rowsO.push(['', '+' + Math.round((p.breakeven - 1) * 100) + '% 오르면 손절가를 산 가격으로', p.entry * p.breakeven, p.qty, '본절 보호']);
+            if (p.exitText) rowsO.push(['', p.exitText + ' → 다음 날 시가 매도', null, p.qty, '추세에 따라']);
+            if (hN) rowsO.push(['', hN + '거래일째 종가 · 남은 수량 정리', null, p.qty, '그날 종가에 따라']);
+          }
           html += '<div class="tablewrap"><table class="orders"><thead><tr><th>단계</th><th class="r">가격</th><th class="r">수량</th><th class="r">예상 손익</th></tr></thead><tbody>' +
             rowsO.map(o => '<tr class="' + o[0] + '"><td>' + o[1] + '</td><td class="r num">' + (o[2] == null ? '–' : P(o[2])) + '</td><td class="r num">' + fmtQ(o[3], p.frac) + '주</td><td class="r num">' + o[4] + '</td></tr>').join('') + '</tbody></table></div>';
           let sc2, sc3;
           if (isSplit) { const full = ex === 'trail' ? null : p.pTp1 + p.pTp2 - p.cost;
             sc2 = ['1차 익절 후 본절', sgn(p.pTp1 - p.cost, mon2)]; sc3 = full == null ? ['1차 익절 + 잔여 추종', sgn(p.pTp1 - p.cost, mon2) + ' 이상'] : ['목표 모두 달성', sgn(full, mon2)]; }
           else if (ex === 'target') { sc2 = ['익절가 도달', sgn(p.pTp1 - p.cost, mon2)]; sc3 = ['둘 다 안 닿으면', hN + '일째 종가에 정리']; }
+          else if (ex === 'custom') { sc2 = isFinite(p.tp1) ? ['익절가 도달', sgn(p.pTp1 - p.cost, mon2)] : ['익절 목표', '정하지 않음 (추세 추종)']; sc3 = ['팔 때', p.trailN ? p.trailText + ' 이탈' : p.exitText ? p.exitText : hN + '일째 종가']; }
           else { sc2 = ['익절 주문', '없음']; sc3 = ['보유 기간 끝', hN + '일째 종가에 정리']; }
           html += '<div class="scen"><div>바로 손절되면<b>' + sgn(-(p.maxLoss + p.cost), mon2) + '</b>시드의 ' + fmtN(p.lossPctSeed, 2) + '%</div>' +
             '<div>' + sc2[0] + '<b>' + sc2[1] + '</b>&nbsp;</div><div>' + sc3[0] + '<b>' + sc3[1] + '</b>&nbsp;</div></div>';
@@ -1479,8 +1581,16 @@ const DEMO = (() => {
         html += calcHtml + '</div>';
         if (!p.blocked) {
           const ex = p.exit, isSplit = ex === 'swing' || ex === 'kr' || ex === 'trail', hN = p.holdN || 0;
-          const head = { trail: '청산 순서: 추세 극대화 (미장 원칙)', kr: '청산 순서: 박스권 탈출 방어 (국장 원칙)', swing: '청산 순서: 분할 익절 · 보유 제한', target: '청산 순서: +2R 전량 익절', time5: '청산 순서: 5일 보유', time20: '청산 순서: 20일 보유' }[ex];
+          const t0 = r.t, lowN = n => { let mm = Infinity; for (let k = t0 - n + 1; k <= t0; k++) mm = Math.min(mm, r.ind.l[k]); return mm; };
+          const head = { custom: '퇴근 후 할 일: ' + ST.short + ' 규칙', trail: '청산 순서: 추세 극대화 (미장 원칙)', kr: '청산 순서: 박스권 탈출 방어 (국장 원칙)', swing: '청산 순서: 분할 익절 · 보유 제한', target: '청산 순서: +2R 전량 익절', time5: '청산 순서: 5일 보유', time20: '청산 순서: 20일 보유' }[ex];
           const steps = ['매수 즉시 손절 감시주문: <b>' + P(p.sl) + '</b> 이탈 시 전량 시장가'];
+          if (ex === 'custom') {
+            steps.unshift(p.entryType === 'stop' ? '오늘 저녁: 내일 <b>' + P(p.entry) + '원 이상</b>이면 매수되는 감시 매수주문 <b>' + fmtQ(p.qty, p.frac) + '주</b> (내일 안 닿으면 취소)' : '오늘 저녁: 내일 <b>시가 예약 매수 ' + fmtQ(p.qty, p.frac) + '주</b>');
+            if (isFinite(p.tp1)) steps.push('익절 감시주문: <b>' + P(p.tp1) + '</b> (' + (ST.targetText || '목표가') + ') 도달 시 전량 매도');
+            if (p.trailN) steps.push('보유하는 동안 <b>매일 저녁</b> 손절 감시주문을 "' + p.trailText + '(오늘 기준 ' + P(lowN(p.trailN)) + ')"과 지금 손절가 중 <b>높은 값</b>으로 바꿉니다. 손절가는 내리지 않습니다');
+            if (p.breakeven) steps.push('주가가 <b>' + P(p.entry * p.breakeven) + '</b>(+' + Math.round((p.breakeven - 1) * 100) + '%) 이상 오르면 손절가를 산 가격 <b>' + P(p.entry) + '</b>로 올립니다');
+            if (p.exitText) steps.push('매일 장 마감 후 확인: <b>' + p.exitText + '</b>하면 다음 날 시가 예약 매도');
+          }
           if (isSplit) {
             steps.push('<b>' + P(p.tp1) + '</b> (+1.5R) 도달 시 <b>' + fmtQ(p.half, p.frac) + '주</b> 익절 + 잔여 <b>' + fmtQ(p.rest, p.frac) + '주</b> 손절가를 <b>' + P(p.entry) + '</b>(본절)로 상향');
             if (ex === 'trail') steps.push('잔여분은 일봉 종가가 기준선(현재 <b>' + P(p.trailKijun) + '</b>) 또는 20 EMA(현재 <b>' + P(p.trailEma20) + '</b>)를 하향 이탈할 때 전량 매도. 두 선은 매일 바뀌므로 장 마감 후 재확인');
@@ -1495,6 +1605,13 @@ const DEMO = (() => {
             memo.push('1차 익절 ' + P(p.tp1) + cur(m) + ' · ' + fmtQ(p.half, p.frac) + '주 → 잔여 손절가 ' + P(p.entry) + '(본절)');
             memo.push(ex === 'trail' ? '잔여 ' + fmtQ(p.rest, p.frac) + '주: 종가 < 기준선 또는 20EMA 시 전량 (현재 ' + P(p.trailKijun) + ' / ' + P(p.trailEma20) + ')' : '2차 익절 ' + P(p.tp2) + cur(m) + ' · 잔여 ' + fmtQ(p.rest, p.frac) + '주 (또는 BB상단 터치 후 음봉)');
           } else if (ex === 'target') memo.push('익절 ' + P(p.tp1) + cur(m) + ' · 전량 ' + fmtQ(p.qty, p.frac) + '주');
+          else if (ex === 'custom') {
+            memo.splice(1, 1, (p.entryType === 'stop' ? '감시 매수 ' + P(p.entry) + cur(m) + ' 이상' : '내일 시가 예약 매수') + ' × ' + fmtQ(p.qty, p.frac) + '주 (약 ' + P(p.amount) + cur(m) + ')');
+            if (isFinite(p.tp1)) memo.push('익절 ' + P(p.tp1) + cur(m) + ' 전량');
+            if (p.trailN) memo.push('매일 저녁 손절가 = max(현재 손절가, ' + p.trailText + ')');
+            if (p.breakeven) memo.push('+' + Math.round((p.breakeven - 1) * 100) + '% 도달 시 손절가 ' + P(p.entry) + '(본절)');
+            if (p.exitText) memo.push(p.exitText + ' → 다음 날 시가 매도');
+          }
           if (hN) memo.push(hN + '거래일째 종가에 남은 수량 전량 정리');
           html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">서버감시주문 입력 메모</div><button type="button" id="copyMemo">복사</button></div><pre class="memo" id="memo">' + esc(memo.join('\n')) + '</pre></div>';
         }
@@ -1567,7 +1684,7 @@ const DEMO = (() => {
     const t0 = new Date(minD).getTime(), t1 = new Date(maxD).getTime();
     const split = new Date(t0 + (t1 - t0) * 0.7).toISOString().slice(0, 10);
     const out = {};
-    const keys = [...new Set(ENGINE.BASE_KEYS.concat([state.strat[m]]))];
+    const keys = [...new Set(['trend', 'pullback', state.strat[m]])];
     for (const k of keys) out[k] = [];
     const modes = Object.keys(ENGINE.CLOUD_MODES), cOut = {};
     for (const md of modes) cOut[md] = [];
@@ -1887,7 +2004,7 @@ const DEMO = (() => {
     const p = r.plan, s = r.stock;
     return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), status: 'planned', market: s.market, symbol: String(s.symbol), name: s.name,
       strat: r.key, stratName: S[r.key].short, exit: p.exit, holdDays: p.holdN || state.cfg.holdDays, signalDate: r.lastDate,
-      planEntry: p.entry, sl: p.sl, slSource: p.slSource, planQty: p.qty, planTp1: p.tp1, planTp2: p.tp2, createdAt: new Date().toISOString() };
+      planEntry: p.entry, sl: p.sl, slSource: p.slSource, planQty: p.qty, planTp1: p.tp1, planTp2: p.tp2, stopRule: p.stopRule || null, entryType: p.entryType || 'close', createdAt: new Date().toISOString() };
   }
   async function savePlan(r) {
     if (!r?.plan?.valid || !(r.plan.qty > 0)) return false;
@@ -1915,10 +2032,13 @@ const DEMO = (() => {
     $('pendList').innerHTML = pend.length ? pend.map(tr => {
       const m = tr.market, st = findStock(tr), P = v => fmtP(v, m);
       const nb = st && st.bars.find(b => b[0] > tr.signalDate);
-      const fillD = nb ? nb[0] : todayKST(), fillP = nb ? nb[1] : tr.planEntry;
-      let hint = nb ? '다음 거래일(' + nb[0] + ') 시가 <b>' + P(nb[1]) + '</b>' + (nb[1] <= tr.sl ? ' · <span class="c-down">시가가 손절가 이하라 규칙상 사지 않는 날입니다.</span>' : '') : '다음 거래일 시세가 아직 없습니다. 시세를 받은 뒤 다시 보거나 체결가를 직접 입력하세요.';
+      const stopBuy = tr.entryType === 'stop', hitStop = stopBuy && nb && nb[2] >= tr.planEntry;
+      const fillD = nb ? nb[0] : todayKST(), fillP = nb ? (stopBuy ? (hitStop ? Math.max(nb[1], tr.planEntry) : tr.planEntry) : nb[1]) : tr.planEntry;
+      let hint = !nb ? '다음 거래일 시세가 아직 없습니다. 시세를 받은 뒤 다시 보거나 체결가를 직접 입력하세요.'
+        : stopBuy ? (hitStop ? '다음 거래일(' + nb[0] + ') 고가 ' + P(nb[2]) + '가 감시 매수가 ' + P(tr.planEntry) + '에 닿아 <b>체결됐을 가능성</b>이 큽니다. 체결가 ' + P(fillP) + ' 추정' : '<span class="c-down">다음 거래일(' + nb[0] + ') 고가 ' + P(nb[2]) + '가 감시 매수가 ' + P(tr.planEntry) + '에 못 미쳐 안 사졌을 가능성이 큽니다 → [안 사짐]</span>')
+        : '다음 거래일(' + nb[0] + ') 시가 <b>' + P(nb[1]) + '</b>' + (nb[1] <= tr.sl ? ' · <span class="c-down">시가가 손절가 이하라 규칙상 사지 않는 날입니다.</span>' : '');
       return '<div class="poscard" data-id="' + tr.id + '"><div class="pchead"><div><b class="pname">' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> <span class="note">' + esc(m === 'KR' ? tr.symbol : tr.name) + ' · ' + tr.stratName + ' · 신호일 ' + tr.signalDate + '</span></div><span class="verdict near">체결 확인 필요</span></div>' +
-        lvBox(m, [['계획 매수가', P(tr.planEntry)], ['계획 수량', fmtQ(tr.planQty, tr.planQty % 1 !== 0) + '주'], ['손절가', P(tr.sl), tr.slSource, 'down'], [tr.exit === 'target' ? '익절가 (+2R)' : ['time5', 'time20'].includes(tr.exit) ? '청산' : '1차 익절가', ['time5', 'time20'].includes(tr.exit) ? tr.holdDays + '일째 종가' : P(tr.planTp1), '계획 기준', 'up']]) +
+        lvBox(m, [['계획 매수가', P(tr.planEntry)], ['계획 수량', fmtQ(tr.planQty, tr.planQty % 1 !== 0) + '주'], ['손절가', P(tr.sl), tr.slSource, 'down'], [tr.exit === 'custom' ? (isFinite(tr.planTp1) ? '익절가' : '청산 방식') : tr.exit === 'target' ? '익절가 (+2R)' : ['time5', 'time20'].includes(tr.exit) ? '청산' : '1차 익절가', tr.exit === 'custom' && !isFinite(tr.planTp1) ? '추세 추종' : ['time5', 'time20'].includes(tr.exit) ? tr.holdDays + '일째 종가' : P(tr.planTp1), '계획 기준', 'up']]) +
         '<div class="note">' + hint + '</div>' +
         '<div class="posform"><label class="field"><span>산 날</span><input type="date" data-f="date" value="' + fillD + '"></label>' +
         '<label class="field"><span>실제 산 가격</span><input type="number" step="any" data-f="price" value="' + fillP + '"></label>' +
@@ -1928,15 +2048,16 @@ const DEMO = (() => {
     }).join('') : '<div class="empty">저장한 예약 주문이 없습니다. [오늘 살 종목]에서 종목을 고른 뒤 [이 주문 계획 저장]을 누르세요.</div>';
     for (const card of $('pendList').querySelectorAll('.poscard')) {
       const tr = state.trades.find(t => t.id === card.dataset.id), f = n => card.querySelector('[data-f="' + n + '"]');
-      const pv = () => { const px = parseFloat(f('price').value), q = parseFloat(f('qty').value), L = ENGINE.levels(tr.market, px, tr.sl, tr.exit), P = v => fmtP(v, tr.market);
-        f('preview').innerHTML = L.R > 0 ? '이 가격이면 → 손절가 <b class="c-down">' + P(tr.sl) + '</b> · ' + (tr.exit === 'target' ? '익절가(+2R, 전량) <b class="c-up">' + P(L.tp1) + '</b>' : ['time5', 'time20'].includes(tr.exit) ? tr.holdDays + '거래일째 종가에 전량 매도' : '1차 익절가 <b class="c-up">' + P(L.tp1) + '</b> · ' + (tr.exit === 'trail' ? '잔여는 추세선 이탈 시 매도' : '2차 익절가 <b class="c-up">' + P(L.tp2) + '</b>')) + (q > 0 ? ' · 손절 시 손실 ' + monM(tr.market, q * L.R) : '')
+      const lv = px => { if (tr.exit === 'custom') { const slx = tr.stopRule ? ENGINE.floorPx(tr.market, ENGINE.stopFrom(tr.stopRule, px)) : tr.sl; return { sl: slx, R: px - slx, tp1: tr.planTp1, tp2: NaN }; } return Object.assign({ sl: tr.sl }, ENGINE.levels(tr.market, px, tr.sl, tr.exit)); };
+      const pv = () => { const px = parseFloat(f('price').value), q = parseFloat(f('qty').value), L = lv(px), P = v => fmtP(v, tr.market);
+        f('preview').innerHTML = L.R > 0 ? '이 가격이면 → 손절가 <b class="c-down">' + P(L.sl) + '</b> · ' + (tr.exit === 'custom' ? (isFinite(L.tp1) ? '익절가 <b class="c-up">' + P(L.tp1) + '</b>' : '익절은 추세 따라 (손절가 매일 갱신)') : tr.exit === 'target' ? '익절가(+2R, 전량) <b class="c-up">' + P(L.tp1) + '</b>' : ['time5', 'time20'].includes(tr.exit) ? tr.holdDays + '거래일째 종가에 전량 매도' : '1차 익절가 <b class="c-up">' + P(L.tp1) + '</b> · ' + (tr.exit === 'trail' ? '잔여는 추세선 이탈 시 매도' : '2차 익절가 <b class="c-up">' + P(L.tp2) + '</b>')) + (q > 0 ? ' · 손절 시 손실 ' + monM(tr.market, q * L.R) : '')
           : '<span class="c-down">산 가격이 손절가(' + P(tr.sl) + ') 이하입니다. 규칙상 바로 손절 대상입니다.</span>'; };
       f('price').oninput = pv; f('qty').oninput = pv; pv();
       card.querySelector('[data-act="fill"]').onclick = async () => {
         const px = parseFloat(f('price').value), q = parseFloat(f('qty').value), dt = f('date').value;
         if (!(px > 0) || !(q > 0) || !dt) { toast('산 날, 가격, 수량을 모두 넣어 주세요'); return; }
-        const L = ENGINE.levels(tr.market, px, tr.sl, tr.exit);
-        Object.assign(tr, { status: 'open', fillDate: dt, fill: px, qty: q, sold: 0, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [] });
+        const L = lv(px);
+        Object.assign(tr, { status: 'open', fillDate: dt, fill: px, qty: q, sold: 0, sl: L.sl, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [] });
         await saveTrades(); renderPositions(); toast((tr.market === 'KR' ? tr.name : tr.symbol) + ' 보유 중으로 옮겼습니다');
       };
       card.querySelector('[data-act="nofill"]').onclick = async () => { tr.status = 'cancelled'; tr.cancelDate = todayKST(); await saveTrades(); renderPositions(); toast('안 사진 주문으로 정리했습니다'); };
@@ -1948,8 +2069,13 @@ const DEMO = (() => {
       const tk = st ? ENGINE.track(st, tr) : null;
       const last = tk ? tk.last : null, pct = last ? (last / tr.fill - 1) * 100 : null;
       const half = tr.qty % 1 === 0 ? Math.floor(tr.qty / 2) : Math.floor(tr.qty / 2 * 1e4) / 1e4;
-      const isSplitT = !['target', 'time5', 'time20'].includes(tr.exit), Qr = fmtQ(rq, rq % 1 !== 0) + '주';
-      const orders = !isSplitT
+      const isSplitT = !['target', 'time5', 'time20', 'custom'].includes(tr.exit), Qr = fmtQ(rq, rq % 1 !== 0) + '주', Sx = S[tr.strat];
+      const orders = tr.exit === 'custom'
+        ? [['손절 감시주문 · 오늘 저녁 이 값으로', P(ENGINE.floorPx(m, tk && isFinite(tk.stopNow) ? tk.stopNow : tr.sl)), '전량 ' + Qr + (Sx && Sx.trailText ? ' · 매일 ' + Sx.trailText + '로 갱신' : ''), 'down']]
+          .concat(isFinite(tr.tp1) ? [['익절 감시주문', P(tr.tp1), '전량 ' + Qr, 'up']] : [])
+          .concat(Sx && Sx.exitText ? [['종가 확인', Sx.exitText + '하면', '다음 날 시가 매도', 'up']] : [])
+          .concat(Sx && Sx.cap ? [['보유 기간', tk && !tk.waiting ? tk.days + ' / ' + Sx.cap + '일' : '– / ' + Sx.cap + '일', '마지막 날 종가에 정리', '']] : [])
+        : !isSplitT
         ? [['손절 감시주문', P(tr.sl), '전량 ' + Qr, 'down']].concat(tr.exit === 'target' ? [['익절 감시주문 (+2R)', P(tr.tp1), '전량 ' + Qr, 'up']] : [])
         : !tr.stage
         ? [['손절 감시주문', P(tr.sl), '전량 ' + Qr, 'down'], ['1차 익절 감시주문', P(tr.tp1), (half > 0 ? fmtQ(half, half % 1 !== 0) + '주 (절반)' : '1주라 분할 불가'), 'up']]
@@ -1980,11 +2106,11 @@ const DEMO = (() => {
         const adate = a0 && /^\d{4}-\d{2}-\d{2}/.test(a0.text) ? a0.text.slice(0, 10) : (tk && !tk.waiting ? tk.lastDate : todayKST());
         let q = rq, px = tk ? tk.last : tr.fill, why = 'etc';
         if (kind === 'tp1') { q = half > 0 ? half : rq; px = tr.tp1; why = 'tp1'; }
-        else if (a0?.lv === 'stop') { px = tr.stage ? tr.fill : tr.sl; why = tr.stage ? 'be' : 'stop'; }
+        else if (a0?.lv === 'stop') { const mm = a0.text.match(/손절가\(([\d.]+)\)/); px = mm ? +mm[1] : tr.stage ? tr.fill : tr.sl; why = tr.stage ? 'be' : 'stop'; }
         else if (a0 && /\+2R\)/.test(a0.text)) { px = tr.tp1; why = 'target'; }
         else if (a0 && /2차/.test(a0.text)) { px = tr.tp2; why = 'tp2'; }
         else if (a0 && /볼린저/.test(a0.text)) why = 'bb';
-        else if (a0 && /기준선|EMA/.test(a0.text)) why = 'trend';
+        else if (a0 && /기준선|EMA|50일선/.test(a0.text)) why = 'trend';
         else if (a0?.lv === 'time') why = 'time';
         form.hidden = false;
         form.innerHTML = '<label class="field"><span>판 날</span><input type="date" data-g="date" value="' + adate + '"></label>' +
@@ -2063,77 +2189,86 @@ const DEMO = (() => {
     };
   }
 
-  // ---------- 전략 연구소 ----------
-  state.lab = {}; state.labMkt = 'KR'; state.labFilter = 'top'; state.labSort = { key: 'ci', dir: -1 };
-  const BASE_EQ = { 'lab|base|trend|market': 'trend', 'lab|base|pullback|swing': 'pullback', 'lab|base|breakout|swing': 'breakout' };
-  const eqKey = k => BASE_EQ[k] || k;
+  // ---------- 고수 전략 검증 ----------
+  state.lab = {}; state.labMkt = 'KR';
+  const MY_KEYS = ['trend', 'pullback'];
+  const LAB_KEYS = () => ENGINE.PRO_KEYS.concat(MY_KEYS);
   const pct1 = v => v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : '') + fmtN(v * 100, 1) + '%';
+  const PROOF_RANK = { high: 3, mid: 2, low: 1 };
+  function ensureRS() { if (state._rsFor !== state.stocks) { for (const m of ['KR', 'US']) ENGINE.attachRS(state.stocks.filter(s => s.market === m && s.bars.length >= 260)); state._rsFor = state.stocks; } }
   async function runLab() {
     const m = state.labMkt, list = state.stocks.filter(s => s.market === m && s.bars.length >= 260), btn = $('labRun');
     if (!list.length) { $('labVerdict').textContent = (m === 'KR' ? '국장' : '미장') + ' 데이터가 없습니다. 시세가 들어온 뒤 다시 누르세요.'; return; }
-    btn.disabled = true;
-    const K = ENGINE.labKeys(), out = {}; for (const k of K) out[k] = [];
+    btn.disabled = true; ensureRS();
+    const K = LAB_KEYS(), out = {}; for (const k of K) out[k] = [];
     for (let i = 0; i < list.length; i++) {
       for (const k of K) out[k].push(...ENGINE.backtestStock(list[i], k, state.cfg).trades);
-      if (i % 4 === 0) { $('labVerdict').textContent = '시뮬레이션 중… ' + Math.round((i + 1) / list.length * 100) + '% (' + (i + 1) + ' / ' + list.length + '종목 × 120개 전략)'; await new Promise(r => setTimeout(r)); }
+      if (i % 25 === 0) { $('labVerdict').textContent = '검증 중… ' + Math.round((i + 1) / list.length * 100) + '%'; await new Promise(r => setTimeout(r)); }
     }
     let minD = '9999', maxD = '0000';
     for (const s of list) { const a = s.bars[253]?.[0]; if (a && a < minD) minD = a; const b = s.bars.at(-1)[0]; if (b > maxD) maxD = b; }
     const split = new Date(new Date(minD).getTime() + (new Date(maxD) - new Date(minD)) * 0.7).toISOString().slice(0, 10);
-    const ac = acct(m), seedNote = !(ac.equity > 0);
-    const seed = ac.equity > 0 ? ac.equity : (m === 'KR' ? 1000000 : 1000000 / state.fx);
+    const ac = acct(m), seedNote = !(ac.equity > 0), seed = ac.equity > 0 ? ac.equity : (m === 'KR' ? 1000000 : 1000000 / state.fx);
     const opt = { seed, riskPct: state.cfg.riskPct, capPct: state.capPct, maxPos: maxPos(), fractional: m === 'US' && state.fractional };
-    const rows = K.map(k => {
+    const res = {};
+    for (const k of K) {
       const tr = out[k], st = ENGINE.stats(tr, split);
-      const pi = ENGINE.portfolio(tr.filter(t => t.entryDate < split), opt), po = ENGINE.portfolio(tr.filter(t => t.entryDate >= split), opt);
-      const r = { k, name: S[k].name.split(' · ')[0], exit: ENGINE.EXITS[S[k].lab.ex].name, n: st.n || 0, inN: st.inN || 0, outN: st.outN || 0, win: st.winRate || 0,
-        inExp: st.inExp, outExp: st.outExp, ci: pi.taken ? pi.cagr : NaN, co: po.taken ? po.cagr : NaN, mo: po.taken ? po.mdd : NaN };
-      r.verdict = !(r.ci > 0) ? 'loss' : (r.co > 0 && r.outN >= 30 && r.outExp > 0) ? 'pass' : 'weak';
-      return r;
-    });
-    state.lab[m] = { rows, split, from: minD, to: maxD, count: list.length, seed, seedNote, bIS: ENGINE.benchmark(list, minD, split), bOOS: ENGINE.benchmark(list, split, maxD), demo: state.source === 'demo' };
-    btn.disabled = false;
-    renderLab();
+      const pi = ENGINE.portfolio(tr.filter(t => t.entryDate < split), opt), po = ENGINE.portfolio(tr.filter(t => t.entryDate >= split), opt), pa = ENGINE.portfolio(tr, opt);
+      const r = { k, st, ci: pi.taken ? pi.cagr : NaN, co: po.taken ? po.cagr : NaN, mo: po.taken ? po.mdd : NaN, fit: (pa.taken + pa.skipQty) ? pa.taken / (pa.taken + pa.skipQty) : NaN };
+      r.verdict = !(r.ci > 0) ? 'loss' : (r.co > 0 && (st.outN || 0) >= 30 && st.outExp > 0) ? 'pass' : 'weak';
+      res[k] = r;
+    }
+    state.lab[m] = { res, split, from: minD, to: maxD, count: list.length, seedNote, bIS: ENGINE.benchmark(list, minD, split), bOOS: ENGINE.benchmark(list, split, maxD), demo: state.source === 'demo' };
+    btn.disabled = false; renderLab();
   }
   function renderLab() {
-    const m = state.labMkt, L = state.lab[m], mk = m === 'KR' ? '국장' : '미장';
-    if (!L) { $('labVerdict').textContent = '[120개 전략 시뮬레이션]을 누르면 ' + mk + ' 데이터로 결과가 나옵니다. ' + (m === 'KR' ? '국장 300종목 기준 보통 10초 안팎' : '미장 500종목 기준 보통 20초 안팎') + ' 걸립니다.'; $('labCards').innerHTML = ''; $('labBody').innerHTML = ''; return; }
-    const rows = L.rows, cls = v => !isFinite(v) ? '' : v > 0 ? 'pos' : 'neg';
-    const byCi = [...rows].filter(r => isFinite(r.ci)).sort((a, b) => b.ci - a.ci);
-    const top = byCi[0], rec = byCi.find(r => r.verdict === 'pass');
-    const bO = L.bOOS, bI = L.bIS;
-    const nOosPos = rows.filter(r => r.co > 0).length, nBeat = bO ? rows.filter(r => r.co > bO.cagr && r.outN >= 30).length : 0;
-    let t = '<b>' + mk + ' ' + L.count + '종목</b> · 앞 기간 ' + L.from + ' ~ ' + L.split + ' · 뒤 기간 ' + L.split + ' ~ ' + L.to + '. ';
-    if (L.demo) t += '<span class="stale">지금은 연습용 가상 데이터라 결과에 의미가 없습니다.</span> ';
-    if (L.seedNote) t += '<span class="note">(' + mk + ' 시드가 0원이라 100만 원 기준으로 계산했습니다)</span> ';
-    if (bO) t += '<br>같은 종목을 그냥 사서 들고 있었다면 <b>앞 ' + pct1(bI && bI.cagr) + ' · 뒤 ' + pct1(bO.cagr) + '</b> (연수익)입니다. ';
-    if (top) t += '<br>앞 기간 1위는 <b>' + esc(S[top.k].short) + '</b>였고, 뒤 기간에는 <b class="' + cls(top.co) + '">' + pct1(top.co) + '</b>였습니다' + (top.co < top.ci * 0.5 ? ' (앞에서 좋았던 전략이 뒤에서 크게 약해지는 전형적인 모습)' : '') + '. ';
-    if (rec) {
-      t += '<br><b>추천: ' + esc(S[rec.k].short) + '</b> (앞·뒤 기간 모두 수익인 전략 중 앞 기간 성적 1위) — 앞 <b class="' + cls(rec.ci) + '">' + pct1(rec.ci) + '</b>, 뒤 <b class="' + cls(rec.co) + '">' + pct1(rec.co) + '</b>, 뒤 기간 최대 낙폭 −' + fmtN(rec.mo * 100, 1) + '%. ';
-      if (bO) t += rec.co > bO.cagr ? '같은 기간 단순 보유보다도 높았습니다. ' : '<b>다만 같은 기간 단순 보유(' + pct1(bO.cagr) + ')보다 낮습니다.</b> 이 기간에는 매매보다 그냥 들고 있는 편이 나았습니다. ';
-    } else t += '<br><b>앞·뒤 기간 모두 수익을 낸 전략이 없습니다.</b> 이 데이터로는 추천할 매매 전략이 없습니다. ';
-    t += '<br><span class="note">120개 중 뒤 기간에도 계좌 수익이 난 전략 ' + nOosPos + '개, 단순 보유를 이긴 전략 ' + nBeat + '개.</span>';
-    $('labVerdict').innerHTML = t;
-    const card = (c, label, val, sub) => '<div class="' + c + '"><span>' + label + '</span><b class="' + cls(val) + '">' + pct1(val) + '</b><small>' + sub + '</small></div>';
-    $('labCards').innerHTML = card('', '단순 보유 · 뒤 기간 연수익', bO && bO.cagr, '앞 기간 ' + pct1(bI && bI.cagr) + ' · 전 종목 같은 금액') +
-      (rec ? card('rec', '추천 전략 · 뒤 기간 연수익', rec.co, esc(S[rec.k].short) + '<br>앞 기간 ' + pct1(rec.ci) + ' · 최대 낙폭 −' + fmtN(rec.mo * 100, 1) + '%') : '<div class="rec"><span>추천 전략</span><b>없음</b><small>양쪽 기간 모두 수익인 전략 없음</small></div>') +
-      (top ? card('', '앞 기간 1위 · 뒤 기간 연수익', top.co, esc(S[top.k].short) + '<br>앞 기간 ' + pct1(top.ci)) : '');
-    let list = state.labFilter === 'pass' ? rows.filter(r => r.verdict === 'pass') : state.labFilter === 'top' ? byCi.slice(0, 30) : rows.slice();
-    const { key, dir } = state.labSort;
-    list.sort((a, b) => { const x = a[key], y = b[key]; if (typeof x === 'string') return dir * (x < y ? -1 : x > y ? 1 : 0); const xv = isFinite(x) ? x : -Infinity, yv = isFinite(y) ? y : -Infinity; return dir * (xv - yv); });
-    const rankOf = new Map(byCi.map((r, i) => [r.k, i + 1]));
-    const vb = { pass: '<span class="verdict go">통과</span>', weak: '<span class="verdict near">뒤에서 약화</span>', loss: '<span class="verdict no">손실</span>' };
-    $('labBody').innerHTML = list.map(r => { const cur = eqKey(state.strat[m]) === eqKey(r.k);
-      return '<tr class="' + (rec && r.k === rec.k ? 'recrow ' : '') + (cur ? 'cur' : '') + '"><td class="num">' + (rankOf.get(r.k) || '–') + '</td><td class="nm2">' + esc(r.name) + (rec && r.k === rec.k ? ' <span class="tag live">추천</span>' : '') + '</td><td class="nm2">' + esc(r.exit) + '</td>' +
-        '<td class="r num">' + r.inN + ' / ' + r.outN + '</td><td class="r num">' + fmtN(r.win * 100, 0) + '%</td>' +
-        '<td class="r num ' + cls(r.inExp) + '">' + fmtR(r.inExp) + '</td><td class="r num ' + cls(r.outExp) + '">' + fmtR(r.outExp) + '</td>' +
-        '<td class="r num ' + cls(r.ci) + '"><b>' + pct1(r.ci) + '</b></td><td class="r num ' + cls(r.co) + '"><b>' + pct1(r.co) + '</b></td><td class="r num">' + (isFinite(r.mo) ? '−' + fmtN(r.mo * 100, 1) + '%' : '–') + '</td>' +
-        '<td>' + vb[r.verdict] + '</td><td>' + (cur ? '<span class="tag live">' + mk + ' 사용 중</span>' : '<button type="button" class="usebtn" data-use="' + esc(r.k) + '">' + mk + '에 쓰기</button>') + '</td></tr>'; }).join('') ||
-      '<tr><td colspan="12" class="note">해당하는 전략이 없습니다.</td></tr>';
-    for (const b of $('labBody').querySelectorAll('[data-use]')) b.onclick = () => {
-      const k = b.dataset.use, r = rows.find(x => x.k === k);
-      state.strat[m] = eqKey(k); store.set('strat', state.strat); pushSettings(); refreshStratSelects(); state.bt = {}; state.selected = null; run(); renderLab();
-      toast(mk + ' [오늘 살 종목]이 "' + S[k].short + '" 기준으로 바뀌었습니다' + (r && r.verdict !== 'pass' ? ' (주의: 뒤 기간 검증을 통과하지 못한 전략입니다)' : ''));
+    const m = state.labMkt, L = state.lab[m], mk = m === 'KR' ? '국장' : '미장', cls = v => !isFinite(v) ? '' : v > 0 ? 'pos' : 'neg';
+    const proKeys = ENGINE.PRO_KEYS;
+    let rec = null;
+    if (L) {
+      const pass = proKeys.filter(k => L.res[k].verdict === 'pass');
+      rec = pass.sort((a, b) => (PROOF_RANK[S[b].proof.level] - PROOF_RANK[S[a].proof.level]) || (L.res[b].ci - L.res[a].ci))[0] || null;
+      const bO = L.bOOS, bI = L.bIS;
+      let t = '<b>' + mk + ' ' + L.count + '종목</b> · 앞 기간 ' + L.from + ' ~ ' + L.split + ' · 뒤 기간 ' + L.split + ' ~ ' + L.to + '. ';
+      if (L.demo) t += '<span class="stale">지금은 연습용 가상 데이터라 결과에 의미가 없습니다.</span> ';
+      if (L.seedNote) t += '<span class="note">(' + mk + ' 시드가 0원이라 100만 원 기준으로 계산했습니다)</span> ';
+      if (bO) t += '<br>같은 종목을 그냥 사서 들고 있었다면 <b>앞 ' + pct1(bI && bI.cagr) + ' · 뒤 ' + pct1(bO.cagr) + '</b> (연수익). ';
+      if (rec) { const r = L.res[rec];
+        t += '<br><b>추천: ' + S[rec].short + '</b> (' + S[rec].who + ') — 앞·뒤 기간 모두 수익인 전략 중 실적 근거가 가장 확실한 사람의 전략입니다. 내 계좌 기준 앞 <b class="' + cls(r.ci) + '">' + pct1(r.ci) + '</b> · 뒤 <b class="' + cls(r.co) + '">' + pct1(r.co) + '</b>, 뒤 기간 최대 낙폭 −' + fmtN(r.mo * 100, 1) + '%. ';
+        if (bO) t += r.co > bO.cagr ? '같은 기간 그냥 들고 있기보다도 높았습니다.' : '<b>다만 같은 기간 그냥 들고 있기(' + pct1(bO.cagr) + ')보다는 낮습니다.</b>';
+      } else t += '<br><b>앞·뒤 기간 모두 수익을 낸 고수 전략이 없습니다.</b> 이 시장에서는 추천할 전략이 없습니다.';
+      $('labVerdict').innerHTML = t;
+    }
+    const proofTxt = { high: '대회 실적', mid: '공개 기록', low: '규칙만 공개' };
+    const card = k => {
+      const Sx = S[k], r = L && L.res[k], isPro = !!Sx.pro, cur = state.strat[m] === k;
+      let h = '<div class="pcard' + (rec === k ? ' rec' : '') + '"><div class="pchd"><div><h3>' + Sx.name + (rec === k ? ' <span class="tag live">추천</span>' : '') + '</h3><div class="who">' + (isPro ? Sx.who : '내 전략 (비교용)') + '</div></div>' +
+        (isPro ? '<span class="proof ' + Sx.proof.level + '">' + proofTxt[Sx.proof.level] + '</span>' : '') + '</div>';
+      if (isPro) h += '<div class="ptext">' + Sx.proof.text + '</div><div class="rules"><div><b>원래 규칙</b>' + Sx.original + '</div><div><b>퇴근 후 실행 방법</b>' + Sx.afterWork + '</div></div>';
+      if (r) {
+        const st = r.st, hold = st.hold, fitTxt = isFinite(r.fit) ? Math.round(r.fit * 100) + '%' : '–';
+        h += '<div class="pres"><div><span>내 계좌 연수익 · 앞</span><b class="' + cls(r.ci) + '">' + pct1(r.ci) + '</b></div><div><span>내 계좌 연수익 · 뒤</span><b class="' + cls(r.co) + '">' + pct1(r.co) + '</b></div>' +
+          '<div><span>최대 낙폭 · 뒤</span><b>' + (isFinite(r.mo) ? '−' + fmtN(r.mo * 100, 1) + '%' : '–') + '</b></div><div><span>거래당 손익 (앞/뒤)</span><b>' + fmtR(st.inExp) + ' / ' + fmtR(st.outExp) + '</b></div>' +
+          '<div><span>승률</span><b>' + (st.n ? fmtN(st.winRate * 100, 0) + '%' : '–') + '</b></div><div><span>평균 보유</span><b>' + (st.n ? fmtN(hold, 0) + '일' : '–') + '</b></div></div>';
+        const fit = [];
+        fit.push(Sx.needsStopBuy ? '<span class="warn">감시 매수주문 필요 (증권사 지원 확인)</span>' : '<span class="good">퇴근 후 예약주문으로 가능</span>');
+        if (st.n) fit.push(hold <= 15 ? '<span class="good">보유 평균 ' + fmtN(hold, 0) + '일 · 원하시는 2주 안팎</span>' : '<span class="warn">보유 평균 ' + fmtN(hold, 0) + '일 · 2주보다 김</span>');
+        fit.push((r.fit >= 0.7 ? '<span class="good">' : '<span class="warn">') + '내 시드로 살 수 있는 신호 ' + fitTxt + '</span>');
+        if (st.n) fit.push('<span>연 ' + fmtN(st.perYearTrades, 0) + '회 신호 (동시 ' + maxPos() + '종목까지만 매수)</span>');
+        h += '<div class="fit">' + fit.join('') + '</div>';
+      }
+      const vb = r ? { pass: '<span class="verdict go">통과</span>', weak: '<span class="verdict near">뒤에서 약화</span>', loss: '<span class="verdict no">손실</span>' }[r.verdict] : '<span class="note">[검증 실행] 후 결과 표시</span>';
+      h += '<div class="pfoot"><div>' + vb + '</div>' + (cur ? '<span class="tag live">' + mk + ' 사용 중</span>' : '<button type="button" class="usebtn" data-use="' + k + '">' + mk + '에 이 전략 쓰기</button>') + '</div></div>';
+      return h;
+    };
+    let html = '';
+    if (L && L.bOOS) html += '<div class="pcard bench"><div class="pchd"><div><h3>그냥 사서 들고 있기 (비교 기준)</h3><div class="who">지금 목록의 종목을 같은 금액으로 사서 보유</div></div></div><div class="pres"><div><span>연수익 · 앞</span><b class="' + cls(L.bIS && L.bIS.cagr) + '">' + pct1(L.bIS && L.bIS.cagr) + '</b></div><div><span>연수익 · 뒤</span><b class="' + cls(L.bOOS.cagr) + '">' + pct1(L.bOOS.cagr) + '</b></div></div></div>';
+    html += (rec ? [rec].concat(proKeys.filter(k => k !== rec)) : proKeys).map(card).join('') + '<div class="label" style="margin-top:6px">내가 쓰던 전략 (비교용)</div>' + MY_KEYS.map(card).join('');
+    $('proCards').innerHTML = html;
+    for (const b of $('proCards').querySelectorAll('[data-use]')) b.onclick = () => {
+      const k = b.dataset.use, r = L && L.res[k];
+      state.strat[m] = k; store.set('strat', state.strat); pushSettings(); refreshStratSelects(); state.bt = {}; state.selected = null; run(); renderLab();
+      toast(mk + ' [오늘 살 종목]이 "' + S[k].short + '" 기준으로 바뀌었습니다' + (r && r.verdict !== 'pass' ? ' (주의: 검증을 통과하지 못한 전략입니다)' : ''));
     };
   }
 
@@ -2155,8 +2290,8 @@ const DEMO = (() => {
   for (const id of ['cloudOffset', 'chikouOffset']) { const el = $(id); el.value = String(state.cfg[id]); el.onchange = () => { state.cfg[id] = +el.value; saveCfg(); }; }
   { const el = $('cloudMode'); el.innerHTML = Object.entries(ENGINE.CLOUD_MODES).map(([k, v]) => '<option value="' + k + '">' + v + '</option>').join(''); el.value = state.cfg.cloudMode; el.onchange = () => { state.cfg.cloudMode = el.value; saveCfg(); }; }
   for (const [id, key] of [['volEx', 'volAvgExcludeToday']]) { const el = $(id); el.checked = !!state.cfg[key]; el.onchange = () => { state.cfg[key] = el.checked; saveCfg(); }; }
-  function refreshStratSelects() { for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (k.startsWith('lab|') ? '연구소: ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m]; } }
-  for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (k.startsWith('lab|') ? '연구소: ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m];
+  function refreshStratSelects() { for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? '고수 · ' + S[k].who.split(' · ')[0] + ': ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m]; } }
+  for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? '고수 · ' + S[k].who.split(' · ')[0] + ': ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m];
     el.onchange = () => { state.strat[m] = el.value; store.set('strat', state.strat); state.selected = null; run(); pushSettings(); refreshStratSelects(); }; }
   const seg = (id, fn) => $(id).addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; for (const x of $(id).children) x.setAttribute('aria-pressed', x === b); fn(b.dataset.v); });
   seg('fScore', v => { state.fGap = +v; renderTable(); });
@@ -2165,8 +2300,7 @@ const DEMO = (() => {
   $('btRun').onclick = runBacktest;
   $('labRun').onclick = runLab;
   seg('labMkt', v => { state.labMkt = v; renderLab(); });
-  seg('labFilter', v => { state.labFilter = v; renderLab(); });
-  document.querySelector('table.lab thead').addEventListener('click', e => { const th = e.target.closest('th[data-sort]'); if (!th) return; const k = th.dataset.sort; state.labSort = { key: k, dir: state.labSort.key === k ? -state.labSort.dir : (k === 'name' || k === 'exit' || k === 'mo' ? 1 : -1) }; renderLab(); });
+
   $('manualBtn').onclick = renderManual;
   $('syncToggle').onclick = () => renderSync($('syncBody').hidden);
   $('saveAll').onclick = async () => {

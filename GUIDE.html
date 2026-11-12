@@ -232,6 +232,32 @@ table.lab tr.recrow{background:var(--accent-soft)}
 table.lab tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .usebtn{font-size:11px;padding:4px 8px}
 @media (max-width:760px){.labcards{grid-template-columns:minmax(0,1fr)}}
+.procards{display:flex;flex-direction:column;gap:12px;padding:0 16px 16px}
+.pcard{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:var(--panel)}
+.pcard.rec{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--accent)}
+.pcard.bench{background:var(--soft)}
+.pchd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.pchd h3{margin:0;font-size:16px}
+.pchd .who{font-size:12px;color:var(--muted)}
+.proof{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-right:4px}
+.proof.high{background:var(--accent);color:var(--accent-ink)} .proof.mid{background:var(--accent-soft);color:var(--accent)} .proof.low{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.pcard .ptext{font-size:12.5px;color:var(--muted);line-height:1.6}
+.pcard .rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pcard .rules>div{font-size:12.5px;line-height:1.6;background:var(--soft);border-radius:8px;padding:9px 11px}
+.pcard .rules b{display:block;font-size:11px;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.pres{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.pres>div{display:flex;flex-direction:column;gap:1px}
+.pres span{font-size:11px;color:var(--muted)}
+.pres b{font-family:var(--f-mono);font-size:15px}
+.fit{display:flex;flex-wrap:wrap;gap:6px}
+.fit span{font-size:11.5px;padding:3px 8px;border-radius:6px;background:var(--soft);border:1px solid var(--line)}
+.fit span.good{background:var(--accent-soft);border-color:transparent;color:var(--accent)} .fit span.warn{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.pfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+details.excl{padding:12px 16px}
+details.excl summary{cursor:pointer;font-weight:600;font-size:14px}
+details.excl ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:13px;line-height:1.65;color:var(--muted)}
+details.excl b{color:var(--ink)}
+@media (max-width:900px){.pres{grid-template-columns:repeat(3,minmax(0,1fr))}.pcard .rules{grid-template-columns:minmax(0,1fr)}}
 .fundsum{font-size:12px;color:var(--muted);background:var(--soft);border-radius:7px;padding:8px 10px;line-height:1.6}
 .fundsum b{color:var(--ink);font-family:var(--f-mono)}
 .calc{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
@@ -330,14 +356,14 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <li>저장을 깜빡하고 이미 샀다면 "② 보유 중"의 <b>[직접 추가]</b>로 종목코드, 산 가격, 수량, 손절가를 넣으세요.</li>
 </ol>
 
-<h2>전략 연구소: 어떤 매매법이 잘 맞았는지 비교하고 골라 쓰기</h2>
+<h2>고수 전략 검증: 실적이 확인된 트레이더의 규칙으로 투자하기</h2>
 <ol>
-  <li><b>[전략 연구소]</b> 탭에서 국장/미장을 고르고 <b>[120개 전략 시뮬레이션]</b>을 누릅니다. MACD, 이동평균 골든크로스, RSI, 볼린저밴드, 신고가 돌파, 스토캐스틱, 급락 후 반등, 거래량 급증, 삼역호전 등 24가지 매수 신호 × 5가지 청산 방식을 내 시드와 같은 조건으로 돌립니다.</li>
-  <li>결과는 <b>기간 앞 70%로 순위</b>를 매기고, <b>뒤 30%(전략이 본 적 없는 기간)</b> 성적을 함께 보여줍니다. <span class="verdict go">통과</span>는 앞·뒤 모두 계좌 수익이 난 전략입니다.</li>
-  <li>맨 위 카드의 <b>"단순 보유"</b>는 같은 종목을 그냥 사서 들고 있었을 때입니다. 매매 전략이 이걸 못 이기면 굳이 매매할 이유가 약합니다.</li>
-  <li>마음에 드는 전략 줄의 <b>[국장에 쓰기]</b>(또는 미장)를 누르면 <b>오늘 살 종목·주문표·내 주문 관리가 모두 그 전략 기준</b>으로 바뀝니다. 되돌리려면 "전략 · 데이터 · 세부 설정"의 시장별 전략에서 고르세요.</li>
+  <li><b>[고수 전략 검증]</b> 탭에는 실적 근거가 있는 트레이더의 공개 규칙을 퇴근 후 실행 방식으로 옮긴 전략이 있습니다: <b>미너비니 SEPA</b>(미국 투자 챔피언십 우승), <b>터틀 시스템 1·2</b>(리처드 데니스의 터틀 실험), <b>라쉬키 홀리 그레일</b>(규칙만 공개).</li>
+  <li>국장/미장을 고르고 <b>[검증 실행]</b>을 누르면, 내 시드·1회 손실 한도·동시 보유 제한으로 기간 앞 70%와 뒤 30%를 나눠 검증하고 "그냥 들고 있기"와 비교합니다.</li>
+  <li>카드마다 <b>원래 규칙</b>, <b>퇴근 후 실행 방법</b>, <b>내 상황 적합도</b>(예약주문으로 가능한지, 평균 보유 기간, 내 시드로 살 수 있는 신호 비율)가 나옵니다.</li>
+  <li><b>[국장에 이 전략 쓰기]</b>를 누르면 오늘 살 종목, 주문표, 내 주문·보유 관리가 그 전략의 규칙대로 바뀝니다. 예를 들어 터틀은 "매일 저녁 손절가를 10일 최저가로 끌어올리기", 미너비니는 "종가가 50일선 아래면 다음 날 시가 매도"를 [내 주문 · 보유]에서 매일 알려줍니다.</li>
 </ol>
-<div class="caution">120개를 같은 데이터로 돌리면 일부는 운으로 좋게 나옵니다. 뒤 기간 성적이 제일 좋은 전략을 고르면 같은 함정에 다시 빠지니, "추천"(양쪽 기간 모두 수익인 전략 중 앞 기간 1위)을 기준으로 삼고 소액으로 실전 기록을 쌓아 확인하세요.</div>
+<div class="caution">대회 우승자의 실력이 공개된 규칙만으로 그대로 재현된다는 보장은 없습니다. 검증 결과를 참고해 소액으로 실전 기록을 쌓으며 확인하세요. 뺀 전략과 이유는 탭 아래 "검토했지만 뺀 전략과 이유"에 있습니다.</div>
 
 <h2>여러 기기에서 같은 기록 쓰기</h2>
 <ul>
