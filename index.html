@@ -1131,7 +1131,7 @@ const DEMO = (() => {
     state.latest = latest;
     res.sort((a, b) => a.gap - b.gap || (a.stock.symbol < b.stock.symbol ? -1 : 1));
     state.results = res;
-    if (!state.selected || !res.find(r => r.stock.symbol === state.selected)) state.selected = (res.find(r => r.gap === 0) || res[0])?.stock.symbol;
+    if (!state.selected || !res.find(r => r.stock.symbol === state.selected)) state.selected = (res.find(r => r.gap === 0 && r.afford) || res.find(r => r.gap === 0) || res[0])?.stock.symbol;
     render();
   }
 
