@@ -481,7 +481,7 @@ table.orders tr.gain td:last-child{color:var(--up)}
       <div><b>실적 근거 표시</b> <span class="proof high">대회 실적</span> 실계좌로 겨루는 공개 대회 우승 기록이 있음. <span class="proof mid">공개 기록</span> 참가자·저자가 공개한 성과(독립 감사 자료는 확인 못 함). <span class="proof low">규칙만 공개</span> 수익 수치를 확인하지 못함.</div>
       <div><b>퇴근 후 실행 버전</b> 원래 장중에 주문하는 규칙은 "종가로 신호 확인 → 다음 날 예약 주문"으로 바꿨습니다. 원래 방식보다 체결가가 조금 불리할 수 있습니다.</div>
       <div><b>판정</b> <span class="verdict go">통과</span> 앞·뒤 기간 모두 계좌 수익 + 뒤 기간 거래 30회 이상. <span class="verdict near">뒤에서 약화</span> 앞에서는 좋았지만 뒤에서 손실. <span class="verdict no">손실</span> 앞 기간부터 손실.</div>
-      <div><b>한계</b> 종목 목록이 "지금" 시가총액 상위라 과거에 망한 종목이 빠져 있어 결과가 실제보다 좋게 나옵니다. 대회 우승자의 실력이 이 규칙만으로 재현된다는 보장도 없습니다. 과거 결과는 미래 수익을 보장하지 않습니다.</div>
+      <div><b>한계</b> 종목 목록이 "지금" 기준(국장 시가총액 상위 300 보통주, 미장 현재 S&amp;P 500 구성 종목)이라 과거에 밀려나거나 망한 종목이 빠져 있어 결과가 실제보다 좋게 나옵니다. 대회 우승자의 실력이 이 규칙만으로 재현된다는 보장도 없습니다. 과거 결과는 미래 수익을 보장하지 않습니다.</div>
     </div>
   </div>
 
@@ -629,6 +629,11 @@ table.orders tr.gain td:last-child{color:var(--up)}
   <li>살 때: 저녁에 다음 날 <b>오늘 5일선 가격 지정가 매수</b>를 예약합니다. 안 사지면 다음 날 저녁 새 5일선 가격으로 다시 겁니다(장대양봉 뒤 6거래일까지).</li>
   <li>사지면: 손절 감시주문 <b>−5%</b>, 익절 지정가 <b>+3% · +6% · +9%</b>에 1/3씩. 종가가 <b>10일선 아래</b>로 마감하면 다음 날 시가에 남은 수량 매도. 최대 15거래일 보유.</li>
   <li>국장 백테스트에서는 손실이었습니다. 국장에서 쓰려면 [고수 전략 검증] 결과를 먼저 확인하세요.</li>
+</ul>
+<h3>어떤 종목을 보나요</h3>
+<ul>
+  <li><b>국장:</b> 코스피·코스닥 <b>시가총액 상위 300개 보통주</b>. 우선주(삼성전자우, 현대차2우B 등)는 거래하지 않으므로 뺍니다. 순위는 시세를 받을 때마다 새로 정합니다.</li>
+  <li><b>미장:</b> 지금 <b>S&amp;P 500</b>에 들어 있는 종목 전체. 한 회사가 주식을 두 종류 상장한 경우(구글 GOOGL·GOOG 등)는 거래대금이 큰 쪽 하나만 봅니다.</li>
 </ul>
 <h3>전거래일 · 최근 5거래일 신호</h3>
 <ul>
@@ -1514,11 +1519,19 @@ const DEMO = (() => {
     }
     if (errors.length) toast(errors[0]);
     if (!stocks.length) return;
-    state.stocks = stocks; state.source = 'file'; state.meta = meta && { generated: meta.generated }; state.selected = null; state.bt = {};
+    state.stocks = cleanUniverse(stocks); state.source = 'file'; state.meta = meta && { generated: meta.generated }; state.selected = null; state.bt = {};
     try { const s = JSON.stringify({ stocks, meta: state.meta }); if (s.length < 4.5e6) store.set('data', { stocks, meta: state.meta }); } catch {}
     run(); toast(stocks.length + '개 종목을 불러왔습니다');
   }
 
+  // 우선주 제외(국장 코드 끝자리가 0이 아니면 우선주) · 같은 회사의 다른 주식 종류는 거래대금 큰 쪽만 (미장 GOOGL/GOOG 등)
+  function cleanUniverse(stocks) {
+    const best = new Map(), val = s => { const b = s.bars.slice(-60); return b.reduce((a, x) => a + x[4] * x[5], 0) / (b.length || 1); };
+    const keep = stocks.filter(s => !(s.market === 'KR' && /^[0-9A-Z]{6}$/.test(String(s.symbol)) && !String(s.symbol).endsWith('0')));
+    for (const s of keep) { if (s.market !== 'US' || !s.name) continue; const k = String(s.name).replace(/\s*\(Class [A-Z]\)\s*$/, '').trim().toLowerCase(); const v = val(s); if (!best.has(k) || v > best.get(k)[0]) best.set(k, [v, s]); }
+    const winners = new Set([...best.values()].map(x => x[1]));
+    return keep.filter(s => s.market !== 'US' || !s.name || winners.has(s));
+  }
   // ---------- 오늘 신호 계산 ----------
   function run() {
     ensureRS();
@@ -2485,7 +2498,7 @@ const DEMO = (() => {
         for (const s of d.stocks) stocks.push({ symbol: String(s.symbol), name: s.name, market: m, bars: normBars(s.bars) }); } catch {}
     }
     if (!stocks.length) return false;
-    state.stocks = stocks; state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
+    state.stocks = cleanUniverse(stocks); state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
   }
   function renderJobs(st) {
     const names = { KR: '국장', US: '미장' };
@@ -2550,7 +2563,7 @@ const DEMO = (() => {
         for (const x of d.stocks) stocks.push({ symbol: String(x.symbol), name: x.name, market: m, bars: normBars(x.bars) }); } catch {}
     }
     if (!stocks.length) return false;
-    state.stocks = stocks; state.source = 'pages'; state.selected = null; state.bt = {};
+    state.stocks = cleanUniverse(stocks); state.source = 'pages'; state.selected = null; state.bt = {};
     return true;
   }
   function renderPagesJobs() {
@@ -2595,7 +2608,7 @@ const DEMO = (() => {
     if (isLocal && await loadLocalData()) return;
     if (pagesData) { run(); return; }
     const saved = store.get('data', null);
-    if (!isLocal && !site && saved?.stocks?.length) { state.stocks = saved.stocks; state.meta = saved.meta; state.source = 'file'; run(); }
+    if (!isLocal && !site && saved?.stocks?.length) { state.stocks = cleanUniverse(saved.stocks); state.meta = saved.meta; state.source = 'file'; run(); }
     else loadDemo();
   })();
   if (document.fonts?.ready) document.fonts.ready.then(redraw);

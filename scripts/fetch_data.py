@@ -9,7 +9,7 @@ GitHub 서버가 매일 자동으로 실행합니다. 직접 실행할 필요는
 
 결과: <out>/KR.json, <out>/US.json, <out>/meta.json
 """
-import argparse, json, os, sys, time, datetime as dt
+import argparse, json, re, os, sys, time, datetime as dt
 from io import StringIO
 from zoneinfo import ZoneInfo
 
@@ -70,6 +70,7 @@ def kr_targets(n, out):
         import FinanceDataReader as fdr
         lst = fdr.StockListing("KRX")
         lst = lst[lst["Market"].isin(["KOSPI", "KOSDAQ", "KOSDAQ GLOBAL"])]
+        lst = lst[lst["Code"].astype(str).str[-1] == "0"]   # 우선주 제외 (보통주 코드는 끝자리가 0)
         if "Marcap" in lst.columns:
             lst = lst.sort_values("Marcap", ascending=False)
         lst = lst.head(n)
@@ -81,6 +82,7 @@ def kr_targets(n, out):
     prev = read_json(os.path.join(out, "KR.json"), {}).get("stocks", [])
     if prev:
         log(f"[KR] 지난번 목록 {len(prev)}개를 다시 씁니다")
+        prev = [s for s in prev if str(s["symbol"])[-1] == "0"]   # 우선주 제외
         return [s["symbol"] for s in prev], {s["symbol"]: s["name"] for s in prev}, {}
     raise RuntimeError("국장 종목 목록을 받지 못했습니다 (한국거래소 접속 실패, 지난 목록도 없음)")
 
@@ -153,6 +155,19 @@ def sp500():
         return FALLBACK_US, {}
 
 
+
+def dedupe_share_classes(stocks):
+    """한 회사가 주식 종류를 둘 상장한 경우(GOOGL/GOOG, FOXA/FOX, NWSA/NWS) 최근 60일 평균 거래대금이 큰 쪽 하나만 남긴다"""
+    best = {}
+    for s in stocks:
+        key = re.sub(r"\s*\(Class [A-Z]\)\s*$", "", s["name"]).strip().lower()
+        val = sum(b[4] * b[5] for b in s["bars"][-60:]) / max(1, len(s["bars"][-60:]))
+        if key not in best or val > best[key][0]:
+            best[key] = (val, s)
+    keep = {id(v[1]) for v in best.values()}
+    return [s for s in stocks if id(s) in keep]
+
+
 def fetch_us(years, out):
     import yfinance as yf
     start = (dt.date.today() - dt.timedelta(days=int(365.25 * years))).isoformat()
@@ -174,6 +189,8 @@ def fetch_us(years, out):
         log(f"[US] {min(k + 50, len(syms))}/{len(syms)}")
     if not stocks:
         raise RuntimeError("미장 시세를 한 종목도 받지 못했습니다")
+    n0 = len(stocks); stocks = dedupe_share_classes(stocks)
+    if n0 != len(stocks): log(f"[US] 같은 회사 다른 주식 종류 {n0 - len(stocks)}개 제외 (거래대금 큰 쪽만 남김)")
     write_json(os.path.join(out, "US.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "US", "stocks": stocks})
     log(f"[US] 완료: {len(stocks)}종목 (실패 {fails})")
     return len(stocks)
