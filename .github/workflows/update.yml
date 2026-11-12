@@ -1,0 +1,97 @@
+name: 시세 업데이트
+
+on:
+  schedule:
+    - cron: "50 6 * * 1-5"    # 국장: 평일 15:50 (한국시간)
+    - cron: "40 21 * * 1-5"   # 미장: 평일 미국 장 마감 후 = 한국시간 다음 날 06:40
+  workflow_dispatch:
+    inputs:
+      market:
+        description: "받을 시장 (KR, US, ALL) 또는 SITE(화면만 다시 올리기)"
+        required: true
+        default: "ALL"
+  push:
+    branches: [main]
+    paths: ["index.html", "GUIDE.html"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: site
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 어느 시장을 받을지 정하기
+        id: m
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            if [ "${{ github.event.schedule }}" = "50 6 * * 1-5" ]; then echo "market=KR" >> "$GITHUB_OUTPUT"; else echo "market=US" >> "$GITHUB_OUTPUT"; fi
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            echo "market=SITE" >> "$GITHUB_OUTPUT"
+          else
+            echo "market=${{ inputs.market }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 지난번에 받은 시세 가져오기
+        run: |
+          mkdir -p site/data
+          if git fetch --depth 1 origin data-store 2>/dev/null; then
+            git archive origin/data-store data | tar -x -C site
+          else
+            echo "처음 실행이라 지난 시세가 없습니다"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.m.outputs.market != 'SITE'
+        with:
+          python-version: "3.12"
+
+      - name: 부품 설치
+        if: steps.m.outputs.market != 'SITE'
+        run: pip install --quiet finance-datareader yfinance pandas requests lxml
+
+      - name: 시세 받기
+        if: steps.m.outputs.market != 'SITE'
+        run: python scripts/fetch_data.py --market "${{ steps.m.outputs.market }}" --out site/data
+
+      - name: 사이트 파일 모으기
+        if: always()
+        run: |
+          cp index.html site/
+          [ -f GUIDE.html ] && cp GUIDE.html site/ || true
+          touch site/.nojekyll
+          date -u +%Y-%m-%dT%H:%M:%SZ > site/data/last_run.txt
+
+      - name: 시세 보관 (data-store 브랜치, 기록 1개만 유지)
+        if: always()
+        run: |
+          rm -rf /tmp/store && mkdir -p /tmp/store && cp -r site/data /tmp/store/
+          cd /tmp/store
+          git init -q -b data-store
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "시세 보관 $(date -u +%Y-%m-%d)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" data-store
+
+      - uses: actions/configure-pages@v5
+        if: always()
+      - uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: site
+      - id: deploy
+        if: always()
+        uses: actions/deploy-pages@v4

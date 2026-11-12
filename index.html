@@ -1,0 +1,2031 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body><title>삼역호전 스캐너</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 상단 조작대 → 탭(오늘의 신호 / 전략 검증) → 신호 목록·종목 상세 2단, 좁은 화면은 1단 */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --ink:#141c28; --muted:#5a6575; --line:#d9dfe7; --soft:#f5f7fa;
+  --accent:#0d7468; --accent-ink:#ffffff; --accent-soft:#dff1ee;
+  --up:#d03a3a; --down:#2b5fd0; --warn:#b26a00; --warn-soft:#fbefdc; --bad-soft:#f8e3e3;
+  --ema20:#d9822b; --ema50:#7a4fc4; --sma200:#3b4452; --kijun:#0d7468; --cloud-bull:rgba(13,116,104,.12); --cloud-bear:rgba(208,58,58,.10);
+  --s1:#0d7468; --s2:#d9822b; --s3:#7a4fc4;
+  --f-sans:"IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#94a0b1; --line:#2a3442; --soft:#1d2531;
+  --accent:#37b3a3; --accent-ink:#06201c; --accent-soft:#163632;
+  --up:#f06464; --down:#6b97f5; --warn:#e7a443; --warn-soft:#3a2c14; --bad-soft:#3a1e22;
+  --ema20:#eda055; --ema50:#a98af0; --sma200:#c7cfdb; --kijun:#37b3a3; --cloud-bull:rgba(55,179,163,.16); --cloud-bear:rgba(240,100,100,.13);
+  --s1:#37b3a3; --s2:#eda055; --s3:#a98af0;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --panel:#171e28; --ink:#e6ebf2; --muted:#94a0b1; --line:#2a3442; --soft:#1d2531;
+  --accent:#37b3a3; --accent-ink:#06201c; --accent-soft:#163632;
+  --up:#f06464; --down:#6b97f5; --warn:#e7a443; --warn-soft:#3a2c14; --bad-soft:#3a1e22;
+  --ema20:#eda055; --ema50:#a98af0; --sma200:#c7cfdb; --kijun:#37b3a3; --cloud-bull:rgba(55,179,163,.16); --cloud-bear:rgba(240,100,100,.13);
+  --s1:#37b3a3; --s2:#eda055; --s3:#a98af0;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:14px;line-height:1.5}
+.wrap{max-width:1440px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em;text-wrap:balance}
+h1 small{font-size:13px;font-weight:500;color:var(--muted);margin-left:8px;letter-spacing:0}
+.status{font-size:13px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+.tag.demo{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.tag.live{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:0}
+.controls>section{padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.controls>section+section{border-left:1px solid var(--line)}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,.btn{font:inherit;font-size:13px;font-weight:600;border-radius:7px;padding:7px 12px;border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer}
+button:hover,.btn:hover{border-color:var(--muted)}
+button:disabled{opacity:.5;cursor:default}
+button.primary,.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.drop{font-size:12px;color:var(--muted)}
+input[type=number],input[type=text],input[type=date],select{font:inherit;font-family:var(--f-mono);font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--ink);width:100%;min-width:0}
+select{font-family:var(--f-sans)}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field span{font-size:12px;color:var(--muted)}
+details.adv{border-top:1px solid var(--line);padding:10px 16px}
+details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+.advgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+.advgrid h4{grid-column:1/-1;margin:6px 0 0;font-size:12px;color:var(--muted);font-weight:600}
+.chk{display:flex;gap:6px;align-items:center;font-size:13px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:10px 14px;font-size:14px;color:var(--muted)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{padding:12px 14px}
+.stat b{display:block;font-family:var(--f-mono);font-size:22px;font-weight:600}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.hit b{color:var(--accent)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 480px;gap:16px;align-items:start}
+.listhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent;padding:6px 10px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+.search{max-width:160px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;letter-spacing:.03em}
+td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+#tbody tr{cursor:pointer}
+#tbody tr:hover{background:var(--soft)}
+#tbody tr.sel{background:var(--accent-soft)}
+td.r,th.r{text-align:right}
+.sym{font-weight:600}
+.nm{color:var(--muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.mk{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
+.st{font-size:11px;color:var(--muted)}
+.dots{display:inline-flex;gap:3px}
+.dot{width:20px;height:20px;border-radius:5px;display:inline-grid;place-items:center;font-size:11px;font-weight:700;font-family:var(--f-mono);background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.dot.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.verdict{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px}
+.verdict.go{background:var(--accent);color:var(--accent-ink)}
+.verdict.near{background:var(--warn-soft);color:var(--warn)}
+.verdict.no{color:var(--muted)}
+.stale{color:var(--warn);font-size:11px;font-weight:600}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.detail{position:sticky;top:12px;display:flex;flex-direction:column}
+.dhead{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.dhead h2{margin:0;font-size:18px}
+.dhead .sub{font-size:12px;color:var(--muted)}
+.chartbox{padding:8px 8px 4px}
+canvas{display:block;width:100%;height:280px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;padding:0 12px 10px;font-size:11px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.dsec{padding:12px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.cond{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:8px;align-items:start;font-size:13px}
+.cond .v{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-align:right}
+.cond .t small{display:block;color:var(--muted);font-size:12px;white-space:normal}
+.mark{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700}
+.mark.ok{background:var(--accent);color:var(--accent-ink)}
+.mark.ng{background:var(--bad-soft);color:var(--up)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px}
+.kv div{display:flex;justify-content:space-between;gap:8px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:4px}
+.kv span{color:var(--muted)}
+.kv b{font-family:var(--f-mono);font-weight:600;font-variant-numeric:tabular-nums}
+.big{display:flex;gap:10px;flex-wrap:wrap}
+.big>div{flex:1 1 120px;background:var(--soft);border-radius:8px;padding:10px 12px}
+.big span{font-size:12px;color:var(--muted);display:block}
+.big b{font-family:var(--f-mono);font-size:18px}
+ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13px}
+ol.steps b{font-family:var(--f-mono)}
+.note{font-size:12px;color:var(--muted)}
+.warnbox{font-size:12px;background:var(--warn-soft);color:var(--warn);border-radius:7px;padding:8px 10px}
+pre.memo{margin:0;font-family:var(--f-mono);font-size:12px;background:var(--soft);border-radius:7px;padding:10px;white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto}
+.bt{display:flex;flex-direction:column;gap:16px}
+.bthead{padding:14px 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+.bthead p{margin:0;font-size:13px;color:var(--muted);max-width:640px}
+.verdictbox{padding:14px 16px;border-bottom:1px solid var(--line);font-size:14px;line-height:1.7;max-width:900px}
+.verdictbox b{font-weight:700}
+.pos{color:var(--up)} .neg{color:var(--down)}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+#btCurve{height:300px}
+.howto{padding:14px 16px;font-size:13px;color:var(--muted);display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 20px}
+.howto b{color:var(--ink)}
+footer{font-size:12px;color:var(--muted);line-height:1.7;max-width:900px}
+.local{border-color:var(--accent)}
+.localin{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.jobs{display:flex;flex-direction:column;gap:6px}
+.job{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px}
+.bar{height:8px;border-radius:4px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+.job .msg{font-size:12px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.lede{margin:4px 0 0;color:var(--muted);font-size:14px}
+.banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.6}
+.banner b{color:inherit}
+.linkbtn{background:transparent;border:0;padding:0;color:inherit;text-decoration:underline;font-weight:700;cursor:pointer}
+.steps3{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;counter-reset:st}
+.steps3 li{counter-increment:st;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px 10px 48px;position:relative;display:flex;flex-direction:column;gap:2px}
+.steps3 li::before{content:counter(st);position:absolute;left:14px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;font-family:var(--f-mono)}
+.steps3 b{font-size:14px}
+.steps3 span{font-size:12px;color:var(--muted)}
+.acctin{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.acct-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.acct-fields input{font-size:15px;padding:8px 10px}
+.stat .st-l{font-size:13px;color:var(--ink);font-weight:600}
+.stat b small{font-size:13px;font-weight:500;color:var(--muted);margin-left:3px}
+.stat b{margin:2px 0}
+table.list td{padding:11px 10px}
+table.list .sym{font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%;padding:0;font-size:0}
+.miss{font-size:11px;color:var(--muted);margin-top:3px}
+td.strong{font-weight:700;font-size:14px}
+.c-down{color:var(--down)} .c-up{color:var(--up)}
+.say{margin:12px 16px 0;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;background:var(--soft)}
+.say.go{background:var(--accent-soft)} .say.poor{background:var(--warn-soft)} .say.no{background:var(--bad-soft)}
+details.conds>summary{cursor:pointer;list-style-position:inside}
+details.conds[open]>summary{margin-bottom:4px}
+.calcbox{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+details.why{font-size:12px;color:var(--muted)}
+details.why summary{cursor:pointer;font-weight:600}
+details.why ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+details.why b{color:var(--ink);font-family:var(--f-mono)}
+.guide{padding:20px 24px;max-width:860px;line-height:1.75;font-size:14px}
+.guide h2{font-size:20px;margin:28px 0 8px;text-wrap:balance}
+.guide h2:first-child{margin-top:0}
+.guide h3{font-size:15px;margin:18px 0 6px}
+.guide p{margin:6px 0}
+.guide ol,.guide ul{padding-left:22px;margin:6px 0;display:flex;flex-direction:column;gap:4px}
+.guide code,.guide kbd{font-family:var(--f-mono);font-size:12.5px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.guide pre.tree{font-family:var(--f-mono);font-size:13px;background:var(--soft);border-radius:8px;padding:12px 14px;overflow-x:auto;line-height:1.7;margin:8px 0}
+.guide .twoway{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0}
+.guide .twoway>div{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.guide .twoway b{display:block;font-size:15px;margin-bottom:4px}
+.guide table{margin:8px 0}
+.guide td,.guide th{white-space:normal;vertical-align:top}
+.guide .tip{background:var(--accent-soft);border-radius:8px;padding:10px 12px;margin:10px 0}
+.guide .caution{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 12px;margin:10px 0}
+.cnt{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:var(--accent-ink);font-size:11px;font-weight:700;font-family:var(--f-mono);margin-left:4px}
+.poslist{display:flex;flex-direction:column;gap:0}
+.poscard{padding:14px 16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.poslist .poscard:first-child{border-top:0}
+.pchead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.pname{font-size:16px}
+.pct{font-family:var(--f-mono);font-weight:700;font-size:16px}
+.lvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.lvgrid>div{background:var(--soft);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;gap:1px;border-left:3px solid var(--line)}
+.lvgrid>div.down{border-left-color:var(--down)} .lvgrid>div.up{border-left-color:var(--up)}
+.lvgrid span{font-size:12px;color:var(--muted)}
+.lvgrid b{font-family:var(--f-mono);font-size:17px}
+.lvgrid small{font-size:11px;color:var(--muted)}
+.alert{border-radius:8px;padding:9px 12px;font-size:13px;line-height:1.6}
+.alert b{margin-right:4px}
+.alert.stop{background:var(--bad-soft);color:var(--ink)} .alert.stop b{color:var(--down)}
+.alert.tp{background:var(--accent-soft)} .alert.tp b{color:var(--accent)}
+.alert.time{background:var(--warn-soft)} .alert.time b{color:var(--warn)}
+.alert.info{background:var(--soft);color:var(--muted)}
+.alert.ok{background:var(--soft)} .alert.ok b{color:var(--accent)}
+.posform{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;background:var(--soft);border-radius:8px;padding:10px 12px}
+.posform[hidden]{display:none!important}
+#manualForm{margin:12px 16px 0}
+.posform .row{grid-column:auto}
+button.ghost{background:transparent;color:var(--muted)}
+.savedbtn{font-size:12px;padding:5px 10px}
+.ghsteps{margin:0;padding-left:20px;font-size:13px;display:flex;flex-direction:column;gap:6px;line-height:1.6}
+.ghsteps a{color:var(--accent);font-weight:600}
+.ghsteps code{font-family:var(--f-mono);font-size:12px;background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+a.btn{text-decoration:none;display:inline-block}
+.syncbody{padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line)}
+.cands{display:flex;flex-direction:column;gap:6px}
+.cands button{text-align:left;font-weight:500;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.cands button .note{font-family:var(--f-mono);word-break:break-all}
+.fundsum{font-size:12px;color:var(--muted);background:var(--soft);border-radius:7px;padding:8px 10px;line-height:1.6}
+.fundsum b{color:var(--ink);font-family:var(--f-mono)}
+.calc{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+.calc .field{flex:1 1 140px}
+table.orders td,table.orders th{padding:7px 6px;font-size:12px}
+table.orders td:first-child,table.orders td:last-child{white-space:normal}
+.detail .big{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+.detail .big b{font-size:16px}
+table.orders tr.loss td:last-child{color:var(--down)}
+table.orders tr.gain td:last-child{color:var(--up)}
+.scen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.scen>div{background:var(--soft);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--muted)}
+.scen b{display:block;font-family:var(--f-mono);font-size:15px;color:var(--ink)}
+.verdict.poor{background:var(--warn-soft);color:var(--warn)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:8px;font-size:13px;z-index:20;max-width:90vw}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.detail{position:static}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.controls>section:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+@media (max-width:900px){.acct-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.steps3{grid-template-columns:minmax(0,1fr)}.guide .twoway{grid-template-columns:minmax(0,1fr)}.guide{padding:16px}.controls{grid-template-columns:minmax(0,1fr)}.controls>section+section{border-left:0;border-top:1px solid var(--line)}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.fields{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap" id="app">
+  <header class="top">
+    <div>
+      <h1>삼역호전 스캐너</h1>
+      <p class="lede">오늘 살 종목, 살 수량, 손절가와 익절가를 정해진 규칙대로 계산합니다.</p>
+    </div>
+    <div class="status" id="status"></div>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <b>지금 보이는 종목과 가격은 연습용 가상 데이터입니다.</b>
+    실제 시세는 내 PC에 설치한 프로그램에서 [국장 시세 받기]를 누르면 나옵니다.
+    <button type="button" class="linkbtn" data-goto="guide">설치 방법 보기</button>
+  </div>
+
+  <ol class="steps3">
+    <li><b>시세 받기</b><span>장 마감 후 PC 프로그램에서 [국장 시세 받기]</span></li>
+    <li><b>매수 후보 고르기</b><span>초록색 "매수 후보" 종목을 누르기</span></li>
+    <li><b>주문 넣기</b><span>살 수량·손절가·익절가를 증권사 감시주문에 그대로</span></li>
+  </ol>
+
+  <div class="panel local" id="localPanel" hidden>
+    <div class="localin">
+      <div class="label">시세 받기 · PC 프로그램</div>
+      <div class="row">
+        <button type="button" class="primary" data-fetch="KR">국장 시세 받기</button>
+        <button type="button" class="primary" data-fetch="US">미장 시세 받기</button>
+        <label class="chk">국장 시총 상위 <input id="krN" type="number" min="10" max="2500" step="10" style="width:76px"> 종목</label>
+        <label class="chk">기간 <input id="years" type="number" min="2" max="15" step="1" style="width:56px"> 년</label>
+        <label class="btn" for="updFile" style="margin-left:auto">업데이트 파일 적용</label>
+        <input id="updFile" type="file" accept=".html,.py" hidden>
+      </div>
+      <div id="jobs" class="jobs"></div>
+      <div class="note" id="saveInfo"></div>
+    </div>
+  </div>
+
+  <div class="panel local" id="pagesPanel" hidden>
+    <div class="localin">
+      <div class="label">시세 · GitHub 자동 수집</div>
+      <div id="pagesJobs" class="jobs"></div>
+      <div class="row">
+        <button type="button" id="dispatchBtn">지금 시세 다시 받기</button>
+        <a class="btn" id="actionsLink" target="_blank" rel="noopener">GitHub 실행 기록 보기</a>
+        <span class="note">평일 15:50(국장)과 다음 날 06:40(미장)에 GitHub이 자동으로 받습니다. 한 번 받는 데 몇 분 걸립니다.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel acct">
+    <div class="acctin">
+      <div class="label">내 계좌</div>
+      <div class="acct-fields">
+        <label class="field"><span>국장 시드 (원)</span><input id="seedKR" type="number" min="0" step="100000"></label>
+        <label class="field"><span>미장 시드 (원)</span><input id="seedUS" type="number" min="0" step="100000"></label>
+        <label class="field"><span>한 번에 잃어도 되는 돈 (시드의 %)</span><input id="risk" type="number" min="0.1" max="5" step="0.1"></label>
+        <label class="field"><span>한 종목에 넣을 최대 금액 (시드의 %)</span><input id="capPct" type="number" min="5" max="100" step="5"></label>
+      </div>
+      <div class="fundsum" id="fundSum"></div>
+    </div>
+    <details class="adv" id="adv">
+      <summary>전략 · 데이터 · 세부 설정</summary>
+      <div class="advgrid">
+        <h4>시장별 전략</h4>
+        <label class="field"><span>국장 (기본: 2주 눌림목 스윙)</span><select id="stratKR"></select></label>
+        <label class="field"><span>미장 (기본: 추세 추종)</span><select id="stratUS"></select></label>
+        <h4>데이터</h4>
+        <div class="row" style="grid-column:1/-1">
+          <label class="btn" for="file">JSON·CSV 파일 불러오기</label>
+          <input id="file" type="file" accept=".json,.csv,.txt" multiple hidden>
+          <button id="demoBtn" type="button">가상 데이터로 연습하기</button>
+          <span class="note">종목당 최소 260봉, 전략 검증은 5년 이상 권장</span>
+        </div>
+        <h4>미국 주식</h4>
+        <label class="field"><span>환율 (원/달러)</span><input id="fx" type="number" min="500" max="3000" step="1"></label>
+        <label class="chk"><input id="fractional" type="checkbox"> 소수점 매수로 계산</label>
+        <h4>추세 추종 (삼역호전 5조건)</h4>
+        <label class="field"><span>RSI 하한 / 상한</span><div class="row" style="flex-wrap:nowrap"><input id="rsiLo" type="number" step="1"><input id="rsiHi" type="number" step="1"></div></label>
+        <label class="field"><span>거래량 배수</span><input id="volMult" type="number" step="0.1"></label>
+        <label class="field"><span>구름 조건 (①번)</span><select id="cloudMode"></select></label>
+        <label class="field"><span>구름 돌파 인정 기간 (일)</span><input id="cloudBreakDays" type="number" min="1" max="20" step="1"></label>
+        <label class="field"><span>구름대 위치 기준</span><select id="cloudOffset"><option value="26">26봉 전 계산값 (원문)</option><option value="25">25봉 전 (트레이딩뷰식)</option></select></label>
+        <label class="field"><span>후행스팬 비교 대상</span><select id="chikouOffset"><option value="26">26봉 전 종가 (원문)</option><option value="25">25봉 전 종가 (트레이딩뷰식)</option></select></label>
+        <h4>2주 스윙 (눌림목·돌파)</h4>
+        <label class="field"><span>최대 보유 (거래일)</span><input id="holdDays" type="number" min="3" max="40" step="1"></label>
+        <label class="field"><span>눌림 RSI 기준 (이하)</span><input id="pbRsiMax" type="number" step="1"></label>
+        <label class="field"><span>눌림목 거래량 배수</span><input id="pbVolMult" type="number" step="0.1"></label>
+        <label class="field"><span>돌파 거래량 배수</span><input id="boVolMult" type="number" step="0.1"></label>
+        <h4>공통 · 검증</h4>
+        <label class="chk"><input id="volEx" type="checkbox"> 20일 평균 거래량에서 당일 제외</label>
+        <label class="field"><span>국장 왕복 비용 (%)</span><input id="costKR" type="number" step="0.01" min="0"></label>
+        <label class="field"><span>미장 왕복 비용 (%)</span><input id="costUS" type="number" step="0.01" min="0"></label>
+      </div>
+    </details>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tabSig" data-goto="sig" aria-selected="true">오늘 살 종목</button>
+    <button type="button" role="tab" id="tabPos" data-goto="pos" aria-selected="false">내 주문 · 보유 <span class="cnt" id="posCnt" hidden></span></button>
+    <button type="button" role="tab" id="tabBt" data-goto="bt" aria-selected="false">전략 검증</button>
+    <button type="button" role="tab" id="tabGuide" data-goto="guide" aria-selected="false">사용법 · 설치</button>
+  </div>
+
+  <div id="viewSig" class="bt">
+    <div class="summary" id="summary"></div>
+    <div class="main">
+      <div class="panel">
+        <div class="listhead">
+          <div class="row">
+            <div class="seg" id="fScore">
+              <button type="button" data-v="0" aria-pressed="true">매수 후보</button>
+              <button type="button" data-v="1" aria-pressed="false">+ 1개 부족</button>
+              <button type="button" data-v="99" aria-pressed="false">전체</button>
+            </div>
+            <div class="seg" id="fMkt">
+              <button type="button" data-v="ALL" aria-pressed="true">국장+미장</button>
+              <button type="button" data-v="KR" aria-pressed="false">국장</button>
+              <button type="button" data-v="US" aria-pressed="false">미장</button>
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" id="saveAll" title="지금 목록의 매수 후보를 모두 내 주문에 저장">매수 후보 전부 저장</button>
+            <label class="chk"><input id="fAfford" type="checkbox"> 내 시드로 살 수 있는 것만</label>
+            <input id="q" class="search" type="text" placeholder="종목 검색">
+          </div>
+        </div>
+        <div class="tablewrap">
+          <table class="list">
+            <thead><tr><th>종목</th><th>판정</th><th class="r">현재가</th><th class="r">살 수량</th><th class="r">투자금</th><th class="r">손절가</th><th class="r">1차 익절가</th><th>조건</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="empty" hidden></div>
+      </div>
+      <aside class="panel detail" id="detail"></aside>
+    </div>
+  </div>
+
+  <div id="viewPos" class="bt" hidden>
+    <div class="panel" id="syncPanel" hidden>
+      <div class="bthead"><div><div class="label">여러 기기 기록 연동 · GitHub 비공개 저장소</div><p id="syncStatus"></p></div><button type="button" id="syncToggle">연결하기</button></div>
+      <div id="syncBody" class="syncbody" hidden></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">① 체결 확인 대기 · 저장해 둔 예약 주문</div><p>전날 저장한 주문입니다. 다음 날 실제로 사졌으면 [체결됨], 안 사졌으면 [안 사짐]을 누르세요. 체결가는 다음 날 시가가 자동으로 들어갑니다(시장가 매수 기준).</p></div></div>
+      <div id="pendList" class="poslist"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">② 보유 중 · 지금 걸어 둘 손절·익절 주문</div><p>산 가격 기준으로 손절가와 익절가를 다시 계산하고, 받은 시세로 손절·익절 가격에 닿았는지 매일 점검합니다.</p></div>
+        <button type="button" id="manualBtn">직접 추가</button></div>
+      <div id="manualForm" class="posform" hidden></div>
+      <div id="holdList" class="poslist"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">③ 매매 일지 · 다 판 종목</div><p id="journalSum">아직 다 판 종목이 없습니다.</p></div></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>종목</th><th>산 날</th><th>판 날</th><th class="r">산 가격</th><th class="r">수량</th><th class="r">손익</th><th class="r">R</th><th>마지막 사유</th><th></th></tr></thead>
+        <tbody id="journalBody"></tbody>
+      </table></div>
+    </div>
+    <p class="note" id="posStore"></p>
+  </div>
+
+  <div id="viewBt" class="bt" hidden>
+    <div class="panel">
+      <div class="bthead">
+        <p>불러온 전 종목의 과거 데이터에 세 전략을 똑같이 적용합니다. 신호 다음 날 시가에 사고, 각 전략의 손절·익절 규칙대로 판 결과를 R(1회 감수 위험) 단위로 집계합니다.</p>
+        <div class="row">
+          <div class="seg" id="btMkt">
+            <button type="button" data-v="KR" aria-pressed="true">국장</button>
+            <button type="button" data-v="US" aria-pressed="false">미장</button>
+          </div>
+          <button type="button" class="primary" id="btRun">검증 실행</button>
+        </div>
+      </div>
+      <div class="verdictbox" id="btVerdict">[검증 실행]을 누르면 결과가 나옵니다.</div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>전략</th><th class="r">거래 수</th><th class="r">승률</th><th class="r">평균 이익</th><th class="r">평균 손실</th><th class="r">기대값/거래</th><th class="r">손익비(PF)</th><th class="r">연간 합계</th><th class="r">최대 낙폭</th><th class="r">최대 연속 손실</th><th class="r">평균 보유</th><th class="r">앞 70% / 뒤 30%</th></tr></thead>
+          <tbody id="btBody"></tbody>
+        </table>
+      </div>
+      <div class="chartbox"><canvas id="btCurve" aria-label="전략별 누적 R 곡선"></canvas></div>
+      <div class="legend" id="btLegend"></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">내 시드로 돌렸다면</div><p id="pfDesc">시드, 1회 허용 손실, 종목당 최대 투자 비중을 그대로 적용합니다. 자리가 꽉 차거나 1주도 못 사면 그 신호는 건너뜁니다.</p></div></div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>전략</th><th class="r">시작</th><th class="r">최종 자산</th><th class="r">총 수익률</th><th class="r">연환산</th><th class="r">최대 낙폭</th><th class="r">실행 거래</th><th class="r">놓침 · 자리 없음</th><th class="r">놓침 · 1주도 못 삼</th></tr></thead>
+          <tbody id="pfBody"><tr><td colspan="9" class="note">[검증 실행] 후 표시됩니다.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="chartbox"><canvas id="pfCurve" aria-label="전략별 계좌 잔고 곡선" style="height:220px"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="bthead"><div><div class="label">구름 조건 비교 · 추세 추종 전략</div><p>①번 조건의 구름 부분만 바꿔서 나머지는 똑같이 검증합니다. 양운 돌파와 음운 돌파 중 어느 쪽이 내 데이터에서 더 벌었는지 여기서 확인합니다.</p></div></div>
+      <div class="verdictbox" id="cloudVerdict">[검증 실행]을 누르면 함께 계산됩니다.</div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>구름 조건</th><th class="r">거래 수</th><th class="r">승률</th><th class="r">기대값/거래</th><th class="r">손익비(PF)</th><th class="r">연간 합계</th><th class="r">최대 낙폭</th><th class="r">앞 70% / 뒤 30%</th><th></th></tr></thead>
+          <tbody id="cloudBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel howto">
+      <div><b>기대값/거래</b> — 한 번 매매할 때 평균적으로 몇 R을 벌었는지. 1R = 계좌의 1%이므로 +0.2R이면 거래당 평균 계좌 +0.2%. 승률보다 이 숫자가 수익을 결정합니다.</div>
+      <div><b>연간 합계</b> — 1년 동안 모든 거래의 R 합계. 기대값이 낮아도 신호가 많으면 커지고, 높아도 신호가 드물면 작습니다.</div>
+      <div><b>앞 70% / 뒤 30%</b> — 기간을 둘로 나눠 각각의 기대값. 뒤쪽(표본외)에서도 플러스여야 우연이 아닐 가능성이 높습니다.</div>
+      <div><b>한계</b> — 지금 상장·편입된 종목만 대상이라 망한 종목이 빠져 결과가 실제보다 좋게 나옵니다(생존 편향). 동시 보유 종목 수 제한도 없습니다. 거래 수 30회 미만은 판단 근거로 부족합니다.</div>
+    </div>
+  </div>
+
+  <div id="viewGuide" class="bt" hidden>
+    <div class="panel guide"><h2>쓰는 방법은 세 가지예요</h2>
+<div class="twoway">
+  <div><b>① GitHub 사이트 (추천)</b><code>kg4909-design.github.io/samyeok-scanner</code> 주소만 열면 됩니다. 설치가 필요 없고, 휴대폰에서도 열립니다.<br><span class="note">시세는 GitHub이 평일마다 자동으로 받아 둡니다. 주문 기록은 내 비공개 저장소에 저장되어 어느 기기에서 열어도 같습니다.</span></div>
+  <div><b>② 내 PC 프로그램</b>설치 파일을 풀고 실행하는 방식입니다. 버튼을 눌러 그 자리에서 시세를 받습니다.<br><span class="note">GitHub 연결을 해 두면 PC 프로그램의 주문 기록도 GitHub 사이트와 같아집니다. 맨 아래 "PC 프로그램 설치"를 보세요.</span></div>
+</div>
+<p class="note">Claude 안에서 여는 화면은 실제 시세를 받을 수 없어 연습용 가상 데이터로만 동작합니다.</p>
+
+<h2>GitHub 사이트 처음 설정 (한 번만)</h2>
+<h3>1. 사이트 켜기 (GitHub Pages)</h3>
+<ol>
+  <li>GitHub에서 <code>samyeok-scanner</code> 저장소 → <b>Settings</b> → 왼쪽 <b>Pages</b>.</li>
+  <li><b>Build and deployment → Source</b>를 <b>GitHub Actions</b>로 고릅니다.</li>
+  <li>저장소 위쪽 <b>Actions</b> 탭 → 왼쪽 <b>시세 업데이트</b> → 오른쪽 <b>Run workflow</b> → market에 <code>ALL</code> 그대로 두고 <b>Run workflow</b>를 누릅니다.</li>
+  <li>노란 점이 초록 체크로 바뀌면(보통 몇 분) <code>https://kg4909-design.github.io/samyeok-scanner/</code>가 열립니다. 이 주소를 즐겨찾기에 넣어 두세요.</li>
+</ol>
+<p class="note">그 뒤로는 평일 15:50(국장)과 다음 날 06:40(미장)에 자동으로 시세를 받습니다. GitHub이 바쁠 때는 실행이 늦어질 수 있으니 화면의 "수집" 시각을 확인하세요.</p>
+<h3>2. 기록 저장소 연결 (기기마다 한 번)</h3>
+<ol>
+  <li>GitHub에 <b>비공개(Private)</b> 저장소 <code>samyeok-records</code>를 만듭니다 ("Add a README file" 체크).</li>
+  <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">토큰 만들기 페이지</a>에서:
+    <ul>
+      <li><b>Token name</b>: 아무거나 (예: 삼역호전)</li>
+      <li><b>Expiration</b>: 원하는 기간. 만료되면 새로 만들어 다시 넣으면 됩니다</li>
+      <li><b>Repository access</b>: <b>Only select repositories</b> → <code>samyeok-records</code>와 <code>samyeok-scanner</code></li>
+      <li><b>Permissions → Repository permissions</b>: <b>Contents: Read and write</b>, <b>Actions: Read and write</b> (Actions는 [지금 시세 다시 받기] 버튼용)</li>
+      <li><b>Generate token</b> → <code>github_pat_</code>로 시작하는 토큰을 복사해 메모장 등 안전한 곳에 보관</li>
+    </ul></li>
+  <li>사이트의 <b>[내 주문 · 보유]</b> 탭 맨 위 <b>"여러 기기 기록 연동" → [연결하기]</b> → 토큰을 붙여 넣고 <b>[연결]</b>.</li>
+  <li>다른 컴퓨터나 휴대폰에서도 사이트를 열고 같은 토큰으로 연결하면 끝입니다.</li>
+</ol>
+<div class="caution">토큰은 비밀번호와 같습니다. 다른 사람에게 보여 주거나 PC방 같은 공용 컴퓨터에 넣지 마세요. 잃어버리거나 노출됐으면 GitHub 설정 → Developer settings → Personal access tokens에서 지우고 새로 만드세요.</div>
+
+<h2>매일 쓰는 법</h2>
+<ol>
+  <li>사이트를 엽니다. 맨 위 "시세 · GitHub 자동 수집"에 오늘 수집 시각이 보이면 최신 시세입니다. PC 프로그램이라면 <b>[국장 시세 받기]</b>를 누릅니다.</li>
+  <li><b>오늘 살 종목</b> 탭에서 초록색 <b>"매수 후보"</b> 종목을 누릅니다.</li>
+  <li>오른쪽 <b>주문표</b>의 <b>살 수량 · 손절가 · 1차 익절가 · 2차 익절가</b>를 증권사 앱의 감시주문(스탑로스/OCO)에 그대로 넣습니다. [복사] 버튼으로 메모를 복사해 두면 편합니다.</li>
+  <li>예약 주문을 걸었다면 <b>[이 주문 계획 저장]</b>을 눌러 둡니다 (아래 "예약 주문을 걸었다면" 참고).</li>
+</ol>
+<table>
+  <thead><tr><th>시장</th><th>최신 시세가 들어오는 시각 (한국시간)</th></tr></thead>
+  <tbody>
+    <tr><td>국장</td><td>GitHub 자동 수집 평일 15:50 · PC 프로그램은 15:40 이후 직접</td></tr>
+    <tr><td>미장</td><td>GitHub 자동 수집 다음 날 06:40 · PC 프로그램은 06:10 이후 직접 (미국 서머타임 기간 05:10 이후)</td></tr>
+  </tbody>
+</table>
+<p class="note">장중에 받으면 아직 끝나지 않은 오늘 봉은 자동으로 빠지고 어제까지로 판정합니다.</p>
+
+<h2>화면 읽는 법</h2>
+<table>
+  <thead><tr><th>표시</th><th>뜻</th><th>할 일</th></tr></thead>
+  <tbody>
+    <tr><td><span class="verdict go">매수 후보</span></td><td>조건을 모두 충족했고 내 시드로 살 수 있음</td><td>주문표대로 주문</td></tr>
+    <tr><td><span class="verdict poor">시드 부족</span></td><td>조건은 맞지만 1주 가격이 너무 비싸거나, 1주만 사도 허용 손실을 넘음</td><td>건너뜀</td></tr>
+    <tr><td><span class="verdict near">관찰</span></td><td>조건이 1개 모자람</td><td>사지 않음. 내일 다시 확인</td></tr>
+    <tr><td><span class="verdict no">대기</span></td><td>조건이 2개 이상 모자람</td><td>사지 않음</td></tr>
+    <tr><td>손절가 <span class="c-down">(파란색)</span></td><td>이 가격 아래로 내려가면 전량 판다</td><td>감시주문으로 미리 걸어 둠</td></tr>
+    <tr><td>1차 익절가 <span class="c-up">(빨간색)</span></td><td>여기 오면 절반 팔고, 남은 절반의 손절가를 산 가격으로 올림</td><td>감시주문으로 미리 걸어 둠</td></tr>
+  </tbody>
+</table>
+<p><b>"내 계좌"</b> 칸에 시드를 넣으면 살 수량과 예상 손익이 모두 그 금액에 맞춰 다시 계산됩니다. 실제로 산 가격이 오늘 종가와 다르면 주문표 아래 칸에 입력하세요.</p>
+<p><b>전략 검증</b> 탭에서 [검증 실행]을 누르면, 받아 둔 과거 데이터로 세 가지 전략과 구름 조건을 비교하고 "내 시드로 돌렸다면 얼마가 됐는지"를 보여줍니다.</p>
+
+<h2>예약 주문을 걸었다면: 저장 → 다음 날 체결 확인 → 보유 관리</h2>
+<ol>
+  <li><b>전날:</b> 매수 후보 종목의 주문표에서 <b>[이 주문 계획 저장]</b>을 누릅니다. 여러 종목이면 목록 위 <b>[매수 후보 전부 저장]</b>.</li>
+  <li><b>다음 날 (장 마감 후 시세가 들어온 뒤):</b> <b>[내 주문 · 보유]</b> 탭의 "① 체결 확인 대기"에서 실제로 사진 종목은 <b>[체결됨]</b>, 안 사진 종목은 <b>[안 사짐]</b>.
+    <ul>
+      <li>시장가로 샀다면 산 가격 칸에 그날 시가가 자동으로 들어갑니다. 증권사 체결 내역과 다르면 고쳐 주세요.</li>
+      <li>산 가격이 바뀌면 손절가는 그대로 두고 1차·2차 익절가를 그 가격 기준으로 다시 계산합니다.</li>
+    </ul></li>
+  <li><b>보유하는 동안:</b> "② 보유 중"에 <b>지금 걸어 둘 손절·익절 주문</b>이 항상 보이고, 새 시세가 들어올 때마다 손절가·익절가에 닿았는지 점검해 알려줍니다.
+    <ul>
+      <li>1차 익절이 체결되면 <b>[1차 익절 체결 기록]</b> → 남은 수량의 손절가가 산 가격(본절)으로 바뀝니다.</li>
+      <li>손절이나 나머지 매도가 체결되면 <b>[매도 기록]</b> → 다 팔면 "③ 매매 일지"로 옮겨집니다.</li>
+    </ul></li>
+  <li>저장을 깜빡하고 이미 샀다면 "② 보유 중"의 <b>[직접 추가]</b>로 종목코드, 산 가격, 수량, 손절가를 넣으세요.</li>
+</ol>
+
+<h2>여러 기기에서 같은 기록 쓰기</h2>
+<ul>
+  <li>위 "기록 저장소 연결"을 각 기기에서 한 번씩 하면, 집에서 저장하거나 체결 처리한 종목이 회사 PC나 휴대폰에도 그대로 보입니다. 반대도 마찬가지입니다.</li>
+  <li>계좌 시드, 전략 선택, 세부 설정도 함께 맞춰집니다.</li>
+  <li>화면을 켜 둔 동안 30초마다 다른 기기의 변경을 확인합니다. 반영되면 화면 아래에 알림이 뜹니다.</li>
+  <li>같은 종목을 두 기기에서 동시에 고치면 <b>나중에 고친 쪽</b>이 남습니다. 같은 날 같은 종목을 두 기기에서 각각 저장했다면 하나로 자동 정리됩니다.</li>
+  <li>기록은 <code>samyeok-records</code> 저장소의 <code>trades.json</code>, <code>settings.json</code>에 저장되고, GitHub에 변경 이력이 모두 남아 실수로 지워도 되돌릴 수 있습니다.</li>
+</ul>
+
+<h2>업데이트 받는 법</h2>
+<ul>
+  <li><b>GitHub 사이트:</b> Claude가 저장소에 새 버전을 올리면 몇 분 안에 사이트가 자동으로 바뀝니다. 할 일이 없습니다. 바로 안 바뀌면 새로고침하세요.</li>
+  <li><b>PC 프로그램:</b> Claude가 주는 새 <code>index.html</code>을 스캐너 화면 위로 끌어다 놓거나 맨 위 <b>[업데이트 파일 적용]</b>으로 고릅니다. <code>server.py</code>까지 바뀌는 큰 업데이트는 새 zip을 같은 자리에 풀어 덮어쓴 뒤 바로가기를 다시 실행합니다.</li>
+</ul>
+
+<h2>PC 프로그램 설치 (선택)</h2>
+<ol>
+  <li>Claude가 보내 준 <code>samyeok-scanner.zip</code>을 내려받아 <b>마우스 오른쪽 클릭 → "압축 풀기"</b> 합니다.
+    <div class="caution">압축 파일을 더블클릭해 안을 들여다본 상태에서 바로 실행하면 안 됩니다. 꼭 압축을 푼 다음 실행하세요.</div></li>
+  <li>풀린 폴더의 <b><code>START_scanner.bat</code></b>를 더블클릭합니다.
+    <ul>
+      <li>파란 "Windows의 PC 보호" 창이 뜨면 <b>추가 정보 → 실행</b>.</li>
+      <li>파이썬이 없으면 열리는 python.org에서 설치합니다. 설치 첫 화면 아래 <b>"Add python.exe to PATH"를 꼭 체크</b>한 뒤 다시 더블클릭합니다.</li>
+      <li>처음에는 필요한 부품을 자동으로 설치합니다 (1~3분).</li>
+    </ul></li>
+  <li>브라우저에 스캐너가 열리고 <b>바탕화면에 "Samyeok Scanner" 바로가기</b>가 생깁니다. 다 쓰면 검은 창을 닫습니다.</li>
+  <li>맥은 <code>START_mac.command</code>를 <b>마우스 오른쪽 클릭 → 열기</b> (파이썬은 python.org에서 먼저 설치).</li>
+</ol>
+<pre class="tree">samyeok-scanner\
+├─ START_scanner.bat   ← 이것만 더블클릭 (처음 1번, 이후엔 바탕화면 바로가기)
+├─ GUIDE.html          ← 사용설명서 = 지금 이 내용
+├─ START_mac.command   ← 맥에서만 사용
+├─ app\                ← 프로그램 본체 (건드리지 않아도 됨)
+└─ data\               ← 받은 시세(KR.json, US.json)와 주문 기록(trades.json)</pre>
+
+<h2>문제가 생기면</h2>
+<table>
+  <thead><tr><th>증상</th><th>해결</th></tr></thead>
+  <tbody>
+    <tr><td>사이트 주소가 404</td><td>Settings → Pages의 Source가 <b>GitHub Actions</b>인지 확인하고, Actions 탭에서 <b>시세 업데이트 → Run workflow</b>를 한 번 실행하세요.</td></tr>
+    <tr><td>수집 시각이 오래됨 / "수집 실패"</td><td>Actions 탭에서 빨간 X가 있는 실행을 눌러 내용을 캡처해 Claude에게 보여 주세요. 지난 시세는 그대로 쓰입니다.</td></tr>
+    <tr><td>"토큰이 맞지 않거나 만료되었습니다"</td><td>토큰이 만료됐거나 잘못 복사됐습니다. 새로 만들어 다시 연결하세요.</td></tr>
+    <tr><td>"저장소를 찾을 수 없습니다"</td><td>토큰을 만들 때 Repository access에 <code>samyeok-records</code>를 선택했는지 확인하세요.</td></tr>
+    <tr><td>"이 저장소는 공개(Public)입니다"</td><td>기록 저장소는 반드시 비공개여야 합니다. 저장소 Settings 맨 아래에서 Private으로 바꾸세요.</td></tr>
+    <tr><td>(PC) 더블클릭하면 창이 번쩍하고 사라짐</td><td>압축을 풀지 않고 실행했을 가능성이 큽니다. 압축을 푼 폴더에서 다시 실행하세요.</td></tr>
+    <tr><td>(PC) 브라우저가 안 열림</td><td>검은 창에 나온 주소(예: http://127.0.0.1:8765/)를 주소창에 직접 입력하세요.</td></tr>
+  </tbody>
+</table>
+<div class="tip">어떤 문제든 화면이나 오류 내용을 캡처해서 Claude에게 보여 주면 바로 고쳐 드립니다.</div>
+</div>
+  </div>
+
+  <footer>
+    <b>사용상 유의</b> · 이 앱은 입력된 일봉 데이터로 규칙을 기계적으로 계산할 뿐이며 투자 권유나 수익 보장이 아닙니다. 과거 검증 결과가 미래 수익을 보장하지 않습니다. 증권사 HTS의 일목균형표 이동 기준(25/26봉), 지표 초기값 처리 방식에 따라 소수점이나 1봉 차이가 날 수 있으니 실제 주문 전 HTS 차트와 대조하세요. 국내 주식 가격은 호가 단위에 맞췄지만 ETF는 호가 단위가 달라 증권사 화면에서 한 번 확인하세요.
+  </footer>
+</div>
+
+<script>
+// ===== 전략 엔진: 추세 추종(삼역호전) · 2주 눌림목 스윙 · 2주 돌파 스윙 =====
+const ENGINE = (() => {
+  const NaNs = n => new Array(n).fill(NaN);
+  const ok = v => v !== undefined && !isNaN(v);
+
+  function sma(a, n) {
+    const out = NaNs(a.length); let s = 0;
+    for (let i = 0; i < a.length; i++) { s += a[i]; if (i >= n) s -= a[i - n]; if (i >= n - 1) out[i] = s / n; }
+    return out;
+  }
+  function ema(a, n) { // 첫 값은 n일 단순평균으로 시드
+    const out = NaNs(a.length); const k = 2 / (n + 1);
+    const start = a.findIndex(v => !isNaN(v));
+    if (start < 0 || a.length - start < n) return out;
+    let s = 0; for (let i = start; i < start + n; i++) s += a[i];
+    let prev = s / n; out[start + n - 1] = prev;
+    for (let i = start + n; i < a.length; i++) { prev = a[i] * k + prev * (1 - k); out[i] = prev; }
+    return out;
+  }
+  function stdev(a, n, mean) {
+    const out = NaNs(a.length);
+    for (let i = n - 1; i < a.length; i++) { let v = 0; for (let j = i - n + 1; j <= i; j++) v += (a[j] - mean[i]) ** 2; out[i] = Math.sqrt(v / n); }
+    return out;
+  }
+  function midHL(h, l, n) {
+    const out = NaNs(h.length);
+    for (let i = n - 1; i < h.length; i++) {
+      let hi = -Infinity, lo = Infinity;
+      for (let j = i - n + 1; j <= i; j++) { if (h[j] > hi) hi = h[j]; if (l[j] < lo) lo = l[j]; }
+      out[i] = (hi + lo) / 2;
+    }
+    return out;
+  }
+  function rollMax(a, n) {
+    const out = NaNs(a.length);
+    for (let i = n - 1; i < a.length; i++) { let m = -Infinity; for (let j = i - n + 1; j <= i; j++) if (a[j] > m) m = a[j]; out[i] = m; }
+    return out;
+  }
+  function rsi(c, n) { // Wilder 평활
+    const out = NaNs(c.length); if (c.length <= n) return out;
+    let g = 0, l = 0;
+    for (let i = 1; i <= n; i++) { const d = c[i] - c[i - 1]; if (d > 0) g += d; else l -= d; }
+    g /= n; l /= n; out[n] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+    for (let i = n + 1; i < c.length; i++) {
+      const d = c[i] - c[i - 1];
+      g = (g * (n - 1) + Math.max(d, 0)) / n; l = (l * (n - 1) + Math.max(-d, 0)) / n;
+      out[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+    }
+    return out;
+  }
+
+  // 국내 주식 호가가격단위 (2023.1 개편, 코스피·코스닥 공통)
+  function tickKR(p) { return p < 2000 ? 1 : p < 5000 ? 5 : p < 20000 ? 10 : p < 50000 ? 50 : p < 200000 ? 100 : p < 500000 ? 500 : 1000; }
+  const floorTick = p => { const t = tickKR(p); return Math.floor(p / t + 1e-9) * t; };
+  const ceilTick = p => { const t = tickKR(p); return Math.ceil(p / t - 1e-9) * t; };
+
+  // 일목 구름 조건 (추세 추종 전략의 ①번 조건)
+  const CLOUD_MODES = {
+    bull_above: '구름 위 + 현재 양운',
+    above: '구름 위 (색 무관)',
+    above_future: '구름 위 + 선행(26일 뒤) 구름 양운',
+    break_any: '최근 N일 내 구름 상향 돌파 (색 무관)',
+    break_bull: '최근 N일 내 양운 상향 돌파',
+    break_bear: '최근 N일 내 음운 상향 돌파'
+  };
+  function cloudAt(ind, d, off) { const a = ind.senkouAraw[d - off], b = ind.senkouBraw[d - off]; return { a, b, top: Math.max(a, b) }; }
+  // 가장 최근 구름 상향 돌파일 (돌파 후 오늘까지 계속 구름 위에 있어야 함)
+  function lastBreak(ind, t, off, N) {
+    for (let d = t; d > t - N && d > off; d--) {
+      const c0 = cloudAt(ind, d, off), c1 = cloudAt(ind, d - 1, off);
+      if (isNaN(c0.top) || isNaN(c1.top) || !(ind.c[d] > c0.top)) return null;
+      if (ind.c[d - 1] <= c1.top) return { d, bull: c0.a > c0.b };
+    }
+    return null;
+  }
+
+  const DEFAULT_CFG = {
+    rsiLo: 50, rsiHi: 65, volMult: 1.5, volAvgExcludeToday: true,
+    cloudOffset: 26, chikouOffset: 26, cloudMode: 'bull_above', cloudBreakDays: 5, riskPct: 1.0,
+    // 2주 스윙 공통
+    holdDays: 10, pbRsiMax: 45, pbVolMult: 1.0, boVolMult: 2.0, boLookback: 20,
+    // 백테스트 왕복 비용(%) — 수수료·세금·슬리피지 합산 가정치
+    costKR: 0.25, costUS: 0.05
+  };
+
+  function compute(bars) {
+    const o = bars.map(b => b[1]), h = bars.map(b => b[2]), l = bars.map(b => b[3]),
+          c = bars.map(b => b[4]), v = bars.map(b => b[5]);
+    const tenkan = midHL(h, l, 9), kijun = midHL(h, l, 26), senkouBraw = midHL(h, l, 52);
+    const senkouAraw = tenkan.map((t, i) => (t + kijun[i]) / 2);
+    const ema12 = ema(c, 12), ema26 = ema(c, 26);
+    const macd = ema12.map((x, i) => x - ema26[i]);
+    const bbMid = sma(c, 20), bbSd = stdev(c, 20, bbMid);
+    return {
+      o, h, l, c, v, dates: bars.map(b => b[0]),
+      sma200: sma(c, 200), ema20: ema(c, 20), ema50: ema(c, 50),
+      tenkan, kijun, senkouAraw, senkouBraw,
+      macd, signal: ema(macd, 9), rsi: rsi(c, 14), volAvg20: sma(v, 20),
+      bbUp: bbMid.map((m, i) => m + 2 * bbSd[i]), bbMid, hiClose: rollMax(c, 20)
+    };
+  }
+  const volAvgAt = (ind, t, cfg) => cfg.volAvgExcludeToday ? ind.volAvg20[t - 1] : ind.volAvg20[t];
+
+  // ---------- 전략 정의 ----------
+  // evaluate(ind, t, cfg) → { ready, conds[], x(값), sub(세부) }
+  // stop(ind, t) → 손절가 / exit: 'trend'(시장별 원칙) | 'swing'(2주 시간청산 포함)
+  const STRATS = {
+    trend: {
+      name: '추세 추종 · 삼역호전 5조건', short: '추세 추종', exit: 'trend',
+      labels: ['거시 추세', '이평선 정배열', '삼역호전', '모멘텀 밴드', '수급 확인'],
+      evaluate(ind, t, cfg) {
+        const off = cfg.cloudOffset, co = cfg.chikouOffset;
+        const spanA = ind.senkouAraw[t - off], spanB = ind.senkouBraw[t - off], va = volAvgAt(ind, t, cfg);
+        const x = { close: ind.c[t], sma200: ind.sma200[t], spanA, spanB, cloudTop: Math.max(spanA, spanB),
+          futA: ind.senkouAraw[t], futB: ind.senkouBraw[t],
+          ema20: ind.ema20[t], ema50: ind.ema50[t], tenkan: ind.tenkan[t], kijun: ind.kijun[t], chikouRef: ind.c[t - co],
+          macd: ind.macd[t], signal: ind.signal[t], rsi: ind.rsi[t], vol: ind.v[t], volAvg: va, volRatio: ind.v[t] / va };
+        if (![x.sma200, spanA, spanB, x.ema50, x.kijun, x.chikouRef, x.signal, x.rsi, va].every(ok)) return { ready: false, x };
+        const mode = cfg.cloudMode || 'bull_above';
+        let c1c = true;
+        if (mode === 'bull_above') c1c = spanA > spanB;
+        else if (mode === 'above_future') c1c = x.futA > x.futB;
+        else if (mode.startsWith('break')) {
+          const b = lastBreak(ind, t, off, cfg.cloudBreakDays);
+          x.breakAgo = b ? t - b.d : null; x.breakBull = b ? b.bull : null;
+          c1c = !!b && (mode === 'break_any' || (mode === 'break_bull') === b.bull);
+        }
+        x.cloudMode = mode;
+        const sub = { c1a: x.close > x.sma200, c1b: x.close > x.cloudTop, c1c,
+          c3a: x.tenkan >= x.kijun, c3b: x.close > x.chikouRef, c4a: x.macd > x.signal, c4b: x.rsi >= cfg.rsiLo && x.rsi <= cfg.rsiHi };
+        return { ready: true, x, sub, conds: [sub.c1a && sub.c1b && sub.c1c, x.ema20 > x.ema50, sub.c3a && sub.c3b, sub.c4a && sub.c4b, x.vol >= cfg.volMult * va] };
+      },
+      stop: (ind, t) => ({ sl: Math.min(ind.l[t], ind.kijun[t]), src: ind.l[t] <= ind.kijun[t] ? '진입일 저가' : '기준선(26)' }),
+      rows(e, P, cfg, F) {
+        const x = e.x, s = e.sub, md = x.cloudMode, N = cfg.cloudBreakDays;
+        const cl = md === 'bull_above' ? ' · 현재 양운 ' + F.mk(s.c1c)
+          : md === 'above_future' ? ' · 선행 구름 양운 ' + F.mk(s.c1c)
+          : md === 'above' ? ''
+          : ' · 최근 ' + N + '일 내 ' + (md === 'break_bull' ? '양운' : md === 'break_bear' ? '음운' : '구름') + ' 돌파 ' + F.mk(s.c1c) +
+            (x.breakAgo != null ? ' (' + (x.breakAgo === 0 ? '오늘' : x.breakAgo + '일 전') + ' ' + (x.breakBull ? '양운' : '음운') + ' 돌파)' : '');
+        return [
+          ['종가 > 200일선 ' + F.mk(s.c1a) + ' · 구름 위 ' + F.mk(s.c1b) + cl, P(x.close) + ' / ' + P(x.sma200) + '<br>구름 상단 ' + P(x.cloudTop)],
+          ['20 EMA > 50 EMA', P(x.ema20) + ' / ' + P(x.ema50)],
+          ['전환선 ≥ 기준선 ' + F.mk(s.c3a) + ' · 후행스팬 > ' + cfg.chikouOffset + '봉 전 종가 ' + F.mk(s.c3b), P(x.tenkan) + ' / ' + P(x.kijun) + '<br>' + P(x.close) + ' / ' + P(x.chikouRef)],
+          ['MACD > 시그널 ' + F.mk(s.c4a) + ' · RSI ' + cfg.rsiLo + '~' + cfg.rsiHi + ' ' + F.mk(s.c4b), F.n(x.macd, 3) + ' / ' + F.n(x.signal, 3) + '<br>RSI ' + F.n(x.rsi, 1)],
+          ['당일 거래량 ≥ 20일 평균 × ' + cfg.volMult, F.int(x.vol) + '<br>' + F.n(x.volRatio, 2) + '배']
+        ];
+      }
+    },
+    pullback: {
+      name: '2주 눌림목 스윙', short: '눌림목 스윙', exit: 'swing',
+      labels: ['상승 추세 유지', '단기 눌림', '반등 확인', '거래량 동반'],
+      evaluate(ind, t, cfg) {
+        const va = volAvgAt(ind, t, cfg);
+        let minRsi = Infinity, touched = false;
+        for (let k = t - 3; k <= t - 1; k++) { if (ind.rsi[k] < minRsi) minRsi = ind.rsi[k]; if (ind.l[k] <= ind.ema20[k]) touched = true; }
+        const x = { close: ind.c[t], open: ind.o[t], prevHigh: ind.h[t - 1], sma200: ind.sma200[t], ema20: ind.ema20[t], ema50: ind.ema50[t],
+          minRsi, touched, rsi: ind.rsi[t], vol: ind.v[t], volAvg: va, volRatio: ind.v[t] / va };
+        if (![x.sma200, x.ema50, minRsi, va, x.prevHigh].every(ok)) return { ready: false, x };
+        const sub = { a1: x.close > x.sma200, a2: x.ema20 > x.ema50, a3: x.close > x.ema50, b1: touched, b2: minRsi <= cfg.pbRsiMax, c1: x.close > x.open, c2: x.close > x.prevHigh };
+        return { ready: true, x, sub, conds: [sub.a1 && sub.a2 && sub.a3, sub.b1 || sub.b2, sub.c1 && sub.c2, x.vol >= cfg.pbVolMult * va] };
+      },
+      stop(ind, t) { let m = Infinity; for (let k = t - 3; k <= t; k++) m = Math.min(m, ind.l[k]); return { sl: m, src: '최근 4일 최저가(눌림 저점)' }; },
+      rows(e, P, cfg, F) {
+        const x = e.x, s = e.sub;
+        return [
+          ['종가 > 200일선 ' + F.mk(s.a1) + ' · 20EMA > 50EMA ' + F.mk(s.a2) + ' · 종가 > 50EMA ' + F.mk(s.a3), P(x.close) + ' / ' + P(x.sma200) + '<br>' + P(x.ema20) + ' / ' + P(x.ema50)],
+          ['직전 3일 중 저가가 20EMA 터치 ' + F.mk(s.b1) + ' 또는 RSI ≤ ' + cfg.pbRsiMax + ' ' + F.mk(s.b2), '최저 RSI ' + F.n(x.minRsi, 1)],
+          ['오늘 양봉 ' + F.mk(s.c1) + ' · 종가 > 전일 고가 ' + F.mk(s.c2), P(x.close) + ' / ' + P(x.prevHigh)],
+          ['당일 거래량 ≥ 20일 평균 × ' + cfg.pbVolMult, F.n(x.volRatio, 2) + '배']
+        ];
+      }
+    },
+    breakout: {
+      name: '2주 돌파 스윙', short: '돌파 스윙', exit: 'swing',
+      labels: ['장기 추세', '20일 신고가 돌파', '거래량 급증'],
+      evaluate(ind, t, cfg) {
+        const n = cfg.boLookback, va = volAvgAt(ind, t, cfg);
+        let prevMax = -Infinity; for (let k = t - n; k <= t - 1; k++) prevMax = Math.max(prevMax, ind.c[k]);
+        const x = { close: ind.c[t], sma200: ind.sma200[t], prevMax, vol: ind.v[t], volAvg: va, volRatio: ind.v[t] / va, rsi: ind.rsi[t] };
+        if (![x.sma200, va].every(ok) || t - n < 0) return { ready: false, x };
+        return { ready: true, x, sub: {}, conds: [x.close > x.sma200, x.close > prevMax, x.vol >= cfg.boVolMult * va] };
+      },
+      stop: (ind, t) => ({ sl: ind.l[t], src: '돌파일 저가' }),
+      rows(e, P, cfg, F) {
+        const x = e.x;
+        return [
+          ['종가 > 200일선', P(x.close) + ' / ' + P(x.sma200)],
+          ['종가 > 직전 ' + cfg.boLookback + '일 최고 종가', P(x.close) + ' / ' + P(x.prevMax)],
+          ['당일 거래량 ≥ 20일 평균 × ' + cfg.boVolMult, F.n(x.volRatio, 2) + '배']
+        ];
+      }
+    }
+  };
+
+  function evaluate(ind, t, key, cfg) {
+    const e = STRATS[key].evaluate(ind, t, cfg);
+    if (!e.ready) { e.conds = STRATS[key].labels.map(() => false); e.score = 0; e.all = false; return e; }
+    e.score = e.conds.filter(Boolean).length; e.all = e.score === e.conds.length;
+    return e;
+  }
+
+  // ---------- 오늘 신호의 주문 계획 ----------
+  // acct: { equity(거래 통화 기준 시드), capPct(종목당 최대 비중 %), fractional(소수점 매수 허용) }
+  // entryOverride: 실제 체결가 (없으면 오늘 종가)
+  function plan(ind, t, key, market, acct, cfg, entryOverride) {
+    const S = STRATS[key]; const st = S.stop(ind, t), kr = market === 'KR';
+    const entry = entryOverride > 0 ? entryOverride : ind.c[t];
+    const sl = kr ? floorTick(st.sl) : Math.floor(st.sl * 100 + 1e-9) / 100;   // 손절가는 호가 단위로 내림
+    const R = entry - sl;
+    const res = { entry, sl, slSource: st.src, R, valid: R > 0, exit: S.exit === 'swing' ? 'swing' : (kr ? 'kr' : 'trail'), overridden: entryOverride > 0 };
+    res.bbUp = ind.bbUp[t]; res.trailKijun = ind.kijun[t]; res.trailEma20 = ind.ema20[t];
+    if (!res.valid) return res;
+    const up = v => kr ? ceilTick(v) : Math.ceil(v * 100 - 1e-9) / 100;     // 익절가는 호가 단위로 올림
+    res.tp1 = up(entry + 1.5 * R); res.tp2 = up(entry + 2.5 * R);
+    const eq = Math.max(0, acct.equity || 0), frac = !kr && acct.fractional;
+    const fl = v => frac ? Math.floor(v * 1e4 + 1e-9) / 1e4 : Math.floor(v + 1e-9);
+    res.equity = eq; res.frac = frac;
+    res.riskBudget = eq * cfg.riskPct / 100;
+    res.capAmount = Math.min(eq, eq * (acct.capPct || 100) / 100);
+    res.qRisk = fl(res.riskBudget / R); res.qCap = fl(res.capAmount / entry);
+    res.qty = Math.max(0, Math.min(res.qRisk, res.qCap));
+    res.limitBy = res.qRisk <= res.qCap ? 'risk' : 'cap';
+    if (res.qty <= 0) res.blocked = eq <= 0 ? 'noseed' : res.qCap <= 0 ? 'price' : 'risk';
+    res.half = frac ? fl(res.qty / 2) : Math.floor(res.qty / 2); res.rest = +(res.qty - res.half).toFixed(4);
+    res.amount = res.qty * entry; res.maxLoss = res.qty * (entry - sl);
+    res.riskPctOfPrice = R / entry * 100;
+    res.cost = res.amount * (kr ? cfg.costKR : cfg.costUS) / 100;                  // 왕복 비용 추정
+    res.pTp1 = res.half * (res.tp1 - entry); res.pTp2 = res.rest * (res.tp2 - entry);
+    res.lossPctSeed = eq ? (res.maxLoss + res.cost) / eq * 100 : 0;
+    return res;
+  }
+
+  // ---------- 내 시드로 돌렸을 때 (동시 보유 제한·정수 주식·잔고 반영) ----------
+  // trades: simulate 결과(entry, R, r=비용 차감 R배수, entryDate, exitDate, symbol)
+  function portfolio(trades, opt) {
+    const fl = v => opt.fractional ? Math.floor(v * 1e4 + 1e-9) / 1e4 : Math.floor(v + 1e-9);
+    const list = [...trades].sort((a, b) => a.entryDate < b.entryDate ? -1 : a.entryDate > b.entryDate ? 1 : (a.symbol < b.symbol ? -1 : 1));
+    let equity = opt.seed, peak = opt.seed, mdd = 0, taken = 0, skipSlot = 0, skipQty = 0, wins = 0;
+    const open = [], curve = [];
+    const realize = upto => {
+      open.sort((a, b) => a.exitDate < b.exitDate ? -1 : 1);
+      while (open.length && (upto == null || open[0].exitDate < upto)) {
+        const p = open.shift(); equity += p.pnl; if (p.pnl > 0) wins++;
+        peak = Math.max(peak, equity); mdd = Math.max(mdd, (peak - equity) / peak);
+        curve.push([p.exitDate, equity]);
+      }
+    };
+    for (const tr of list) {
+      realize(tr.entryDate);
+      if (open.length >= opt.maxPos) { skipSlot++; continue; }
+      const cash = equity - open.reduce((s, p) => s + p.invested, 0);
+      const q = Math.min(fl(equity * opt.riskPct / 100 / tr.R), fl(Math.min(equity * opt.capPct / 100, cash) / tr.entry));
+      if (!(q > 0)) { skipQty++; continue; }
+      open.push({ exitDate: tr.exitDate, invested: q * tr.entry, pnl: q * tr.R * tr.r });
+      taken++;
+    }
+    realize(null);
+    const first = list[0]?.entryDate, last = curve.at(-1)?.[0];
+    const years = first && last ? Math.max(0.25, (new Date(last) - new Date(first)) / 31557600000) : 1;
+    return { seed: opt.seed, final: equity, ret: equity / opt.seed - 1, cagr: equity > 0 ? Math.pow(equity / opt.seed, 1 / years) - 1 : -1,
+      mdd, taken, skipSlot, skipQty, winRate: taken ? wins / taken : 0, curve, first };
+  }
+
+  // ---------- 한 번의 매매 시뮬레이션 (신호일 t 종가 판정 → t+1 시가 진입) ----------
+  function simulate(ind, t, key, market, cfg) {
+    const S = STRATS[key]; const n = ind.c.length;
+    if (t + 1 >= n) return null;
+    const sl0 = S.stop(ind, t).sl, entry = ind.o[t + 1];
+    if (!(entry > sl0)) return { skipped: true };      // 시가가 이미 손절가 아래 → 진입 안 함
+    const R = entry - sl0;
+    const mode = S.exit === 'swing' ? 'swing' : (market === 'US' ? 'trail' : 'kr');
+    const tp1 = entry + 1.5 * R, tp2 = entry + 2.5 * R;
+    let stop = sl0, rem = 1, pnl = 0, half = false, bbTouched = false, exitIdx = -1, reason = '';
+    const close = (px, frac, why, j) => { pnl += frac * (px - entry); rem -= frac; if (rem <= 1e-9) { exitIdx = j; reason = why; } };
+    for (let j = t + 1; j < n && rem > 1e-9; j++) {
+      const o = ind.o[j], h = ind.h[j], l = ind.l[j], c = ind.c[j];
+      // 1) 손절/본절 (장중 이탈, 갭하락이면 시가 체결) — 같은 날 익절과 겹치면 보수적으로 손절 먼저
+      if (l <= stop) { close(j > t + 1 && o < stop ? o : stop, rem, half ? '본절' : '손절', j); break; }
+      // 2) +1.5R 절반 익절 → 잔여 손절가 본절로
+      if (!half && h >= tp1) { close(o > tp1 ? o : tp1, 0.5, '', j); half = true; stop = entry; }
+      if (half) {
+        if (h >= ind.bbUp[j]) bbTouched = true;
+        if (mode !== 'trail' && h >= tp2) { close(o > tp2 ? o : tp2, rem, '+2.5R', j); break; }
+        if (mode !== 'trail' && bbTouched && c < o) { close(c, rem, 'BB 상단 후 음봉', j); break; }
+        if (mode === 'trail' && (c < ind.kijun[j] || c < ind.ema20[j])) { close(c, rem, '추세선 이탈', j); break; }
+      }
+      // 3) 2주 시간 청산 (스윙 전략)
+      if (mode === 'swing' && j - t >= cfg.holdDays) { close(c, rem, cfg.holdDays + '일 시간청산', j); break; }
+    }
+    if (exitIdx < 0) return { open: true, entryIdx: t + 1, entry, R };
+    const cost = (market === 'KR' ? cfg.costKR : cfg.costUS) / 100 * entry;
+    return { entryIdx: t + 1, exitIdx, entry, R, r: (pnl - cost) / R, reason, hold: exitIdx - t };
+  }
+
+  function backtestStock(stock, key, cfg) {
+    const ind = compute(stock.bars), trades = []; let i = 210, open = 0;
+    while (i < ind.c.length - 1) {
+      const e = evaluate(ind, i, key, cfg);
+      if (e.all) {
+        const tr = simulate(ind, i, key, stock.market, cfg);
+        if (tr && !tr.skipped) {
+          if (tr.open) { open++; break; }
+          tr.symbol = stock.symbol; tr.entryDate = ind.dates[tr.entryIdx]; tr.exitDate = ind.dates[tr.exitIdx];
+          trades.push(tr); i = tr.exitIdx + 1; continue;      // 같은 종목은 청산 후 다음 신호부터
+        }
+      }
+      i++;
+    }
+    return { trades, open };
+  }
+
+  function stats(trades, split) {
+    const n = trades.length;
+    if (!n) return { n: 0 };
+    const rs = trades.map(t => t.r), wins = rs.filter(r => r > 0), losses = rs.filter(r => r <= 0);
+    const sum = rs.reduce((a, b) => a + b, 0), mean = sum / n;
+    const sd = Math.sqrt(rs.reduce((a, r) => a + (r - mean) ** 2, 0) / Math.max(1, n - 1));
+    const sorted = [...trades].sort((a, b) => a.exitDate < b.exitDate ? -1 : 1);
+    let cum = 0, peak = 0, mdd = 0, streak = 0, maxStreak = 0; const curve = [];
+    for (const t of sorted) { cum += t.r; peak = Math.max(peak, cum); mdd = Math.max(mdd, peak - cum); streak = t.r <= 0 ? streak + 1 : 0; maxStreak = Math.max(maxStreak, streak); curve.push([t.exitDate, cum]); }
+    const first = sorted.reduce((m, t) => t.entryDate < m ? t.entryDate : m, sorted[0].entryDate);
+    const last = sorted[sorted.length - 1].exitDate;
+    const years = Math.max(0.25, (new Date(last) - new Date(first)) / 31557600000);
+    const ins = split ? trades.filter(t => t.entryDate < split) : [], oos = split ? trades.filter(t => t.entryDate >= split) : [];
+    const avg = a => a.length ? a.reduce((s, t) => s + t.r, 0) / a.length : NaN;
+    return {
+      n, winRate: wins.length / n, avgWin: wins.length ? wins.reduce((a, b) => a + b, 0) / wins.length : 0,
+      avgLoss: losses.length ? losses.reduce((a, b) => a + b, 0) / losses.length : 0,
+      exp: mean, t: sd > 0 ? mean / (sd / Math.sqrt(n)) : 0, total: sum, perYear: sum / years, perYearTrades: n / years,
+      pf: losses.length ? wins.reduce((a, b) => a + b, 0) / Math.abs(losses.reduce((a, b) => a + b, 0) || 1e-9) : Infinity,
+      hold: trades.reduce((a, t) => a + t.hold, 0) / n, mdd, maxStreak, curve,
+      inN: ins.length, inExp: avg(ins), outN: oos.length, outExp: avg(oos)
+    };
+  }
+
+  // ---------- 체결가 기준 손절·익절 가격 ----------
+  function levels(market, fill, sl) {
+    const kr = market === 'KR', R = fill - sl;
+    const up = v => kr ? ceilTick(v) : Math.ceil(v * 100 - 1e-9) / 100;
+    return { R, tp1: R > 0 ? up(fill + 1.5 * R) : NaN, tp2: R > 0 ? up(fill + 2.5 * R) : NaN };
+  }
+
+  // ---------- 보유 종목 점검 ----------
+  // tr: { market, fillDate, fill, sl, tp1, tp2, exit('trail'|'kr'|'swing'), holdDays, stage(0=전량 보유,1=1차 익절 후), stageDate, qty, sold }
+  // 결과: 지금 걸어둘 주문과, 마지막 체결/기록 이후 시세로 확인된 할 일 목록
+  function track(stock, tr) {
+    const ind = compute(stock.bars), L = ind.c.length - 1;
+    const res = { lastDate: ind.dates[L], last: ind.c[L], kijun: ind.kijun[L], ema20: ind.ema20[L], bbUp: ind.bbUp[L], alerts: [] };
+    const fi = ind.dates.findIndex(d => d >= tr.fillDate);
+    if (fi < 0) { res.waiting = true; res.days = 0; return res; }   // 체결일 시세가 아직 없음
+    res.days = L - fi + 1;
+    const D = j => ind.dates[j];
+    const add = (lv, text, act) => res.alerts.push({ lv, text, act });
+    if (!tr.stage) {
+      let s = -1, p = -1;
+      for (let j = fi; j <= L; j++) { if (s < 0 && ind.l[j] <= tr.sl) s = j; if (p < 0 && ind.h[j] >= tr.tp1) p = j; }
+      if (s >= 0 && (p < 0 || s <= p)) add('stop', D(s) + ' 저가 ' + ind.l[s] + '가 손절가 아래로 내려갔습니다. 감시주문이 걸려 있었다면 전량 팔렸을 가능성이 큽니다.' + (s === p ? ' (같은 날 1차 익절가도 닿았지만 순서를 알 수 없어 손절로 봅니다)' : ''), 'stop');
+      else if (p >= 0) add('tp', D(p) + ' 고가가 1차 익절가에 닿았습니다. 절반이 팔렸다면 기록하고, 남은 수량의 손절가를 산 가격으로 올리세요.', 'tp1');
+    } else {
+      const si = Math.max(fi, ind.dates.findIndex(d => d >= (tr.stageDate || tr.fillDate)));
+      let be = -1, t2 = -1, bbT = -1, bbX = -1, tx = -1;
+      for (let j = si; j <= L; j++) {
+        if (be < 0 && j > si && ind.l[j] <= tr.fill) be = j;
+        if (tr.exit !== 'trail') {
+          if (t2 < 0 && ind.h[j] >= tr.tp2) t2 = j;
+          if (bbT < 0 && ind.h[j] >= ind.bbUp[j]) bbT = j;
+          if (bbT >= 0 && bbX < 0 && ind.c[j] < ind.o[j]) bbX = j;
+        } else if (tx < 0 && (ind.c[j] < ind.kijun[j] || ind.c[j] < ind.ema20[j])) tx = j;
+      }
+      const first = [[be, 'be'], [t2, 't2'], [bbX, 'bb'], [tx, 'tx']].filter(x => x[0] >= 0).sort((a, b) => a[0] - b[0])[0];
+      if (first) {
+        const j = first[0];
+        if (first[1] === 'be') add('stop', D(j) + ' 저가가 산 가격(본절 손절가) 아래로 내려갔습니다. 남은 수량이 본절에 팔렸을 가능성이 큽니다.', 'sell');
+        if (first[1] === 't2') add('tp', D(j) + ' 고가가 2차 익절가에 닿았습니다. 남은 수량 전량 매도 대상입니다.', 'sell');
+        if (first[1] === 'bb') add('tp', D(bbT) + ' 볼린저 상단을 터치한 뒤 ' + D(j) + ' 음봉이 나왔습니다. 남은 수량 전량 매도 대상입니다.', 'sell');
+        if (first[1] === 'tx') add('tp', D(j) + ' 종가가 ' + (ind.c[j] < ind.kijun[j] ? '기준선' : '20 EMA') + ' 아래로 마감했습니다. 남은 수량을 다음 거래일에 전량 매도할 차례입니다.', 'sell');
+      } else if (tr.exit !== 'trail' && bbT >= 0) add('info', D(bbT) + ' 볼린저 상단을 터치했습니다. 음봉이 나오면 남은 수량을 전량 매도합니다.');
+    }
+    if (tr.exit === 'swing' && !res.alerts.some(a => a.lv !== 'info')) {
+      const left = tr.holdDays - res.days;
+      if (left <= 0) add('time', '보유 ' + tr.holdDays + '거래일이 지났습니다' + (left < 0 ? ' (' + D(fi + tr.holdDays - 1) + ' 종가가 정리일이었습니다)' : '') + '. 남은 수량을 정리하세요.', 'sell');
+      else res.timeLeft = left;
+    }
+    return res;
+  }
+
+  function analyze(stock, key, cfg, acct, entryOverride) {
+    const ind = compute(stock.bars), t = stock.bars.length - 1;
+    const ev = evaluate(ind, t, key, cfg), history = [];
+    for (let i = Math.max(210, t - 260); i <= t; i++) { const e = i === t ? ev : evaluate(ind, i, key, cfg); if (e.all) history.push(i); }
+    return { stock, key, ind, t, ev, plan: ev.ready ? plan(ind, t, key, stock.market, acct, cfg, entryOverride) : null, history, lastDate: stock.bars[t][0] };
+  }
+
+  return { DEFAULT_CFG, STRATS, CLOUD_MODES, tickKR, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
+})();
+
+
+// ===== 가상(데모) 데이터 생성기 — 실제 시세 아님 =====
+const DEMO = (() => {
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  function gauss(r) { let u = 0, v = 0; while (u === 0) u = r(); v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  function tradingDays(endISO, n) {
+    const out = []; const d = new Date(endISO + 'T00:00:00Z');
+    while (out.length < n) { const w = d.getUTCDay(); if (w !== 0 && w !== 6) out.unshift(d.toISOString().slice(0, 10)); d.setUTCDate(d.getUTCDate() - 1); }
+    return out;
+  }
+  // regime: 'breakout' = 상승추세 후 눌림, 마지막 날 거래량 실린 반등 / 'trend' / 'down' / 'chop' / 'hot'
+  function series(seed, regime, startPrice, endISO, n, kr) {
+    const r = rng(seed), r2 = rng(seed * 7 + 99); const days = tradingDays(endISO, n);
+    const bars = []; let p = startPrice; const baseVol = 200000 + r() * 2e6;
+    for (let i = 0; i < n; i++) {
+      const left = n - i;
+      let drift = 0, vol = 0.016;
+      if (regime === 'breakout') { drift = left > 10 ? 0.0018 : left > 1 ? -0.0006 : 0.012; vol = left > 1 ? 0.011 : 0.002; }
+      else if (regime === 'dip') { drift = left > 5 ? 0.0018 : left > 1 ? -0.011 : 0.022; vol = left > 1 ? 0.012 : 0.003; }
+      else if (regime === 'trend') drift = 0.0019;
+      else if (regime === 'down') drift = -0.0012;
+      else if (regime === 'hot') { drift = left > 25 ? 0.0012 : 0.009; vol = 0.012; }
+      else drift = Math.sin(i / 23) * 0.002;
+      const ret = drift + vol * gauss(r);
+      const o = p * (1 + 0.004 * gauss(r));
+      const c = p * (1 + ret);
+      const h = Math.max(o, c) * (1 + Math.abs(0.006 * gauss(r)));
+      const lo = Math.min(o, c) * (1 - Math.abs(0.006 * gauss(r)));
+      let v = baseVol * (0.7 + 0.6 * r());
+      if (left > 25 && r2() < 0.06) v *= 1.6 + r2();
+      if (left === 1 && (regime === 'breakout' || regime === 'hot' || regime === 'dip')) v *= 2.1;
+      const rd = x => kr ? Math.round(x) : Math.round(x * 100) / 100;
+      bars.push([days[i], rd(o), rd(h), rd(lo), rd(c), Math.round(v)]);
+      p = c;
+    }
+    return bars;
+  }
+  function build(endISO) {
+    const list = [];
+    const kr = [[2,'dip'],[1002,'hot'],[1014,'trend'],[23,'breakout'],[9,'dip'],[1028,'down'],[1035,'trend'],[1049,'chop']];
+    const us = [[33,'breakout'],[5013,'trend'],[5026,'hot'],[10,'dip'],[54,'breakout'],[5065,'down'],[5078,'trend'],[5091,'chop']];
+    kr.forEach(([seed, rg], i) => list.push({ symbol: 'DEMO' + String(i + 1).padStart(2, '0'), name: '가상 국내종목 ' + String.fromCharCode(65 + i), market: 'KR', demo: true,
+      bars: series(seed, rg, 18000 + i * 11000, endISO, 900, true) }));
+    us.forEach(([seed, rg], i) => list.push({ symbol: 'DMO' + String.fromCharCode(65 + i), name: 'Demo US Corp ' + String.fromCharCode(65 + i), market: 'US', demo: true,
+      bars: series(seed, rg, 35 + i * 30, endISO, 900, false) }));
+    return list;
+  }
+  return { build, series };
+})();
+
+
+(() => {
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('sy_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('sy_' + k, JSON.stringify(v)); } catch {} }
+  };
+  const S = ENGINE.STRATS;
+  const state = {
+    stocks: [], source: 'demo', results: [], selected: null, fGap: 0, fMkt: 'ALL', q: '', tab: 'sig', btMkt: 'KR',
+    cfg: Object.assign({}, ENGINE.DEFAULT_CFG, store.get('cfg', {})),
+    seedKR: store.get('seedKR', 1000000), seedUS: store.get('seedUS', 0), fx: store.get('fx', 1360),
+    capPct: store.get('capPct', 30), fractional: store.get('fractional', false), entry: {},
+    strat: Object.assign({ KR: 'pullback', US: 'trend' }, store.get('strat', {})), bt: {}, trades: []
+  };
+  if (!ENGINE.CLOUD_MODES[state.cfg.cloudMode]) state.cfg.cloudMode = 'bull_above';
+  // 시장별 계좌 (미장은 원화 시드를 환율로 달러 환산)
+  const acct = m => ({ equity: m === 'KR' ? state.seedKR : state.seedUS / state.fx, capPct: state.capPct, fractional: state.fractional });
+  const maxPos = () => Math.max(1, Math.floor(100 / state.capPct + 1e-9));
+
+  // ---------- 포맷 ----------
+  const fmtP = (v, m) => v == null || isNaN(v) ? '–' : m === 'KR'
+    ? Math.round(v).toLocaleString('ko-KR') : v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const cur = m => m === 'KR' ? '원' : ' USD';
+  const fmtN = (v, d = 2) => v == null || isNaN(v) ? '–' : v.toFixed(d);
+  const fmtInt = v => v == null || isNaN(v) ? '–' : Math.round(v).toLocaleString('ko-KR');
+  const fmtR = v => v == null || isNaN(v) ? '–' : (v > 0 ? '+' : '') + v.toFixed(2) + 'R';
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const F = { n: fmtN, int: fmtInt, mk: b => b ? '✓' : '×' };
+  const fmtQ = (q, frac) => frac ? (+q.toFixed(4)).toLocaleString('en-US', { maximumFractionDigits: 4 }) : fmtInt(q);
+  function toast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
+
+  // ---------- 데이터 입력 ----------
+  function normBars(bars) {
+    const out = [];
+    for (const b of bars || []) {
+      const r = Array.isArray(b) ? b : [b.date ?? b.Date, b.open ?? b.Open, b.high ?? b.High, b.low ?? b.Low, b.close ?? b.Close, b.volume ?? b.Volume];
+      const d = String(r[0]).slice(0, 10).replace(/\./g, '-').replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3');
+      const n = r.slice(1, 6).map(Number);
+      if (!d || n.some(x => !isFinite(x)) || n[3] <= 0) continue;
+      out.push([d, ...n]);
+    }
+    out.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+    return out.filter((b, i) => i === out.length - 1 || out[i + 1][0] !== b[0]);
+  }
+  const guessMarket = sym => /^\d{6}/.test(sym) || /\.(KS|KQ)$/i.test(sym) ? 'KR' : 'US';
+  function parseCSV(text, filename) {
+    const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
+    const head = lines[0].split(/[,\t;]/).map(h => h.trim().replace(/"/g, '').toLowerCase());
+    const find = keys => head.findIndex(h => keys.some(k => h === k || h.startsWith(k)));
+    const idx = { d: find(['date', '날짜', '일자']), o: find(['open', '시가']), h: find(['high', '고가']), l: find(['low', '저가']), c: find(['close', '종가', '현재가']), v: find(['volume', '거래량']) };
+    if (Object.values(idx).some(i => i < 0)) throw new Error(filename + ': 날짜·시가·고가·저가·종가·거래량 열을 찾지 못했습니다');
+    const bars = lines.slice(1).map(l => { const p = l.split(/[,\t;]/).map(x => x.replace(/"/g, '').trim()); return [p[idx.d], p[idx.o], p[idx.h], p[idx.l], p[idx.c], p[idx.v]].map((x, i) => i ? x.replace(/,/g, '') : x); });
+    const sym = filename.replace(/\.(csv|txt)$/i, '');
+    return { symbol: sym, name: sym, market: guessMarket(sym), bars: normBars(bars) };
+  }
+  async function loadFiles(files) {
+    if (local.on && files.length === 1 && /\.(html|py)$/i.test(files[0].name)) return applyUpdate(files[0]);
+    const stocks = [], errors = []; let meta = null;
+    for (const f of files) {
+      try {
+        const text = await f.text();
+        if (/\.json$/i.test(f.name) || /^\s*[\[{]/.test(text)) {
+          const j = JSON.parse(text); const arr = Array.isArray(j) ? j : j.stocks;
+          if (!Array.isArray(arr)) throw new Error(f.name + ': stocks 배열이 없습니다');
+          if (!Array.isArray(j)) meta = j;
+          const mk = !Array.isArray(j) && j.market;
+          for (const s of arr) stocks.push({ symbol: String(s.symbol), name: s.name || s.symbol, market: (s.market || mk || guessMarket(String(s.symbol))).toUpperCase(), bars: normBars(s.bars) });
+        } else stocks.push(parseCSV(text, f.name));
+      } catch (e) { errors.push(e.message); }
+    }
+    if (errors.length) toast(errors[0]);
+    if (!stocks.length) return;
+    state.stocks = stocks; state.source = 'file'; state.meta = meta && { generated: meta.generated }; state.selected = null; state.bt = {};
+    try { const s = JSON.stringify({ stocks, meta: state.meta }); if (s.length < 4.5e6) store.set('data', { stocks, meta: state.meta }); } catch {}
+    run(); toast(stocks.length + '개 종목을 불러왔습니다');
+  }
+
+  // ---------- 오늘 신호 계산 ----------
+  function run() {
+    const res = [];
+    for (const s of state.stocks) {
+      if (s.bars.length < 260) { res.push({ stock: s, short: true, lastDate: s.bars.at(-1)?.[0] || '–' }); continue; }
+      res.push(ENGINE.analyze(s, state.strat[s.market], state.cfg, acct(s.market), state.entry[s.market + ':' + s.symbol]));
+    }
+    const latest = {};
+    for (const r of res) if (!latest[r.stock.market] || r.lastDate > latest[r.stock.market]) latest[r.stock.market] = r.lastDate;
+    for (const r of res) { r.stale = r.lastDate < latest[r.stock.market]; r.gap = r.ev ? r.ev.conds.length - r.ev.score : 99; r.afford = !!(r.plan && r.plan.valid && r.plan.qty > 0); }
+    state.latest = latest;
+    res.sort((a, b) => a.gap - b.gap || (a.stock.symbol < b.stock.symbol ? -1 : 1));
+    state.results = res;
+    if (!state.selected || !res.find(r => r.stock.symbol === state.selected)) state.selected = (res.find(r => r.gap === 0) || res[0])?.stock.symbol;
+    render();
+  }
+
+  function renderStatus() {
+    const lat = state.latest || {}, parts = [];
+    parts.push(state.source === 'demo' ? '<span class="tag demo">연습용 가상 데이터</span>' : state.source === 'local' ? '<span class="tag live">실제 시세</span>' : state.source === 'pages' ? '<span class="tag live">실제 시세 · 자동 수집</span>' : '<span class="tag live">불러온 데이터</span>');
+    if (lat.KR) parts.push('<span>국장 기준일 <b class="mono">' + lat.KR + '</b></span>');
+    if (lat.US) parts.push('<span>미장 기준일 <b class="mono">' + lat.US + '</b></span>');
+    $('status').innerHTML = parts.join('');
+    $('demoBanner').hidden = state.source !== 'demo';
+    if (site && state.source === 'demo') $('demoBanner').innerHTML = '<b>아직 수집된 시세가 없어 연습용 가상 데이터를 보여주고 있습니다.</b> 첫 자동 수집이 끝나면 실제 시세로 바뀝니다. 바로 받으려면 위 [지금 시세 다시 받기]를 누르세요.';
+  }
+  function renderSummary() {
+    const R = state.results.filter(r => r.ev?.ready), hit = R.filter(r => r.gap === 0);
+    const tile = m => {
+      const h = hit.filter(r => r.stock.market === m), ok = h.filter(r => r.afford).length, poor = h.length - ok;
+      const seed = m === 'KR' ? state.seedKR : state.seedUS;
+      const sub = (m === 'KR' ? '국장' : '미장') + ' 오늘 살 수 있는 종목';
+      const note = seed <= 0 ? (m === 'KR' ? '국장' : '미장') + ' 시드 0원 · 조건 충족 ' + h.length + '종목' : (poor ? '조건은 맞지만 시드 부족 ' + poor + '종목 · ' : '') + S[state.strat[m]].short;
+      return ['hit', ok + '<small>종목</small>', sub, note];
+    };
+    $('summary').innerHTML = [
+      tile('KR'), tile('US'),
+      ['', R.filter(r => r.gap === 1).length + '<small>종목</small>', '조건 1개 부족 (관찰)', '내일 후보가 될 수 있는 종목'],
+      ['', state.results.length + '<small>종목</small>', '오늘 분석한 종목', state.source === 'demo' ? '연습용 가상 데이터' : '실제 데이터']
+    ].map(([c, v, l, n]) => '<div class="panel stat ' + c + '"><span class="st-l">' + l + '</span><b>' + v + '</b><span>' + n + '</span></div>').join('');
+    renderFund();
+  }
+  function renderFund() {
+    const k = state.seedKR, u = state.seedUS, usd = u / state.fx, rp = state.cfg.riskPct, cp = state.capPct;
+    const won = v => fmtInt(v) + '원';
+    let h = '국장: 1회 최대 손실 <b>' + won(k * rp / 100) + '</b> · 종목당 최대 <b>' + won(k * cp / 100) + '</b>';
+    h += '<br>미장: ' + (u > 0 ? '1회 최대 손실 <b>$' + fmtN(usd * rp / 100, 2) + '</b> · 종목당 최대 <b>$' + fmtN(usd * cp / 100, 2) + '</b> (≈' + won(u * cp / 100) + ')' : '시드 0원 (미장 신호는 수량 계산 안 함)');
+    h += '<br>동시 보유 최대 <b>' + maxPos() + '종목</b> · 6연속 손절 시 시드 약 <b>−' + fmtN((1 - Math.pow(1 - rp / 100, 6)) * 100, 1) + '%</b>';
+    $('fundSum').innerHTML = h;
+  }
+  function filtered() {
+    const q = state.q.trim().toLowerCase();
+    return state.results.filter(r => (state.fMkt === 'ALL' || r.stock.market === state.fMkt) && r.gap <= state.fGap && (!state.fAfford || r.afford) &&
+      (!q || r.stock.symbol.toLowerCase().includes(q) || String(r.stock.name).toLowerCase().includes(q)));
+  }
+  function renderTable() {
+    const rows = filtered();
+    $('tbody').innerHTML = rows.map(r => {
+      const s = r.stock, m = s.market, sel = state.selected === s.symbol ? ' class="sel"' : '';
+      const main = m === 'KR' ? s.name : s.symbol, sub = (m === 'KR' ? s.symbol : s.name);
+      const nameCell = '<td><div class="sym">' + esc(main) + '</div><div class="nm"><span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> ' + esc(sub) +
+        (r.key ? ' · ' + S[r.key].short : '') + (r.stale ? ' · <span class="stale">데이터 지연</span>' : '') + '</div></td>';
+      const head = '<tr data-s="' + esc(s.symbol) + '"' + sel + '>' + nameCell;
+      if (r.short || !r.ev.ready) return head + '<td><span class="verdict no">데이터 부족</span></td><td class="r num">' + fmtP(s.bars.at(-1)?.[4], m) + '</td><td colspan="5" class="note">' + s.bars.length + '봉 · 260봉 이상 필요</td></tr>';
+      const e = r.ev, lab = S[r.key].labels, p = r.plan, ok = p && p.valid && p.qty > 0;
+      const miss = lab.filter((_, i) => !e.conds[i]);
+      const v = r.gap === 0 ? (r.afford ? '<span class="verdict go">매수 후보</span>' : '<span class="verdict poor">시드 부족</span>')
+        : r.gap === 1 ? '<span class="verdict near">관찰</span><div class="miss">부족: ' + miss[0] + '</div>' : '<span class="verdict no">대기</span>';
+      const mon = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2);
+      const tt = tradeFor(m, s.symbol, r.lastDate);
+      const tag = tt ? '<div class="miss">' + (tt.status === 'open' ? '● 보유 중' : '✓ 계획 저장됨') + '</div>' : '';
+      return head + '<td>' + v + tag + '</td>' +
+        '<td class="r num">' + fmtP(e.x.close, m) + '</td>' +
+        '<td class="r num strong">' + (ok ? fmtQ(p.qty, p.frac) + '주' : '<span class="note">–</span>') + '</td>' +
+        '<td class="r num">' + (ok ? mon(p.amount) : '<span class="note">–</span>') + '</td>' +
+        '<td class="r num c-down">' + (p && p.valid ? fmtP(p.sl, m) : '–') + '</td>' +
+        '<td class="r num c-up">' + (p && p.valid ? fmtP(p.tp1, m) : '–') + '</td>' +
+        '<td><span class="dots">' + e.conds.map((c, i) => '<span class="dot' + (c ? ' on' : '') + '" title="' + lab[i] + (c ? ' 충족' : ' 미충족') + '"></span>').join('') + '</span></td></tr>';
+    }).join('');
+    const em = $('empty');
+    em.hidden = rows.length > 0;
+    if (!rows.length) em.innerHTML = state.fGap === 0 ? '<b>오늘은 살 종목이 없습니다.</b><br>조건을 모두 충족한 종목이 없으면 규칙상 쉬는 날입니다. [+ 1개 부족]을 누르면 내일 후보가 될 수 있는 종목을 볼 수 있습니다.' : '조건에 맞는 종목이 없습니다.';
+  }
+  function condRow(ok, title, sub, val) {
+    return '<div class="cond"><span class="mark ' + (ok ? 'ok' : 'ng') + '">' + (ok ? '✓' : '×') + '</span><div class="t">' + title + '<small>' + sub + '</small></div><div class="v">' + val + '</div></div>';
+  }
+
+  function renderDetail() {
+    const r = state.results.find(x => x.stock.symbol === state.selected), box = $('detail');
+    if (!r) { box.innerHTML = '<div class="empty">목록에서 종목을 고르면 차트와 주문 계획이 표시됩니다.</div>'; return; }
+    const s = r.stock, m = s.market;
+    if (r.short || !r.ev.ready) { box.innerHTML = '<div class="dhead"><div><h2>' + esc(s.symbol) + '</h2><div class="sub">' + esc(s.name) + '</div></div></div><div class="empty">지표 계산에 필요한 봉 수(260봉)가 부족합니다.</div>'; return; }
+    const ST = S[r.key], e = r.ev, p = r.plan, cfg = state.cfg, P = v => fmtP(v, m);
+    const nC = e.conds.length;
+    const verdict = r.gap === 0 ? (r.afford ? '<span class="verdict go">매수 후보</span>' : '<span class="verdict poor">시드 부족</span>') : '<span class="verdict ' + (r.gap === 1 ? 'near' : 'no') + '">' + e.score + '/' + nC + ' · 진입 금지</span>';
+    const miss = ST.labels.filter((_, i) => !e.conds[i]);
+    const mainName = m === 'KR' ? s.name : s.symbol, subName = m === 'KR' ? s.symbol : s.name;
+    let html = '<div class="dhead"><div><h2>' + esc(mainName) + '</h2><div class="sub"><span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> ' + esc(subName) + ' · ' + ST.name + ' · 기준일 <span class="mono">' + r.lastDate + '</span>' + (r.stale ? ' · <span class="stale">데이터 지연</span>' : '') + '</div></div>' + verdict + '</div>';
+    const say = r.gap === 0 ? (r.afford ? '<b>오늘 종가 기준으로 매수 조건 ' + nC + '개를 모두 충족했습니다.</b> 아래 주문표대로 주문하세요.' : '<b>조건은 모두 충족했지만 지금 시드로는 살 수 없습니다.</b> 이유는 아래 주문표에 있습니다.')
+      : '<b>아직 사면 안 됩니다.</b> 부족한 조건: ' + miss.join(', ');
+    html += '<div class="say ' + (r.gap === 0 && r.afford ? 'go' : r.gap === 0 ? 'poor' : 'no') + '">' + say + '</div>';
+    let tail = '<div class="chartbox"><canvas id="cv" aria-label="최근 120봉 캔들 차트"></canvas></div>';
+    tail += '<div class="legend"><span><i style="background:var(--sma200)"></i>200일선</span><span><i style="background:var(--ema20)"></i>20 EMA</span><span><i style="background:var(--ema50)"></i>50 EMA</span><span><i style="background:var(--kijun)"></i>기준선</span><span><i style="background:var(--cloud-bull);height:8px"></i>구름대</span>' + (r.history.length ? '<span>▲ 최근 1년 신호 ' + r.history.length + '회</span>' : '') + '</div>';
+    const rows = ST.rows(e, P, cfg, F);
+    const condHtml = '<details class="dsec conds"' + (r.gap === 0 ? '' : ' open') + '><summary class="label">조건 ' + e.score + '/' + nC + ' 자세히 · ' + ST.name + '</summary>' + rows.map((rw, i) => condRow(e.conds[i], (i + 1) + '. ' + ST.labels[i], rw[0], rw[1])).join('') + '</details>';
+    if (r.gap === 0) tail += condHtml; else html += condHtml;
+
+    const ekey = m + ':' + s.symbol;
+    const money = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2) + ' <span class="note">≈' + fmtInt(v * state.fx) + '원</span>';
+    const moneyT = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2) + ' (≈' + fmtInt(v * state.fx) + '원)';
+    const sgn = (v, t) => (v > 0 ? '+' : v < 0 ? '−' : '') + t(Math.abs(v));
+    if (p) {
+      const calcHtml = '<div class="calcbox"><div class="calc"><label class="field"><span>실제로 산 가격이 다르면 입력 (비워 두면 오늘 종가 ' + P(r.ind.c[r.t]) + ')</span><input id="entryIn" type="number" step="any" value="' + (p.overridden ? p.entry : '') + '" placeholder="' + P(r.ind.c[r.t]).replace(/,/g, '') + '"></label>' +
+        '<button type="button" id="entryReset">오늘 종가로</button></div>' +
+        '<div class="note">손절가는 그대로 두고 수량과 익절가만 다시 계산합니다.' + (m === 'KR' ? ' 가격은 호가 단위에 맞췄습니다 (손절가 내림, 익절가 올림).' : '') + '</div></div>';
+      const saved = tradeFor(m, s.symbol, r.lastDate);
+      const saveBtn = p.valid && p.qty > 0 ? (saved ? '<button type="button" data-goto="pos" class="savedbtn">' + (saved.status === 'open' ? '보유 중 · 확인하기' : '저장됨 · 내 주문에서 보기') + '</button>' : '<button type="button" class="primary" id="savePlan">이 주문 계획 저장</button>') : '';
+      html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">' + (r.gap === 0 ? '주문표' : '주문표 (참고용 · 지금은 사면 안 됨)') + (p.overridden ? ' · 체결가 ' + P(p.entry) + ' 기준' : '') + '</div>' + saveBtn + '</div>';
+      if (p.valid && p.qty > 0 && !saved) html += '<div class="note">예약 주문을 걸었다면 저장해 두세요. 내일 [내 주문 · 보유]에서 [체결됨]만 누르면 손절가·익절가가 계속 보입니다.</div>';
+      if (!p.valid) html += '<div class="warnbox">체결가(' + P(p.entry) + ')가 손절가(' + P(p.sl) + ') 이하라 진입하면 안 됩니다. 규칙상 이 신호는 건너뜁니다.</div>' + calcHtml + '</div>';
+      else {
+        const blockedMsg = { noseed: '미장 시드가 0원이라 수량을 계산하지 않았습니다. 위 "미장 시드"에 금액을 넣으세요.',
+          price: '1주 가격(' + moneyT(p.entry) + ')이 종목당 최대 투자금(' + moneyT(p.capAmount) + ')보다 비싸 살 수 없습니다. 이 종목은 건너뛰거나 종목당 비중을 올려야 합니다.' + (m === 'US' && !p.frac ? ' 소수점 매수를 켜면 계산됩니다.' : ''),
+          risk: '1주만 사도 손절 시 손실(' + moneyT(p.R) + ')이 1회 허용 손실(' + moneyT(p.riskBudget) + ')보다 큽니다. 1% 규칙상 이 종목은 건너뜁니다.' }[p.blocked];
+        html += '<div class="big"><div><span>살 수량</span><b>' + fmtQ(p.qty, p.frac) + '주</b></div><div><span>투자 금액</span><b>' + (m === 'KR' ? fmtInt(p.amount) : '$' + fmtN(p.amount, 2)) + '</b></div><div><span>손절가</span><b>' + P(p.sl) + '</b></div><div><span>1차 익절가</span><b>' + P(p.tp1) + '</b></div></div>';
+        if (p.blocked) html += '<div class="warnbox">' + blockedMsg + '</div>';
+        else {
+          const rowsO = [
+            ['', '매수', p.entry, p.qty, '투자 ' + moneyT(p.amount)],
+            ['loss', '손절 · 전량 (' + p.slSource + ')', p.sl, p.qty, sgn(-p.maxLoss, moneyT)],
+            ['gain', '1차 익절 +1.5R · 50%', p.tp1, p.half, sgn(p.pTp1, moneyT)],
+            ['', '잔여 손절가 본절로 상향', p.entry, p.rest, '0'],
+          ];
+          if (p.exit === 'trail') rowsO.push(['gain', '잔여 · 종가가 기준선/20EMA 이탈 시', null, p.rest, '추세에 따라 변동']);
+          else rowsO.push(['gain', '2차 익절 +2.5R · 잔여 전량', p.tp2, p.rest, sgn(p.pTp2, moneyT)]);
+          if (p.exit === 'swing') rowsO.push(['', cfg.holdDays + '거래일째 종가 · 남은 수량 정리', null, p.rest, '그날 종가에 따라']);
+          html += '<div class="tablewrap"><table class="orders"><thead><tr><th>단계</th><th class="r">가격</th><th class="r">수량</th><th class="r">예상 손익</th></tr></thead><tbody>' +
+            rowsO.map(o => '<tr class="' + o[0] + '"><td>' + o[1] + '</td><td class="r num">' + (o[2] == null ? '–' : P(o[2])) + '</td><td class="r num">' + fmtQ(o[3], p.frac) + '주</td><td class="r num">' + o[4] + '</td></tr>').join('') + '</tbody></table></div>';
+          const full = p.exit === 'trail' ? null : p.pTp1 + p.pTp2 - p.cost;
+          html += '<div class="scen"><div>바로 손절되면<b>' + sgn(-(p.maxLoss + p.cost), v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2)) + '</b>시드의 ' + fmtN(p.lossPctSeed, 2) + '%</div>' +
+            '<div>1차 익절 후 본절<b>' + sgn(p.pTp1 - p.cost, v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2)) + '</b>&nbsp;</div>' +
+            '<div>' + (full == null ? '1차 익절 + 잔여 추종' : '목표 모두 달성') + '<b>' + (full == null ? sgn(p.pTp1 - p.cost, v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2)) + ' 이상' : sgn(full, v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2))) + '</b>&nbsp;</div></div>';
+          html += '<details class="why"><summary>수량은 이렇게 정했습니다</summary><ul>' +
+            '<li>한 번에 잃어도 되는 돈 ' + moneyT(p.riskBudget) + ' ÷ 1주당 손절 손실 ' + P(p.R) + ' = <b>' + fmtQ(p.qRisk, p.frac) + '주</b></li>' +
+            '<li>한 종목 최대 금액 ' + moneyT(p.capAmount) + ' ÷ 주가 ' + P(p.entry) + ' = <b>' + fmtQ(p.qCap, p.frac) + '주</b></li>' +
+            '<li>둘 중 작은 값 → <b>' + fmtQ(p.qty, p.frac) + '주</b>' + (p.limitBy === 'cap' ? ' (한 종목 최대 금액에 걸려 실제 손실은 허용치보다 작음)' : '') + '</li>' +
+            '<li>손절 폭 ' + fmtN(p.riskPctOfPrice, 2) + '% · 아래 세 칸은 수수료·세금 추정치 ' + moneyT(p.cost) + '를 뺀 금액</li></ul></details>';
+          if (p.half <= 0) html += '<div class="warnbox">수량이 1주라 50% 분할 매도가 안 됩니다. +1.5R에서 전량 익절할지, 손절가만 본절로 올리고 2차 목표까지 들고 갈지 미리 정해 두세요.</div>';
+          if (m === 'US' && p.frac) html += '<div class="warnbox">소수점 주식은 증권사에 따라 손절 감시주문(스탑로스)이나 지정가 주문이 안 될 수 있습니다. 주문 전에 사용하는 증권사에서 확인하세요.</div>';
+        }
+        html += calcHtml + '</div>';
+        if (!p.blocked) {
+          const head = { trail: '청산 순서: 추세 극대화 (미장 원칙)', kr: '청산 순서: 박스권 탈출 방어 (국장 원칙)', swing: '청산 순서: 2주 스윙' }[p.exit];
+          const steps = ['매수 즉시 손절 감시주문: <b>' + P(p.sl) + '</b> 이탈 시 전량 시장가',
+            '<b>' + P(p.tp1) + '</b> (+1.5R) 도달 시 <b>' + fmtQ(p.half, p.frac) + '주</b> 익절 + 잔여 <b>' + fmtQ(p.rest, p.frac) + '주</b> 손절가를 <b>' + P(p.entry) + '</b>(본절)로 상향'];
+          if (p.exit === 'trail') steps.push('잔여분은 일봉 종가가 기준선(현재 <b>' + P(p.trailKijun) + '</b>) 또는 20 EMA(현재 <b>' + P(p.trailEma20) + '</b>)를 하향 이탈할 때 전량 매도. 두 선은 매일 바뀌므로 장 마감 후 재확인');
+          else {
+            steps.push('잔여분: <b>' + P(p.tp2) + '</b> (+2.5R) 도달 시 전량 매도, 또는 볼린저 상단(현재 <b>' + P(p.bbUp) + '</b>) 터치 후 음봉이 나오면 전량 매도');
+            if (p.exit === 'swing') steps.push('위 조건이 안 나와도 <b>' + cfg.holdDays + '거래일째 종가</b>에 남은 수량 전량 매도 (시간 청산)');
+          }
+          html += '<div class="dsec"><div class="label">' + head + '</div><ol class="steps">' + steps.map(t => '<li>' + t + '</li>').join('') + '</ol></div>';
+          const memo = [
+            '[' + s.symbol + ' ' + s.name + '] ' + ST.short + ' · 기준일 ' + r.lastDate + ' · 조건 ' + e.score + '/' + nC,
+            '매수 ' + P(p.entry) + cur(m) + ' × ' + fmtQ(p.qty, p.frac) + '주 = ' + P(p.amount) + cur(m),
+            '손절(SL) ' + P(p.sl) + cur(m) + ' 전량 · 예상 손실 ' + P(p.maxLoss) + cur(m),
+            '1차 익절 ' + P(p.tp1) + cur(m) + ' · ' + fmtQ(p.half, p.frac) + '주 → 잔여 손절가 ' + P(p.entry) + '(본절)',
+            p.exit === 'trail' ? '잔여 ' + fmtQ(p.rest, p.frac) + '주: 종가 < 기준선 또는 20EMA 시 전량 (현재 ' + P(p.trailKijun) + ' / ' + P(p.trailEma20) + ')'
+              : '2차 익절 ' + P(p.tp2) + cur(m) + ' · 잔여 ' + fmtQ(p.rest, p.frac) + '주 (또는 BB상단 터치 후 음봉)' + (p.exit === 'swing' ? ' · ' + cfg.holdDays + '거래일째 종가 강제 청산' : '')
+          ].join('\n');
+          html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">서버감시주문 입력 메모</div><button type="button" id="copyMemo">복사</button></div><pre class="memo" id="memo">' + esc(memo) + '</pre></div>';
+        }
+      }
+    }
+    box.innerHTML = html + tail;
+    const sp = $('savePlan');
+    if (sp) sp.onclick = async () => { if (await savePlan(r)) { await saveTrades(); toast('저장했습니다. 내일 [내 주문 · 보유]에서 체결 여부를 누르세요'); renderTable(); renderDetail(); } };
+    const ei = $('entryIn');
+    if (ei) {
+      ei.onchange = () => { const v = parseFloat(ei.value); if (v > 0) state.entry[ekey] = v; else delete state.entry[ekey]; run(); };
+      $('entryReset').onclick = () => { delete state.entry[ekey]; run(); };
+    }
+    const cb = $('copyMemo');
+    if (cb) cb.onclick = async () => {
+      try { await navigator.clipboard.writeText($('memo').textContent); toast('메모를 복사했습니다'); }
+      catch { const rg = document.createRange(); rg.selectNodeContents($('memo')); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); toast('텍스트를 선택했습니다. 복사하세요'); }
+    };
+    drawChart(r);
+  }
+
+  // ---------- 캔들 차트 ----------
+  const cssCol = () => { const css = getComputedStyle(document.documentElement); return n => css.getPropertyValue('--' + n).trim(); };
+  function prepCanvas(cv) { const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H); return { g, W, H }; }
+  function drawChart(r) {
+    const cv = $('cv'); if (!cv) return;
+    const col = cssCol(), { g, W, H } = prepCanvas(cv);
+    const ind = r.ind, t = r.t, N = Math.min(120, t + 1), s0 = t - N + 1, off = state.cfg.cloudOffset, p = r.plan;
+    const pad = { l: 6, r: 58, t: 8, b: 18 }, cw = (W - pad.l - pad.r) / N;
+    let lo = Infinity, hi = -Infinity;
+    for (let i = s0; i <= t; i++) { lo = Math.min(lo, ind.l[i]); hi = Math.max(hi, ind.h[i]);
+      for (const v of [ind.sma200[i], ind.ema20[i], ind.ema50[i], ind.senkouAraw[i - off], ind.senkouBraw[i - off]]) if (!isNaN(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+    if (p?.valid) { lo = Math.min(lo, p.sl); hi = Math.max(hi, p.tp1, p.exit !== 'trail' ? p.tp2 : 0); }
+    const span = hi - lo || 1; lo -= span * .04; hi += span * .04;
+    const X = i => pad.l + (i - s0 + .5) * cw, Y = v => pad.t + (hi - v) / (hi - lo) * (H - pad.t - pad.b);
+    g.font = '10px ' + col('f-mono'); g.fillStyle = col('muted'); g.strokeStyle = col('line'); g.lineWidth = 1; g.textBaseline = 'middle';
+    for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4, y = Y(v); g.globalAlpha = .6; g.beginPath(); g.moveTo(pad.l, y); g.lineTo(W - pad.r, y); g.stroke(); g.globalAlpha = 1; g.fillText(fmtP(v, r.stock.market), W - pad.r + 4, y); }
+    g.textBaseline = 'alphabetic';
+    for (const i of [s0, s0 + Math.floor(N / 2), t]) g.fillText(ind.dates[i].slice(2), Math.min(Math.max(X(i) - 20, pad.l), W - pad.r - 44), H - 4);
+    for (let i = s0; i < t; i++) {
+      const a1 = ind.senkouAraw[i - off], b1 = ind.senkouBraw[i - off], a2 = ind.senkouAraw[i + 1 - off], b2 = ind.senkouBraw[i + 1 - off];
+      if ([a1, b1, a2, b2].some(isNaN)) continue;
+      g.fillStyle = a1 >= b1 ? col('cloud-bull') : col('cloud-bear');
+      g.beginPath(); g.moveTo(X(i), Y(a1)); g.lineTo(X(i + 1), Y(a2)); g.lineTo(X(i + 1), Y(b2)); g.lineTo(X(i), Y(b1)); g.closePath(); g.fill();
+    }
+    const line = (arr, c, w, dash) => { g.strokeStyle = c; g.lineWidth = w; g.setLineDash(dash || []); g.beginPath(); let st = false;
+      for (let i = s0; i <= t; i++) { const v = arr[i]; if (isNaN(v)) { st = false; continue; } st ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); st = true; } g.stroke(); g.setLineDash([]); };
+    line(ind.sma200, col('sma200'), 1.2, [4, 3]); line(ind.ema50, col('ema50'), 1.3); line(ind.ema20, col('ema20'), 1.3); line(ind.kijun, col('kijun'), 1.6);
+    const bw = Math.max(1, cw * .62);
+    for (let i = s0; i <= t; i++) { const o = ind.o[i], c = ind.c[i]; g.strokeStyle = g.fillStyle = c >= o ? col('up') : col('down');
+      g.lineWidth = 1; g.beginPath(); g.moveTo(X(i), Y(ind.h[i])); g.lineTo(X(i), Y(ind.l[i])); g.stroke();
+      const y1 = Y(Math.max(o, c)), y2 = Y(Math.min(o, c)); g.fillRect(X(i) - bw / 2, y1, bw, Math.max(1, y2 - y1)); }
+    g.fillStyle = col('accent');
+    for (const i of r.history) if (i >= s0) { const x = X(i), y = Y(ind.l[i]) + 10; g.beginPath(); g.moveTo(x, y - 5); g.lineTo(x - 4, y + 2); g.lineTo(x + 4, y + 2); g.closePath(); g.fill(); }
+    if (p?.valid) {
+      const lvl = (v, c, label) => { const y = Y(v); g.strokeStyle = c; g.lineWidth = 1; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(pad.l, y); g.lineTo(W - pad.r, y); g.stroke(); g.setLineDash([]);
+        g.fillStyle = c; g.fillRect(W - pad.r, y - 7, pad.r, 14); g.fillStyle = col('panel'); g.textBaseline = 'middle'; g.fillText(label, W - pad.r + 3, y); };
+      lvl(p.sl, col('down'), 'SL'); lvl(p.entry, col('ink'), '진입'); lvl(p.tp1, col('up'), '+1.5R'); if (p.exit !== 'trail') lvl(p.tp2, col('up'), '+2.5R');
+    }
+  }
+
+  // ---------- 전략 검증 ----------
+  async function runBacktest() {
+    const m = state.btMkt, list = state.stocks.filter(s => s.market === m && s.bars.length >= 260);
+    const btn = $('btRun');
+    if (!list.length) { $('btVerdict').textContent = (m === 'KR' ? '국장' : '미장') + ' 데이터가 없습니다. 먼저 시세를 받거나 불러오세요.'; return; }
+    btn.disabled = true;
+    let minD = '9999', maxD = '0000';
+    for (const s of list) { const a = s.bars[210]?.[0]; if (a && a < minD) minD = a; const b = s.bars.at(-1)[0]; if (b > maxD) maxD = b; }
+    const t0 = new Date(minD).getTime(), t1 = new Date(maxD).getTime();
+    const split = new Date(t0 + (t1 - t0) * 0.7).toISOString().slice(0, 10);
+    const out = {};
+    const keys = Object.keys(S);
+    for (const k of keys) out[k] = [];
+    const modes = Object.keys(ENGINE.CLOUD_MODES), cOut = {};
+    for (const md of modes) cOut[md] = [];
+    for (let i = 0; i < list.length; i++) {
+      for (const k of keys) out[k].push(...ENGINE.backtestStock(list[i], k, state.cfg).trades);
+      for (const md of modes) cOut[md].push(...ENGINE.backtestStock(list[i], 'trend', Object.assign({}, state.cfg, { cloudMode: md })).trades);
+      if (i % 10 === 0) { $('btVerdict').textContent = '검증 중… ' + (i + 1) + ' / ' + list.length + ' 종목'; await new Promise(r => setTimeout(r)); }
+    }
+    const res = {}; for (const k of keys) res[k] = ENGINE.stats(out[k], split);
+    const cloud = {}; for (const md of modes) cloud[md] = ENGINE.stats(cOut[md], split);
+    const ac = acct(m), pf = {};
+    if (ac.equity > 0) for (const k of keys) pf[k] = ENGINE.portfolio(out[k], { seed: ac.equity, riskPct: state.cfg.riskPct, capPct: state.capPct, maxPos: maxPos(), fractional: m === 'US' && state.fractional });
+    state.bt[m] = { res, cloud, pf, split, from: minD, to: maxD, count: list.length, demo: state.source === 'demo' };
+    btn.disabled = false;
+    renderBacktest();
+  }
+  function renderBacktest() {
+    const m = state.btMkt, b = state.bt[m], keys = Object.keys(S), colors = { trend: 's1', pullback: 's2', breakout: 's3' };
+    if (!b) { $('btBody').innerHTML = ''; $('btLegend').innerHTML = ''; $('cloudBody').innerHTML = ''; $('cloudVerdict').textContent = '[검증 실행]을 누르면 함께 계산됩니다.'; $('pfBody').innerHTML = '<tr><td colspan="9" class="note">[검증 실행] 후 표시됩니다.</td></tr>'; prepCanvas($('pfCurve')); $('btVerdict').textContent = '[검증 실행]을 누르면 ' + (m === 'KR' ? '국장' : '미장') + ' 데이터로 세 전략을 비교합니다.'; prepCanvas($('btCurve')); return; }
+    const cls = v => isNaN(v) ? '' : v > 0 ? 'pos' : 'neg';
+    $('btBody').innerHTML = keys.map(k => {
+      const x = b.res[k];
+      const nm = '<td><span class="swatch" style="background:var(--' + colors[k] + ')"></span>' + S[k].name + (state.strat[m] === k ? ' <span class="tag live">사용 중</span>' : '') + '</td>';
+      if (!x.n) return '<tr>' + nm + '<td class="r num">0</td><td colspan="10" class="note">신호 없음</td></tr>';
+      return '<tr>' + nm + '<td class="r num">' + x.n + '</td><td class="r num">' + fmtN(x.winRate * 100, 1) + '%</td>' +
+        '<td class="r num">' + fmtR(x.avgWin) + '</td><td class="r num">' + fmtR(x.avgLoss) + '</td>' +
+        '<td class="r num ' + cls(x.exp) + '"><b>' + fmtR(x.exp) + '</b></td><td class="r num">' + (isFinite(x.pf) ? fmtN(x.pf, 2) : '–') + '</td>' +
+        '<td class="r num ' + cls(x.perYear) + '">' + fmtR(x.perYear) + '</td><td class="r num">' + fmtN(x.mdd, 1) + 'R</td><td class="r num">' + x.maxStreak + '회</td>' +
+        '<td class="r num">' + fmtN(x.hold, 1) + '일</td><td class="r num"><span class="' + cls(x.inExp) + '">' + fmtR(x.inExp) + '</span> / <span class="' + cls(x.outExp) + '">' + fmtR(x.outExp) + '</span></td></tr>';
+    }).join('');
+    $('btLegend').innerHTML = keys.map(k => '<span><i style="background:var(--' + colors[k] + ')"></i>' + S[k].short + '</span>').join('') + '<span>세로 점선 = 앞 70% / 뒤 30% 경계 (' + b.split + ')</span>';
+    // 결론 문장
+    const mk = m === 'KR' ? '국장' : '미장';
+    const valid = keys.filter(k => b.res[k].n >= 30);
+    let txt = '<b>' + mk + ' ' + b.count + '종목 · ' + b.from + ' ~ ' + b.to + '</b> 기간 검증 결과입니다. ';
+    if (b.demo) txt += '<span class="stale">지금은 가상 데이터라 결과에 의미가 없습니다. 실제 시세로 다시 실행하세요.</span> ';
+    if (!valid.length) txt += '거래가 30회 이상 나온 전략이 없어 판단하기 이릅니다. 기간을 늘리거나 종목 수를 늘리세요.';
+    else {
+      const best = valid.reduce((a, k) => b.res[k].perYear > b.res[a].perYear ? k : a, valid[0]), x = b.res[best];
+      txt += '연간 누적 수익이 가장 큰 전략은 <b>' + S[best].name + '</b>입니다. 거래당 평균 <b class="' + cls(x.exp) + '">' + fmtR(x.exp) + '</b>, 연 ' + fmtN(x.perYearTrades, 0) + '회 거래로 연간 <b class="' + cls(x.perYear) + '">' + fmtR(x.perYear) + '</b>(1% 룰 기준 계좌 약 ' + fmtN(x.perYear, 1) + '%)입니다. ';
+      if (x.exp <= 0) txt += '다만 기대값이 0 이하라 이 기간 데이터로는 <b>세 전략 모두 비용을 이기지 못했습니다.</b> 실전 투입 전 조건을 다시 생각해야 합니다. ';
+      else if (!(x.outExp > 0)) txt += '하지만 뒤 30% 기간의 기대값이 플러스가 아니어서 최근에는 통하지 않았을 수 있습니다. ';
+      else txt += '뒤 30% 기간에서도 플러스(' + fmtR(x.outExp) + ')를 유지했습니다. ';
+      if (Math.abs(x.t) < 2) txt += '통계적으로는 아직 우연과 구분하기 어려운 수준(t=' + fmtN(x.t, 1) + ')입니다. ';
+      if (state.strat[m] !== best && x.exp > 0) txt += '현재 ' + mk + '에 쓰는 전략(' + S[state.strat[m]].short + ')과 다릅니다. 위 전략 선택에서 바꿀 수 있습니다.';
+    }
+    $('btVerdict').innerHTML = txt;
+    drawCurve(b, keys, colors);
+    renderPortfolio(b, keys, colors, m);
+    renderCloud(b, m);
+  }
+  function renderPortfolio(b, keys, colors, m) {
+    const kr = m === 'KR', mon = v => kr ? fmtInt(v) + '원' : '$' + fmtN(v, 2) + ' <span class="note">≈' + fmtInt(v * state.fx) + '원</span>';
+    const pct = v => (v > 0 ? '+' : '') + fmtN(v * 100, 1) + '%', cls = v => v > 0 ? 'pos' : v < 0 ? 'neg' : '';
+    $('pfDesc').textContent = '시드 ' + (kr ? fmtInt(state.seedKR) + '원' : fmtInt(state.seedUS) + '원($' + fmtN(state.seedUS / state.fx, 0) + ')') + ', 1회 허용 손실 ' + state.cfg.riskPct + '%, 종목당 최대 ' + state.capPct + '%(동시 보유 최대 ' + maxPos() + '종목)를 그대로 적용했습니다. 자리가 꽉 차거나 1주도 못 사면 그 신호는 건너뜁니다. 수익은 재투자합니다.';
+    if (!Object.keys(b.pf).length) { $('pfBody').innerHTML = '<tr><td colspan="9" class="note">' + (kr ? '국장' : '미장') + ' 시드가 0원이라 계산하지 않았습니다.</td></tr>'; prepCanvas($('pfCurve')); return; }
+    $('pfBody').innerHTML = keys.map(k => { const x = b.pf[k];
+      return '<tr><td><span class="swatch" style="background:var(--' + colors[k] + ')"></span>' + S[k].short + '</td><td class="r num">' + mon(x.seed) + '</td><td class="r num"><b>' + mon(x.final) + '</b></td>' +
+        '<td class="r num ' + cls(x.ret) + '">' + pct(x.ret) + '</td><td class="r num ' + cls(x.cagr) + '">' + pct(x.cagr) + '</td><td class="r num">−' + fmtN(x.mdd * 100, 1) + '%</td>' +
+        '<td class="r num">' + x.taken + '회</td><td class="r num">' + x.skipSlot + '회</td><td class="r num">' + x.skipQty + '회</td></tr>'; }).join('');
+    const cv = $('pfCurve'), col = cssCol(), { g, W, H } = prepCanvas(cv), pad = { l: 64, r: 12, t: 10, b: 20 };
+    const t0 = new Date(b.from).getTime(), t1 = new Date(b.to).getTime() || t0 + 1, seed = b.pf[keys[0]].seed;
+    let lo = seed, hi = seed; for (const k of keys) for (const [, v] of b.pf[k].curve) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    if (hi === lo) hi = lo + 1; const sp = hi - lo; lo -= sp * .06; hi += sp * .06;
+    const X = d => pad.l + (new Date(d).getTime() - t0) / (t1 - t0) * (W - pad.l - pad.r), Y = v => pad.t + (hi - v) / (hi - lo) * (H - pad.t - pad.b);
+    g.font = '10px ' + col('f-mono'); g.fillStyle = col('muted'); g.strokeStyle = col('line'); g.textBaseline = 'middle';
+    for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4, y = Y(v); g.globalAlpha = .6; g.beginPath(); g.moveTo(pad.l, y); g.lineTo(W - pad.r, y); g.stroke(); g.globalAlpha = 1; g.fillText(kr ? fmtInt(v / 10000) + '만' : '$' + fmtInt(v), 4, y); }
+    g.strokeStyle = col('ink'); g.globalAlpha = .5; g.beginPath(); g.moveTo(pad.l, Y(seed)); g.lineTo(W - pad.r, Y(seed)); g.stroke(); g.globalAlpha = 1;
+    for (const k of keys) { const c = b.pf[k].curve; if (!c.length) continue; g.strokeStyle = col(colors[k]); g.lineWidth = 1.8; g.beginPath(); g.moveTo(X(b.pf[k].first || c[0][0]), Y(seed));
+      for (const [d, v] of c) g.lineTo(X(d), Y(v)); g.stroke(); g.lineWidth = 1; }
+  }
+  function renderCloud(b, m) {
+    const modes = Object.keys(ENGINE.CLOUD_MODES), cls = v => isNaN(v) ? '' : v > 0 ? 'pos' : 'neg', N = state.cfg.cloudBreakDays;
+    const label = md => ENGINE.CLOUD_MODES[md].replace('N일', N + '일');
+    $('cloudBody').innerHTML = modes.map(md => { const x = b.cloud[md], cur = state.cfg.cloudMode === md;
+      const nm = '<td>' + label(md) + (cur ? ' <span class="tag live">사용 중</span>' : '') + '</td>';
+      if (!x.n) return '<tr>' + nm + '<td class="r num">0</td><td colspan="6" class="note">신호 없음</td><td></td></tr>';
+      return '<tr>' + nm + '<td class="r num">' + x.n + '</td><td class="r num">' + fmtN(x.winRate * 100, 1) + '%</td><td class="r num ' + cls(x.exp) + '"><b>' + fmtR(x.exp) + '</b></td>' +
+        '<td class="r num">' + (isFinite(x.pf) ? fmtN(x.pf, 2) : '–') + '</td><td class="r num ' + cls(x.perYear) + '">' + fmtR(x.perYear) + '</td><td class="r num">' + fmtN(x.mdd, 1) + 'R</td>' +
+        '<td class="r num"><span class="' + cls(x.inExp) + '">' + fmtR(x.inExp) + '</span> / <span class="' + cls(x.outExp) + '">' + fmtR(x.outExp) + '</span></td>' +
+        '<td>' + (cur ? '' : '<button type="button" data-cloud="' + md + '">적용</button>') + '</td></tr>'; }).join('');
+    for (const bt of $('cloudBody').querySelectorAll('[data-cloud]')) bt.onclick = () => { state.cfg.cloudMode = bt.dataset.cloud; $('cloudMode').value = state.cfg.cloudMode; store.set('cfg', state.cfg); pushSettings(); const keep = state.bt; run(); state.bt = keep; renderBacktest(); toast('구름 조건을 "' + label(bt.dataset.cloud) + '"(으)로 바꿨습니다'); };
+    const ok = modes.filter(md => b.cloud[md].n >= 30);
+    const mk = m === 'KR' ? '국장' : '미장';
+    let t = b.demo ? '<span class="stale">가상 데이터라 결과에 의미가 없습니다.</span> ' : '';
+    if (!ok.length) t += '거래가 30회 이상 나온 구름 조건이 없어 비교하기 이릅니다. 종목 수나 기간을 늘리세요.';
+    else {
+      const robust = ok.filter(md => b.cloud[md].exp > 0 && b.cloud[md].outExp > 0);
+      const pool = robust.length ? robust : ok;
+      const best = pool.reduce((a, md) => b.cloud[md].perYear > b.cloud[a].perYear ? md : a, pool[0]);
+      const bb = b.cloud.break_bull, br = b.cloud.break_bear;
+      t += mk + ' 데이터에서 ' + (robust.length ? '기대값과 뒤 30% 기간이 모두 플러스인 조건 중 ' : '') + '연간 합계가 가장 큰 구름 조건은 <b>' + label(best) + '</b>입니다 (거래당 ' + fmtR(b.cloud[best].exp) + ', 연 ' + fmtR(b.cloud[best].perYear) + '). ';
+      if (bb.n && br.n) t += '양운 돌파는 거래당 <b class="' + cls(bb.exp) + '">' + fmtR(bb.exp) + '</b>(' + bb.n + '회), 음운 돌파는 <b class="' + cls(br.exp) + '">' + fmtR(br.exp) + '</b>(' + br.n + '회)입니다. ';
+      if ((bb.n || 0) < 30 || (br.n || 0) < 30) t += '돌파 조건은 신호가 드물어 30회 미만이면 우열을 단정할 수 없습니다. ';
+      if (!robust.length) t += '<b>뒤 30% 기간까지 플러스를 유지한 조건이 없습니다.</b> 구름 조건을 바꾸는 것만으로는 개선되지 않는다는 뜻입니다.';
+    }
+    $('cloudVerdict').innerHTML = t;
+  }
+  function drawCurve(b, keys, colors) {
+    const cv = $('btCurve'), col = cssCol(), { g, W, H } = prepCanvas(cv);
+    const pad = { l: 48, r: 12, t: 12, b: 22 };
+    const t0 = new Date(b.from).getTime(), t1 = new Date(b.to).getTime() || t0 + 1;
+    let lo = 0, hi = 0;
+    for (const k of keys) for (const [, v] of b.res[k].curve || []) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    if (hi === lo) hi = lo + 1;
+    const sp = hi - lo; lo -= sp * .05; hi += sp * .05;
+    const X = d => pad.l + (new Date(d).getTime() - t0) / (t1 - t0) * (W - pad.l - pad.r), Y = v => pad.t + (hi - v) / (hi - lo) * (H - pad.t - pad.b);
+    g.font = '10px ' + col('f-mono'); g.fillStyle = col('muted'); g.strokeStyle = col('line'); g.lineWidth = 1; g.textBaseline = 'middle';
+    for (let k = 0; k <= 4; k++) { const v = lo + (hi - lo) * k / 4, y = Y(v); g.globalAlpha = .6; g.beginPath(); g.moveTo(pad.l, y); g.lineTo(W - pad.r, y); g.stroke(); g.globalAlpha = 1; g.fillText(fmtN(v, 0) + 'R', 4, y); }
+    g.strokeStyle = col('ink'); g.lineWidth = 1; g.globalAlpha = .5; g.beginPath(); g.moveTo(pad.l, Y(0)); g.lineTo(W - pad.r, Y(0)); g.stroke(); g.globalAlpha = 1;
+    g.setLineDash([3, 3]); g.strokeStyle = col('muted'); const xs = X(b.split); g.beginPath(); g.moveTo(xs, pad.t); g.lineTo(xs, H - pad.b); g.stroke(); g.setLineDash([]);
+    g.textBaseline = 'alphabetic'; g.fillStyle = col('muted'); g.fillText(b.from, pad.l, H - 4); g.fillText(b.to, W - pad.r - 62, H - 4);
+    for (const k of keys) { const c = b.res[k].curve || []; if (!c.length) continue; g.strokeStyle = col(colors[k]); g.lineWidth = 1.8; g.beginPath(); g.moveTo(X(c[0][0]), Y(0));
+      for (const [d, v] of c) g.lineTo(X(d), Y(v)); g.stroke(); const [ld, lv] = c[c.length - 1]; g.fillStyle = col(colors[k]); g.beginPath(); g.arc(X(ld), Y(lv), 3, 0, 7); g.fill(); }
+  }
+
+  // ---------- 내 주문 · 보유 ----------
+  const todayKST = () => new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+  const monM = (m, v) => v == null || isNaN(v) ? '–' : m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2);
+  const sgnM = (m, v) => (v > 0 ? '+' : v < 0 ? '−' : '') + monM(m, Math.abs(v));
+  const findStock = tr => state.stocks.find(s => s.market === tr.market && String(s.symbol) === String(tr.symbol));
+  const remQty = tr => +((tr.qty || 0) - (tr.sold || 0)).toFixed(4);
+  const realized = tr => (tr.events || []).reduce((a, e) => a + e.qty * (e.price - tr.fill), 0);
+  const REASONS = { tp1: '1차 익절', tp2: '2차 익절', stop: '손절', be: '본절', trend: '추세선 이탈', bb: '볼린저 상단 후 음봉', time: '보유기간 만료', etc: '기타' };
+  // ---------- 기록 저장소: GitHub(비공개 저장소) > PC 프로그램 파일 > 이 브라우저 ----------
+  // 바뀐 기록에만 수정 시각을 찍고, 지운 기록은 '삭제' 표시로 남겨 다른 기기에서도 지워지게 합니다
+  const tKey = t => { const c = Object.assign({}, t); delete c.updatedAt; return JSON.stringify(c); };
+  const snapTrades = () => { state.tSnap = new Map(state.trades.map(t => [t.id, tKey(t)])); };
+  const sigTrades = list => list.map(t => t.id + '@' + (t.updatedAt || '')).sort().join('|');
+  const setTrades = list => { state.tomb = list.filter(t => t.deleted); state.trades = list.filter(t => !t.deleted); snapTrades(); };
+  const allTrades = () => state.trades.concat(state.tomb || []);
+  function mergeTrades(...lists) {
+    const out = new Map();
+    for (const l of lists) for (const t of l || []) { if (!t || !t.id) continue; const c = out.get(t.id); if (!c || String(t.updatedAt || '') >= String(c.updatedAt || '')) out.set(t.id, t); }
+    return [...out.values()];
+  }
+  // 두 기기에서 같은 종목·같은 신호일을 각각 저장했을 때 하나만 남김 (체결된 것 우선, 두 기기가 같은 결과를 내도록 규칙 고정)
+  function cleanDupes(list) {
+    const groups = new Map(), out = [];
+    for (const t of list) {
+      if (t.deleted || !(t.status === 'planned' || t.status === 'open')) { out.push(t); continue; }
+      const k = t.market + '|' + t.symbol + '|' + t.signalDate; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t);
+    }
+    const rank = t => (t.status === 'open' ? '0' : '1') + (t.createdAt || '') + t.id;
+    for (const g of groups.values()) {
+      g.sort((a, b) => rank(a) < rank(b) ? -1 : 1);
+      out.push(g[0]);
+      for (const d of g.slice(1)) out.push({ id: d.id, deleted: true, updatedAt: String(d.updatedAt || '') + '~dup' });
+    }
+    return out;
+  }
+  // GitHub 연결
+  const ghCfg = () => { const g = store.get('gh', null); return g && g.token && g.repo ? g : null; };
+  const site = (() => { const h = location.hostname; if (!/\.github\.io$/i.test(h)) return null; const owner = h.split('.')[0]; const repo = location.pathname.split('/').filter(Boolean)[0] || h; return { owner, repo }; })();
+  const b64e = s => { const b = new TextEncoder().encode(s); let x = ''; for (let i = 0; i < b.length; i += 0x8000) x += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(x); };
+  const b64d = s => new TextDecoder().decode(Uint8Array.from(atob(String(s).replace(/\s/g, '')), c => c.charCodeAt(0)));
+  async function gh(method, path, body, cfg) {
+    const g = cfg || ghCfg();
+    const r = await fetch('https://api.github.com' + path, { method, cache: 'no-store', headers: { Authorization: 'Bearer ' + g.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }, body: body ? JSON.stringify(body) : undefined });
+    if (r.status === 404 && method === 'GET') return null;
+    const j = r.status === 204 ? {} : await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const msg = r.status === 401 ? '토큰이 맞지 않거나 만료되었습니다' : r.status === 403 ? '토큰 권한이 부족합니다' : r.status === 404 ? '저장소를 찾을 수 없습니다 (이름이나 토큰의 저장소 선택을 확인하세요)' : (r.status === 409 || r.status === 422) ? '동시에 저장되어 다시 시도합니다' : (j.message || ('GitHub 오류 ' + r.status));
+      const e = new Error(msg); e.status = r.status; throw e;
+    }
+    return j;
+  }
+  async function ghRead(file, cfg) { const g = cfg || ghCfg(); const j = await gh('GET', '/repos/' + g.repo + '/contents/' + file, null, g); return j ? { data: JSON.parse(b64d(j.content)), sha: j.sha } : { data: null, sha: null }; }
+  async function ghWrite(file, data, sha, msg, cfg) { const g = cfg || ghCfg(); const body = { message: msg, content: b64e(JSON.stringify(data, null, 1)) }; if (sha) body.sha = sha; await gh('PUT', '/repos/' + g.repo + '/contents/' + file, body, g); }
+  const backend = () => ghCfg() ? 'github' : local.on ? 'server' : 'browser';
+
+  async function remoteTrades() {
+    if (backend() === 'github') return (await ghRead('trades.json')).data || [];
+    if (backend() === 'server') return await api('/api/trades');
+    return null;
+  }
+  async function loadTrades() {
+    const cache = store.get('trades', []);
+    let remote = null;
+    try { remote = await remoteTrades(); } catch (e) { if (backend() === 'github') toast('GitHub 기록을 불러오지 못했습니다: ' + e.message); }
+    const merged = cleanDupes(mergeTrades(Array.isArray(remote) ? remote : [], Array.isArray(cache) ? cache : []));
+    setTrades(merged); store.set('trades', merged);
+    if (Array.isArray(remote) && sigTrades(merged) !== sigTrades(remote)) { state.tSnap = new Map(); await writeRemote(merged); }   // 이 기기에만 있던 기록 올리기
+    state.lastSync = new Date();
+  }
+  async function writeRemote(all) {
+    const b = backend();
+    if (b === 'github') {
+      for (let i = 0; i < 3; i++) {
+        try { const cur = await ghRead('trades.json'); const merged = cleanDupes(mergeTrades(cur.data || [], all)); await ghWrite('trades.json', merged, cur.sha, '주문 기록 업데이트'); setTrades(merged); store.set('trades', merged); state.lastSync = new Date(); return true; }
+        catch (e) { if ((e.status === 409 || e.status === 422) && i < 2) continue; toast('GitHub에 저장하지 못했습니다: ' + e.message + ' (이 기기에는 저장됨, 다음에 다시 올립니다)'); return false; }
+      }
+    } else if (b === 'server') {
+      try { const res = await api('/api/trades', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(all) }, 15000); setTrades(res.trades || all); state.lastSync = new Date(); return true; }
+      catch (e) { toast('주문 기록을 파일에 저장하지 못했습니다: ' + e.message + ' (브라우저에는 저장됨)'); return false; }
+    }
+    return false;
+  }
+  let saveChain = Promise.resolve();
+  function saveTrades() {
+    saveChain = saveChain.then(async () => {
+      const now = new Date().toISOString(), snap = state.tSnap || new Map(), ids = new Set();
+      for (const t of state.trades) { ids.add(t.id); if (snap.get(t.id) !== tKey(t)) t.updatedAt = now; }
+      const tomb = (state.tomb || []).slice();
+      for (const id of snap.keys()) if (!ids.has(id)) tomb.push({ id, deleted: true, updatedAt: now });
+      const all = state.trades.concat(tomb);
+      store.set('trades', all);
+      state.tomb = tomb; snapTrades();
+      await writeRemote(all);
+      renderPosBadge();
+    }).catch(() => {});
+    return saveChain;
+  }
+  // 설정(시드·전략·세부 설정) 연동
+  const settingsObj = () => ({ seedKR: state.seedKR, seedUS: state.seedUS, fx: state.fx, capPct: state.capPct, fractional: state.fractional, strat: state.strat, cfg: state.cfg, updatedAt: store.get('settingsTs', '') });
+  async function remoteSettings() {
+    if (backend() === 'github') return (await ghRead('settings.json')).data;
+    if (backend() === 'server') return await api('/api/settings');
+    return null;
+  }
+  async function pushSettings() {
+    store.set('settingsTs', new Date().toISOString());
+    const b = backend(), o = settingsObj();
+    try {
+      if (b === 'github') { const cur = await ghRead('settings.json'); if (!cur.data || String(cur.data.updatedAt || '') <= o.updatedAt) await ghWrite('settings.json', o, cur.sha, '설정 업데이트'); }
+      else if (b === 'server') await api('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(o) });
+    } catch {}
+  }
+  function refreshInputs() {
+    for (const k of ['seedKR', 'seedUS', 'fx', 'capPct']) $(k).value = state[k];
+    $('risk').value = state.cfg.riskPct;
+    for (const k of ['rsiLo', 'rsiHi', 'volMult', 'holdDays', 'pbRsiMax', 'pbVolMult', 'boVolMult', 'costKR', 'costUS', 'cloudBreakDays']) $(k).value = state.cfg[k];
+    for (const k of ['cloudOffset', 'chikouOffset', 'cloudMode']) $(k).value = String(state.cfg[k]);
+    $('stratKR').value = state.strat.KR; $('stratUS').value = state.strat.US;
+    $('fractional').checked = !!state.fractional; $('volEx').checked = !!state.cfg.volAvgExcludeToday;
+  }
+  function applySettings(o) {
+    if (!o || !o.updatedAt || o.updatedAt <= store.get('settingsTs', '')) return false;
+    for (const k of ['seedKR', 'seedUS', 'fx', 'capPct']) if (typeof o[k] === 'number') { state[k] = o[k]; store.set(k, o[k]); }
+    if (typeof o.fractional === 'boolean') { state.fractional = o.fractional; store.set('fractional', o.fractional); }
+    if (o.strat) { state.strat = Object.assign({}, state.strat, o.strat); store.set('strat', state.strat); }
+    if (o.cfg) { state.cfg = Object.assign({}, ENGINE.DEFAULT_CFG, o.cfg); store.set('cfg', state.cfg); }
+    store.set('settingsTs', o.updatedAt);
+    refreshInputs(); state.bt = {};
+    return true;
+  }
+  // 다른 기기에서 바뀐 내용 가져오기 (화면을 보고 있을 때만)
+  async function pullRemote() {
+    if (backend() === 'browser' || document.visibilityState !== 'visible') return;
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.posform, .syncbody')) return;
+    let changed = false;
+    try {
+      const t = await remoteTrades();
+      if (Array.isArray(t)) {
+        const merged = cleanDupes(mergeTrades(t, allTrades()));
+        if (sigTrades(merged) !== sigTrades(allTrades())) { setTrades(merged); store.set('trades', merged); changed = true; }
+        if (sigTrades(merged) !== sigTrades(t)) await writeRemote(merged);   // 정리한 결과나 이 기기에만 있던 기록을 올림
+        state.lastSync = new Date();
+      }
+    } catch {}
+    try { if (applySettings(await remoteSettings())) { run(); toast('다른 기기에서 바꾼 설정을 반영했습니다'); } } catch {}
+    if (changed) { renderPosBadge(); renderTable(); renderDetail(); if (state.tab === 'pos') renderPositions(); toast('다른 기기의 주문 기록을 반영했습니다'); }
+    if (state.tab === 'pos') renderSyncStatus();
+  }
+  // 연동 패널 (GitHub 비공개 저장소)
+  function renderSyncStatus() {
+    const g = ghCfg();
+    $('syncStatus').innerHTML = g ? '<span class="tag live">연동 중</span> 주문 기록과 설정을 비공개 저장소 <b>' + esc(g.repo) + '</b>에 저장합니다. 다른 기기에서도 같은 저장소와 토큰으로 연결하면 같은 기록이 보입니다.' + (state.lastSync ? ' <span class="note">마지막 확인 ' + state.lastSync.toLocaleTimeString('ko-KR') + '</span>' : '')
+      : '<span class="tag">연동 안 함</span> 주문 기록이 ' + (local.on ? '이 PC의 data 폴더' : '이 브라우저') + '에만 저장됩니다. 여러 기기에서 같은 기록을 보려면 GitHub 비공개 저장소에 연결하세요.';
+    $('syncToggle').textContent = g ? '연결 설정' : '연결하기';
+  }
+  function renderSync(open) {
+    if (!(local.on || site)) { $('syncPanel').hidden = true; return; }
+    $('syncPanel').hidden = false; renderSyncStatus();
+    const body = $('syncBody'), g = ghCfg();
+    if (open !== undefined) body.hidden = !open;
+    const defRepo = g ? g.repo : site ? site.owner + '/samyeok-records' : '';
+    body.innerHTML = '<ol class="ghsteps">' +
+      '<li>GitHub에 <b>비공개(Private)</b> 저장소 <code>samyeok-records</code>를 만듭니다 (README 추가 체크).</li>' +
+      '<li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">토큰 만들기 페이지</a>에서: 이름 아무거나 → Expiration 원하는 기간 → <b>Repository access: Only select repositories</b>에서 <code>samyeok-records</code>' + (site ? '와 <code>' + esc(site.repo) + '</code>' : '') + ' 선택 → <b>Permissions → Repository permissions</b>에서 <b>Contents: Read and write</b>' + (site ? ', <b>Actions: Read and write</b>(지금 시세 다시 받기 버튼용, 선택)' : '') + ' → Generate token → 나온 토큰을 복사합니다.</li>' +
+      '<li>아래에 붙여 넣고 [연결]을 누릅니다. 다른 기기에서도 같은 토큰을 넣으면 됩니다 (토큰은 메모장 등 안전한 곳에 보관).</li></ol>' +
+      '<div class="calc"><label class="field"><span>기록 저장소 (아이디/저장소)</span><input type="text" id="ghRepo" value="' + esc(defRepo) + '" placeholder="아이디/samyeok-records"></label>' +
+      '<label class="field"><span>토큰</span><input type="password" id="ghToken" value="" placeholder="' + (g ? '저장됨 (바꿀 때만 입력)' : 'github_pat_로 시작') + '" autocomplete="off"></label>' +
+      '<button type="button" class="primary" id="ghConnect">연결</button>' + (g ? '<button type="button" id="ghDisconnect">연결 끊기</button>' : '') + '</div>' +
+      '<div class="note">토큰은 이 기기 브라우저에만 저장됩니다. PC방 같은 공용 컴퓨터에서는 입력하지 마세요. 토큰을 잃어버리면 GitHub 설정에서 지우고 새로 만들면 됩니다.</div>';
+    $('ghConnect').onclick = async () => {
+      const repo = $('ghRepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
+      const token = $('ghToken').value.trim() || (g && g.token) || '';
+      if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { toast('저장소를 "아이디/저장소" 형식으로 넣어 주세요'); return; }
+      if (!token) { toast('토큰을 붙여 넣어 주세요'); return; }
+      const cfg = { repo, token };
+      const btn = $('ghConnect'); btn.disabled = true; btn.textContent = '확인 중…';
+      try {
+        const info = await gh('GET', '/repos/' + repo, null, cfg);
+        if (!info) throw new Error('저장소를 찾을 수 없습니다. 이름과 토큰의 저장소 선택을 확인하세요');
+        if (!info.private) throw new Error('이 저장소는 공개(Public)입니다. 기록이 누구에게나 보이므로 비공개 저장소를 쓰세요');
+        if (info.permissions && !info.permissions.push) throw new Error('토큰에 쓰기 권한이 없습니다 (Contents: Read and write)');
+        await ghRead('trades.json', cfg);
+      } catch (e) { toast('연결 실패: ' + e.message); btn.disabled = false; btn.textContent = '연결'; return; }
+      store.set('gh', cfg);
+      await loadTrades();
+      let rs = null; try { rs = await remoteSettings(); } catch {}
+      if (!applySettings(rs)) await pushSettings();
+      run(); if (state.tab === 'pos') renderPositions(); renderSync(false);
+      toast('GitHub 기록 저장소에 연결했습니다');
+    };
+    if ($('ghDisconnect')) $('ghDisconnect').onclick = () => { store.set('gh', null); renderSync(false); toast('연결을 끊었습니다. 지금까지의 기록은 이 기기에 남아 있습니다'); };
+  }
+  const tradeFor = (m, sym, date) => state.trades.find(t => t.market === m && String(t.symbol) === String(sym) && (t.status === 'open' || (t.status === 'planned' && (!date || t.signalDate === date))));
+  function planRecord(r) {
+    const p = r.plan, s = r.stock;
+    return { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), status: 'planned', market: s.market, symbol: String(s.symbol), name: s.name,
+      strat: r.key, stratName: S[r.key].short, exit: p.exit, holdDays: state.cfg.holdDays, signalDate: r.lastDate,
+      planEntry: p.entry, sl: p.sl, slSource: p.slSource, planQty: p.qty, planTp1: p.tp1, planTp2: p.tp2, createdAt: new Date().toISOString() };
+  }
+  async function savePlan(r) {
+    if (!r?.plan?.valid || !(r.plan.qty > 0)) return false;
+    if (tradeFor(r.stock.market, r.stock.symbol, r.lastDate)) return false;
+    state.trades.push(planRecord(r)); return true;
+  }
+  function renderPosBadge() {
+    const n = state.trades.filter(t => t.status === 'planned' || t.status === 'open').length;
+    $('posCnt').hidden = !n; $('posCnt').textContent = n;
+  }
+  function lvBox(m, rows) {
+    return '<div class="lvgrid">' + rows.map(([k, v, sub, c]) => '<div class="' + (c || '') + '"><span>' + k + '</span><b>' + v + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>').join('') + '</div>';
+  }
+  function renderPositions() {
+    renderPosBadge();
+    const pend = state.trades.filter(t => t.status === 'planned').sort((a, b) => a.signalDate !== b.signalDate ? (a.signalDate < b.signalDate ? 1 : -1) : (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
+    const hold = state.trades.filter(t => t.status === 'open');
+    const done = state.trades.filter(t => t.status === 'closed').sort((a, b) => (a.closeDate || '') < (b.closeDate || '') ? 1 : -1);
+    const bk = backend();
+    $('posStore').textContent = bk === 'github' ? '주문 기록 저장 위치: GitHub 비공개 저장소 ' + ghCfg().repo + ' 의 trades.json (저장할 때마다 GitHub에 변경 이력이 남아 언제든 되돌릴 수 있습니다)'
+      : bk === 'server' ? '주문 기록 저장 위치: ' + (local.dataDir || 'data') + ' 폴더의 trades.json (바꿀 때마다 직전 기록은 trades.json.bak으로 백업)'
+      : site ? '주문 기록이 이 브라우저에만 저장되어 있습니다. 위 "여러 기기 기록 연동"에서 GitHub에 연결하면 다른 기기에서도 보입니다.' : '주문 기록은 이 브라우저 안에만 저장됩니다.';
+
+    // ① 체결 확인 대기
+    $('pendList').innerHTML = pend.length ? pend.map(tr => {
+      const m = tr.market, st = findStock(tr), P = v => fmtP(v, m);
+      const nb = st && st.bars.find(b => b[0] > tr.signalDate);
+      const fillD = nb ? nb[0] : todayKST(), fillP = nb ? nb[1] : tr.planEntry;
+      let hint = nb ? '다음 거래일(' + nb[0] + ') 시가 <b>' + P(nb[1]) + '</b>' + (nb[1] <= tr.sl ? ' · <span class="c-down">시가가 손절가 이하라 규칙상 사지 않는 날입니다.</span>' : '') : '다음 거래일 시세가 아직 없습니다. 시세를 받은 뒤 다시 보거나 체결가를 직접 입력하세요.';
+      return '<div class="poscard" data-id="' + tr.id + '"><div class="pchead"><div><b class="pname">' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> <span class="note">' + esc(m === 'KR' ? tr.symbol : tr.name) + ' · ' + tr.stratName + ' · 신호일 ' + tr.signalDate + '</span></div><span class="verdict near">체결 확인 필요</span></div>' +
+        lvBox(m, [['계획 매수가', P(tr.planEntry)], ['계획 수량', fmtQ(tr.planQty, tr.planQty % 1 !== 0) + '주'], ['손절가', P(tr.sl), tr.slSource, 'down'], ['1차 익절가', P(tr.planTp1), '계획 기준', 'up']]) +
+        '<div class="note">' + hint + '</div>' +
+        '<div class="posform"><label class="field"><span>산 날</span><input type="date" data-f="date" value="' + fillD + '"></label>' +
+        '<label class="field"><span>실제 산 가격</span><input type="number" step="any" data-f="price" value="' + fillP + '"></label>' +
+        '<label class="field"><span>산 수량</span><input type="number" step="any" data-f="qty" value="' + tr.planQty + '"></label>' +
+        '<div class="row"><button type="button" class="primary" data-act="fill">체결됨</button><button type="button" data-act="nofill">안 사짐</button></div></div>' +
+        '<div class="note preview" data-f="preview"></div></div>';
+    }).join('') : '<div class="empty">저장한 예약 주문이 없습니다. [오늘 살 종목]에서 종목을 고른 뒤 [이 주문 계획 저장]을 누르세요.</div>';
+    for (const card of $('pendList').querySelectorAll('.poscard')) {
+      const tr = state.trades.find(t => t.id === card.dataset.id), f = n => card.querySelector('[data-f="' + n + '"]');
+      const pv = () => { const px = parseFloat(f('price').value), q = parseFloat(f('qty').value), L = ENGINE.levels(tr.market, px, tr.sl), P = v => fmtP(v, tr.market);
+        f('preview').innerHTML = L.R > 0 ? '이 가격이면 → 손절가 <b class="c-down">' + P(tr.sl) + '</b> · 1차 익절가 <b class="c-up">' + P(L.tp1) + '</b> · ' + (tr.exit === 'trail' ? '잔여는 추세선 이탈 시 매도' : '2차 익절가 <b class="c-up">' + P(L.tp2) + '</b>') + (q > 0 ? ' · 손절 시 손실 ' + monM(tr.market, q * L.R) : '')
+          : '<span class="c-down">산 가격이 손절가(' + P(tr.sl) + ') 이하입니다. 규칙상 바로 손절 대상입니다.</span>'; };
+      f('price').oninput = pv; f('qty').oninput = pv; pv();
+      card.querySelector('[data-act="fill"]').onclick = async () => {
+        const px = parseFloat(f('price').value), q = parseFloat(f('qty').value), dt = f('date').value;
+        if (!(px > 0) || !(q > 0) || !dt) { toast('산 날, 가격, 수량을 모두 넣어 주세요'); return; }
+        const L = ENGINE.levels(tr.market, px, tr.sl);
+        Object.assign(tr, { status: 'open', fillDate: dt, fill: px, qty: q, sold: 0, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [] });
+        await saveTrades(); renderPositions(); toast((tr.market === 'KR' ? tr.name : tr.symbol) + ' 보유 중으로 옮겼습니다');
+      };
+      card.querySelector('[data-act="nofill"]').onclick = async () => { tr.status = 'cancelled'; tr.cancelDate = todayKST(); await saveTrades(); renderPositions(); toast('안 사진 주문으로 정리했습니다'); };
+    }
+
+    // ② 보유 중
+    $('holdList').innerHTML = hold.length ? hold.map(tr => {
+      const m = tr.market, st = findStock(tr), P = v => fmtP(v, m), rq = remQty(tr);
+      const tk = st ? ENGINE.track(st, tr) : null;
+      const last = tk ? tk.last : null, pct = last ? (last / tr.fill - 1) * 100 : null;
+      const half = tr.qty % 1 === 0 ? Math.floor(tr.qty / 2) : Math.floor(tr.qty / 2 * 1e4) / 1e4;
+      const orders = !tr.stage
+        ? [['손절 감시주문', P(tr.sl), '전량 ' + fmtQ(rq, rq % 1 !== 0) + '주', 'down'], ['1차 익절 감시주문', P(tr.tp1), (half > 0 ? fmtQ(half, half % 1 !== 0) + '주 (절반)' : '1주라 분할 불가'), 'up']]
+        : [['손절 감시주문 (본절)', P(tr.fill), '남은 ' + fmtQ(rq, rq % 1 !== 0) + '주', 'down'],
+           tr.exit === 'trail' ? ['남은 수량 매도 기준', '종가 확인', tk ? '기준선 ' + P(tk.kijun) + ' / 20EMA ' + P(tk.ema20) + ' 아래 마감 시' : '', 'up'] : ['2차 익절 감시주문', P(tr.tp2), '남은 ' + fmtQ(rq, rq % 1 !== 0) + '주', 'up']];
+      if (tr.exit === 'swing') orders.push(['보유 기간', tk && !tk.waiting ? tk.days + ' / ' + tr.holdDays + '일' : '– / ' + tr.holdDays + '일', tk && tk.timeLeft ? tk.timeLeft + '거래일 남음' : '마지막 날 종가에 정리', '']);
+      if (tr.stage && tr.exit !== 'trail') orders.push(['볼린저 상단', tk ? P(tk.bbUp) : '–', '터치 후 음봉이면 전량 매도', '']);
+      const alerts = !st ? ['<div class="alert info">받은 시세에 이 종목이 없어 자동 점검을 못 했습니다. 손절·익절가는 위 표대로 유지하세요.</div>']
+        : tk.waiting ? ['<div class="alert info">산 날(' + tr.fillDate + ') 시세가 아직 없습니다. 장 마감 후 시세를 받으면 점검합니다.</div>']
+        : tk.alerts.length ? tk.alerts.map(a => '<div class="alert ' + a.lv + '">' + (a.lv === 'stop' ? '<b>손절 확인</b> ' : a.lv === 'tp' ? '<b>익절 확인</b> ' : a.lv === 'time' ? '<b>기간 만료</b> ' : '') + a.text + '</div>')
+        : ['<div class="alert ok"><b>할 일 없음</b> 손절가·익절가에 닿지 않았습니다. 감시주문을 그대로 두세요.</div>'];
+      const stale = tk && tk.lastDate < todayKST() ? ' <span class="note">(' + tk.lastDate + ' 종가 기준 · 오늘 시세는 [시세 받기] 후 반영)</span>' : '';
+      return '<div class="poscard" data-id="' + tr.id + '"><div class="pchead"><div><b class="pname">' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> <span class="note">' + esc(m === 'KR' ? tr.symbol : tr.name) + ' · ' + (tr.stratName || '') + ' · ' + (tr.stage ? '1차 익절 후 (본절 보호)' : '전량 보유') + '</span></div>' +
+        (pct != null ? '<span class="pct ' + (pct >= 0 ? 'c-up' : 'c-down') + '">' + (pct >= 0 ? '+' : '') + fmtN(pct, 2) + '%</span>' : '') + '</div>' +
+        '<div class="label" style="margin-top:4px">지금 걸어 둘 주문</div>' + lvBox(m, orders) +
+        alerts.join('') +
+        '<div class="kv"><div><span>산 날 · 가격</span><b>' + tr.fillDate + ' · ' + P(tr.fill) + '</b></div><div><span>산 수량 · 남은 수량</span><b>' + fmtQ(tr.qty, tr.qty % 1 !== 0) + ' · ' + fmtQ(rq, rq % 1 !== 0) + '주</b></div>' +
+        '<div><span>현재가' + '</span><b>' + (last ? P(last) : '–') + '</b></div><div><span>평가 손익 (남은 수량)</span><b class="' + (last && last >= tr.fill ? 'c-up' : 'c-down') + '">' + (last ? sgnM(m, rq * (last - tr.fill)) : '–') + '</b></div>' +
+        '<div><span>1주당 손절 손실(1R)</span><b>' + P(tr.R) + '</b></div><div><span>실현 손익</span><b>' + sgnM(m, realized(tr)) + '</b></div></div>' + (stale ? '<div>' + stale + '</div>' : '') +
+        '<div class="row">' + (!tr.stage ? '<button type="button" data-act="tp1">1차 익절 체결 기록</button>' : '') + '<button type="button" data-act="sell">매도 기록</button><button type="button" data-act="del" class="ghost">삭제</button></div>' +
+        '<div class="posform" data-f="form" hidden></div></div>';
+    }).join('') : '<div class="empty">보유 중인 종목이 없습니다.</div>';
+    for (const card of $('holdList').querySelectorAll('.poscard')) {
+      const tr = state.trades.find(t => t.id === card.dataset.id), form = card.querySelector('[data-f="form"]');
+      const st = findStock(tr), tk = st ? ENGINE.track(st, tr) : null, a0 = tk?.alerts?.[0];
+      const openForm = kind => {
+        const rq = remQty(tr), half = tr.qty % 1 === 0 ? Math.floor(tr.qty / 2) : Math.floor(tr.qty / 2 * 1e4) / 1e4;
+        const adate = a0 && /^\d{4}-\d{2}-\d{2}/.test(a0.text) ? a0.text.slice(0, 10) : (tk && !tk.waiting ? tk.lastDate : todayKST());
+        let q = rq, px = tk ? tk.last : tr.fill, why = 'etc';
+        if (kind === 'tp1') { q = half > 0 ? half : rq; px = tr.tp1; why = 'tp1'; }
+        else if (a0?.lv === 'stop') { px = tr.stage ? tr.fill : tr.sl; why = tr.stage ? 'be' : 'stop'; }
+        else if (a0 && /2차/.test(a0.text)) { px = tr.tp2; why = 'tp2'; }
+        else if (a0 && /볼린저/.test(a0.text)) why = 'bb';
+        else if (a0 && /기준선|EMA/.test(a0.text)) why = 'trend';
+        else if (a0?.lv === 'time') why = 'time';
+        form.hidden = false;
+        form.innerHTML = '<label class="field"><span>판 날</span><input type="date" data-g="date" value="' + adate + '"></label>' +
+          '<label class="field"><span>판 가격</span><input type="number" step="any" data-g="price" value="' + px + '"></label>' +
+          '<label class="field"><span>판 수량 (남은 ' + fmtQ(rq, rq % 1 !== 0) + '주)</span><input type="number" step="any" data-g="qty" value="' + q + '"></label>' +
+          '<label class="field"><span>사유</span><select data-g="why">' + Object.entries(REASONS).map(([k, v]) => '<option value="' + k + '"' + (k === why ? ' selected' : '') + '>' + v + '</option>').join('') + '</select></label>' +
+          '<div class="row"><button type="button" class="primary" data-g="ok">저장</button><button type="button" data-g="cancel">닫기</button></div>';
+        const g = n => form.querySelector('[data-g="' + n + '"]');
+        g('cancel').onclick = () => { form.hidden = true; };
+        g('ok').onclick = async () => {
+          const d = g('date').value, p = parseFloat(g('price').value), qq = parseFloat(g('qty').value), w = g('why').value;
+          if (!d || !(p > 0) || !(qq > 0)) { toast('날짜, 가격, 수량을 확인하세요'); return; }
+          if (qq > remQty(tr) + 1e-9) { toast('남은 수량보다 많이 팔 수 없습니다'); return; }
+          tr.events = tr.events || []; tr.events.push({ date: d, price: p, qty: qq, reason: w });
+          tr.sold = +((tr.sold || 0) + qq).toFixed(4);
+          if (w === 'tp1' && !tr.stage) { tr.stage = 1; tr.stageDate = d; }
+          if (remQty(tr) <= 1e-9) { tr.status = 'closed'; tr.closeDate = d; }
+          await saveTrades(); renderPositions();
+          toast(tr.status === 'closed' ? '다 팔았습니다. 매매 일지에 기록했습니다' : w === 'tp1' ? '1차 익절을 기록했습니다. 남은 수량의 손절가를 ' + fmtP(tr.fill, tr.market) + '(본절)로 올리세요' : '매도를 기록했습니다');
+        };
+      };
+      card.querySelector('[data-act="tp1"]')?.addEventListener('click', () => openForm('tp1'));
+      card.querySelector('[data-act="sell"]').onclick = () => openForm('sell');
+      const del = card.querySelector('[data-act="del"]');
+      del.onclick = async () => {
+        if (del.dataset.armed) { state.trades = state.trades.filter(t => t !== tr); await saveTrades(); renderPositions(); toast('삭제했습니다'); return; }
+        del.dataset.armed = '1'; del.textContent = '한 번 더 누르면 삭제'; setTimeout(() => { if (del.isConnected) { delete del.dataset.armed; del.textContent = '삭제'; } }, 3000);
+      };
+    }
+
+    // ③ 매매 일지
+    const rOf = tr => tr.R > 0 ? realized(tr) / (tr.qty * tr.R) : NaN;
+    $('journalBody').innerHTML = done.map(tr => { const m = tr.market, pnl = realized(tr), r = rOf(tr), last = (tr.events || []).at(-1);
+      return '<tr data-id="' + tr.id + '"><td><b>' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span></td><td class="mono">' + tr.fillDate + '</td><td class="mono">' + (tr.closeDate || '') + '</td>' +
+        '<td class="r num">' + fmtP(tr.fill, m) + '</td><td class="r num">' + fmtQ(tr.qty, tr.qty % 1 !== 0) + '</td><td class="r num ' + (pnl >= 0 ? 'c-up' : 'c-down') + '">' + sgnM(m, pnl) + '</td>' +
+        '<td class="r num">' + fmtR(r) + '</td><td>' + (last ? REASONS[last.reason] || '' : '') + '</td><td><button type="button" class="ghost" data-undo="' + tr.id + '">되돌리기</button></td></tr>'; }).join('');
+    for (const b of $('journalBody').querySelectorAll('[data-undo]')) b.onclick = async () => {
+      const tr = state.trades.find(t => t.id === b.dataset.undo); const ev = tr.events.pop(); tr.sold = +((tr.sold || 0) - ev.qty).toFixed(4); tr.status = 'open'; delete tr.closeDate;
+      if (ev.reason === 'tp1') { tr.stage = 0; delete tr.stageDate; }
+      await saveTrades(); renderPositions(); toast('마지막 매도 기록을 되돌렸습니다');
+    };
+    if (done.length) {
+      const rs = done.map(rOf).filter(v => !isNaN(v)), wins = rs.filter(v => v > 0).length, avg = rs.reduce((a, b) => a + b, 0) / (rs.length || 1);
+      const sumM = m => done.filter(t => t.market === m).reduce((a, t) => a + realized(t), 0);
+      let txt = '총 <b>' + done.length + '회</b> · 승률 <b>' + fmtN(wins / (rs.length || 1) * 100, 0) + '%</b> · 거래당 평균 <b class="' + (avg >= 0 ? 'c-up' : 'c-down') + '">' + fmtR(avg) + '</b>';
+      if (done.some(t => t.market === 'KR')) txt += ' · 국장 누적 <b>' + sgnM('KR', sumM('KR')) + '</b>';
+      if (done.some(t => t.market === 'US')) txt += ' · 미장 누적 <b>' + sgnM('US', sumM('US')) + '</b>';
+      txt += done.length < 30 ? ' · 규칙 검증 목표 30회까지 <b>' + (30 - done.length) + '회</b> 남음' : ' · 30회를 채웠습니다. [전략 검증] 탭의 거래당 평균과 비교해 보세요';
+      txt += '<br><span class="note">손익은 수수료·세금을 빼기 전 금액입니다.</span>';
+      $('journalSum').innerHTML = txt;
+    } else $('journalSum').textContent = '아직 다 판 종목이 없습니다. 보유 종목을 모두 팔면 여기에 쌓이고, 30회가 모이면 규칙이 실제로 통하는지 판단할 수 있습니다.';
+  }
+  function renderManual() {
+    const f = $('manualForm');
+    f.hidden = !f.hidden; if (f.hidden) return;
+    f.innerHTML = '<label class="field"><span>시장</span><select data-h="m"><option value="KR">국장</option><option value="US">미장</option></select></label>' +
+      '<label class="field"><span>종목코드 / 티커</span><input type="text" data-h="sym" placeholder="005930 또는 AAPL"></label>' +
+      '<label class="field"><span>종목명</span><input type="text" data-h="name"></label>' +
+      '<label class="field"><span>산 날</span><input type="date" data-h="date" value="' + todayKST() + '"></label>' +
+      '<label class="field"><span>산 가격</span><input type="number" step="any" data-h="price"></label>' +
+      '<label class="field"><span>산 수량</span><input type="number" step="any" data-h="qty"></label>' +
+      '<label class="field"><span>손절가</span><input type="number" step="any" data-h="sl"></label>' +
+      '<label class="field"><span>청산 방식</span><select data-h="exit"><option value="swing">2주 스윙 (+2.5R·볼린저·10일)</option><option value="kr">국장 원칙 (+2.5R·볼린저)</option><option value="trail">미장 원칙 (추세선 추종)</option></select></label>' +
+      '<div class="row"><button type="button" class="primary" data-h="ok">보유 종목으로 추가</button></div>';
+    const h = n => f.querySelector('[data-h="' + n + '"]');
+    h('ok').onclick = async () => {
+      const m = h('m').value, sym = h('sym').value.trim().toUpperCase(), px = parseFloat(h('price').value), q = parseFloat(h('qty').value), sl = parseFloat(h('sl').value);
+      if (!sym || !(px > 0) || !(q > 0) || !(sl > 0)) { toast('종목코드, 산 가격, 수량, 손절가를 넣어 주세요'); return; }
+      if (sl >= px) { toast('손절가는 산 가격보다 낮아야 합니다'); return; }
+      const st = state.stocks.find(s => s.market === m && String(s.symbol).toUpperCase() === sym);
+      const L = ENGINE.levels(m, px, sl);
+      state.trades.push({ id: Date.now().toString(36), status: 'open', market: m, symbol: st ? String(st.symbol) : sym, name: h('name').value.trim() || st?.name || sym,
+        strat: '', stratName: '직접 추가', exit: h('exit').value, holdDays: state.cfg.holdDays, signalDate: h('date').value, sl, slSource: '직접 입력',
+        fillDate: h('date').value, fill: px, qty: q, sold: 0, R: L.R, tp1: L.tp1, tp2: L.tp2, stage: 0, events: [], createdAt: new Date().toISOString() });
+      await saveTrades(); f.hidden = true; renderPositions(); toast('보유 종목에 추가했습니다');
+    };
+  }
+
+  function render() { renderStatus(); renderSummary(); renderTable(); renderDetail(); if (state.tab === 'bt') renderBacktest(); if (state.tab === 'pos') renderPositions(); renderPosBadge(); }
+
+  // ---------- 설정 바인딩 ----------
+  const bindNum = (id, key, target, fn) => { const el = $(id); el.value = target[key]; el.addEventListener('change', () => { const v = parseFloat(el.value); if (isFinite(v) && v >= 0) { target[key] = v; fn(); } else el.value = target[key]; }); };
+  const saveCfg = () => { store.set('cfg', state.cfg); state.bt = {}; run(); pushSettings(); };
+  const saveAcct = k => () => {
+    if (k === 'capPct') { state.capPct = Math.min(100, Math.max(1, state.capPct)); $('capPct').value = state.capPct; }
+    if (k === 'fx') { state.fx = Math.max(1, state.fx); $('fx').value = state.fx; }
+    store.set(k, state[k]); state.bt = {}; run(); pushSettings();
+  };
+  for (const k of ['seedKR', 'seedUS', 'fx', 'capPct']) bindNum(k, k, state, saveAcct(k));
+  $('fractional').checked = state.fractional;
+  $('fractional').onchange = () => { state.fractional = $('fractional').checked; saveAcct('fractional')(); };
+  $('fAfford').onchange = () => { state.fAfford = $('fAfford').checked; renderTable(); };
+  for (const k of ['riskPct:risk', 'cloudBreakDays', 'rsiLo', 'rsiHi', 'volMult', 'holdDays', 'pbRsiMax', 'pbVolMult', 'boVolMult', 'costKR', 'costUS']) { const [key, id] = k.split(':'); bindNum(id || key, key, state.cfg, saveCfg); }
+  for (const id of ['cloudOffset', 'chikouOffset']) { const el = $(id); el.value = String(state.cfg[id]); el.onchange = () => { state.cfg[id] = +el.value; saveCfg(); }; }
+  { const el = $('cloudMode'); el.innerHTML = Object.entries(ENGINE.CLOUD_MODES).map(([k, v]) => '<option value="' + k + '">' + v + '</option>').join(''); el.value = state.cfg.cloudMode; el.onchange = () => { state.cfg.cloudMode = el.value; saveCfg(); }; }
+  for (const [id, key] of [['volEx', 'volAvgExcludeToday']]) { const el = $(id); el.checked = !!state.cfg[key]; el.onchange = () => { state.cfg[key] = el.checked; saveCfg(); }; }
+  for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = Object.keys(S).map(k => '<option value="' + k + '">' + S[k].name + '</option>').join(''); el.value = state.strat[m];
+    el.onchange = () => { state.strat[m] = el.value; store.set('strat', state.strat); run(); pushSettings(); }; }
+  const seg = (id, fn) => $(id).addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; for (const x of $(id).children) x.setAttribute('aria-pressed', x === b); fn(b.dataset.v); });
+  seg('fScore', v => { state.fGap = +v; renderTable(); });
+  seg('fMkt', v => { state.fMkt = v; renderTable(); });
+  seg('btMkt', v => { state.btMkt = v; renderBacktest(); });
+  $('btRun').onclick = runBacktest;
+  $('manualBtn').onclick = renderManual;
+  $('syncToggle').onclick = () => renderSync($('syncBody').hidden);
+  $('saveAll').onclick = async () => {
+    const list = filtered().filter(r => r.gap === 0 && r.afford);
+    let n = 0; for (const r of list) if (await savePlan(r)) n++;
+    if (n) { await saveTrades(); renderTable(); renderDetail(); }
+    toast(n ? n + '개 종목의 주문 계획을 저장했습니다' : list.length ? '이미 모두 저장되어 있습니다' : '저장할 매수 후보가 없습니다');
+  };
+  const setTab = t => {
+    state.tab = t;
+    for (const [id, v] of [['tabSig', 'sig'], ['tabPos', 'pos'], ['tabBt', 'bt'], ['tabGuide', 'guide']]) $(id).setAttribute('aria-selected', t === v);
+    $('viewSig').hidden = t !== 'sig'; $('viewPos').hidden = t !== 'pos'; $('viewBt').hidden = t !== 'bt'; $('viewGuide').hidden = t !== 'guide';
+    if (t === 'bt') renderBacktest(); else if (t === 'sig') renderDetail(); else if (t === 'pos') renderPositions();
+    if (t === 'guide') $('tabGuide').scrollIntoView({ block: 'start', behavior: 'auto' });
+  };
+  document.addEventListener('click', e => { const g = e.target.closest('[data-goto]'); if (g) setTab(g.dataset.goto); });
+  $('q').addEventListener('input', e => { state.q = e.target.value; renderTable(); });
+  $('tbody').addEventListener('click', e => { const tr = e.target.closest('tr'); if (!tr) return; state.selected = tr.dataset.s; renderTable(); renderDetail(); if (innerWidth <= 1100) $('detail').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); });
+  $('file').addEventListener('change', e => { if (e.target.files.length) loadFiles([...e.target.files]); e.target.value = ''; });
+  $('demoBtn').onclick = () => { loadDemo(); toast('가상 데이터로 전환했습니다'); };
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer?.files?.length) loadFiles([...e.dataTransfer.files]); });
+  const redraw = () => { state.tab === 'bt' ? renderBacktest() : renderDetail(); };
+  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(redraw, 120); });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  function loadDemo() { const d = new Date(); const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    state.stocks = DEMO.build(iso); state.source = 'demo'; state.meta = null; state.selected = null; state.bt = {}; run(); }
+
+  // ---------- PC 앱 모드 ----------
+  const local = { on: false, timer: null, lastDone: {} };
+  async function api(path, opt, ms = 4000) {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms);
+    try { const r = await fetch(path, Object.assign({ cache: 'no-store', signal: ctl.signal }, opt)); const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; }
+    finally { clearTimeout(to); }
+  }
+  async function loadLocalData() {
+    const stocks = [];
+    for (const m of ['KR', 'US']) {
+      try { const j = await fetch('/api/data?market=' + m, { cache: 'no-store' }); if (!j.ok) continue; const d = await j.json();
+        for (const s of d.stocks) stocks.push({ symbol: String(s.symbol), name: s.name, market: m, bars: normBars(s.bars) }); } catch {}
+    }
+    if (!stocks.length) return false;
+    state.stocks = stocks; state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
+  }
+  function renderJobs(st) {
+    const names = { KR: '국장', US: '미장' };
+    $('jobs').innerHTML = ['KR', 'US'].map(m => {
+      const j = st.jobs[m] || {}, f = st.files[m], pct = j.total ? Math.round(j.done / j.total * 100) : 0;
+      const msg = j.state === 'running' ? (j.msg || '준비 중') + (j.total ? ' · ' + j.done + '/' + j.total : '')
+        : j.state === 'error' ? '오류: ' + j.msg : f ? '저장됨 · ' + f.count + '종목 · 기준일 ' + f.last + ' · 수집 ' + f.generated : '아직 받은 데이터 없음';
+      return '<div class="job"><b>' + names[m] + '</b><div class="bar"><i style="width:' + (j.state === 'running' ? pct : f ? 100 : 0) + '%"></i></div><span class="msg" title="' + esc(msg) + '">' + esc(msg) + '</span></div>';
+    }).join('');
+    $('saveInfo').textContent = '저장 위치: ' + st.dataDir + '  (KR.json·US.json, 받을 때마다 덮어씀) · 프로그램 버전 ' + (st.version || '-');
+    for (const b of document.querySelectorAll('[data-fetch]')) b.disabled = st.jobs[b.dataset.fetch]?.state === 'running';
+  }
+  async function poll() {
+    let st; try { st = await api('/api/status'); } catch { return; }
+    renderJobs(st);
+    let reload = false, running = false;
+    for (const m of ['KR', 'US']) {
+      const j = st.jobs[m]; if (!j) continue;
+      if (j.state === 'running') running = true;
+      if ((j.state === 'done' || j.state === 'error') && j.finished && local.lastDone[m] !== j.finished) {
+        if (j.state === 'done') reload = true; else toast((m === 'KR' ? '국장' : '미장') + ' 수집 실패: ' + j.msg);
+        local.lastDone[m] = j.finished;
+      }
+    }
+    if (reload) { await loadLocalData(); toast('새 시세로 판정을 다시 했습니다'); }
+    clearTimeout(local.timer); local.timer = setTimeout(poll, running ? 1000 : 5000);
+  }
+  async function applyUpdate(file) {
+    const name = /\.py$/i.test(file.name) ? 'server.py' : 'index.html';
+    if (!window.confirm(file.name + ' 파일로 프로그램을 업데이트할까요? 기존 파일은 백업됩니다.')) return;
+    try { await api('/api/update?name=' + name, { method: 'POST', body: await file.text() }, 15000);
+      if (name === 'index.html') { toast('업데이트했습니다. 화면을 새로 엽니다'); setTimeout(() => location.reload(), 900); }
+      else toast('server.py를 바꿨습니다. 검은 창을 닫고 바로가기를 다시 실행하세요');
+    } catch (e) { toast('업데이트 실패: ' + e.message); }
+  }
+  async function initLocal() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return false;
+    let st; try { st = await api('/api/status'); } catch { return false; }
+    local.on = true; local.dataDir = st.dataDir; $('localPanel').hidden = false;
+    for (const m of ['KR', 'US']) local.lastDone[m] = st.jobs[m]?.finished ?? null;
+    $('krN').value = store.get('krN', 300); $('years').value = store.get('years', 5);
+    $('krN').onchange = () => store.set('krN', +$('krN').value || 300);
+    $('years').onchange = () => store.set('years', +$('years').value || 5);
+    $('updFile').onchange = e => { if (e.target.files[0]) applyUpdate(e.target.files[0]); e.target.value = ''; };
+    for (const b of document.querySelectorAll('[data-fetch]')) b.onclick = async () => {
+      const m = b.dataset.fetch; b.disabled = true;
+      try { await api('/api/fetch?market=' + m + '&n=' + (+$('krN').value || 300) + '&years=' + (+$('years').value || 5), { method: 'POST' }); toast((m === 'KR' ? '국장' : '미장') + ' 시세 받기를 시작했습니다'); }
+      catch { toast('요청 실패: 검은 창(서버)이 켜져 있는지 확인하세요'); }
+      poll();
+    };
+    renderJobs(st); poll(); return true;
+  }
+
+  // ---------- GitHub 사이트 모드 (시세는 GitHub Actions가 매일 수집) ----------
+  const pages = { meta: null, timer: null, waiting: false };
+  async function fetchMeta() { const r = await fetch('data/meta.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); }
+  async function loadPagesData() {
+    const stocks = [];
+    for (const m of ['KR', 'US']) {
+      const info = pages.meta && pages.meta[m]; if (!info) continue;
+      try { const r = await fetch('data/' + m + '.json?v=' + encodeURIComponent(info.generated || ''), { cache: 'no-store' }); if (!r.ok) continue; const d = await r.json();
+        for (const x of d.stocks) stocks.push({ symbol: String(x.symbol), name: x.name, market: m, bars: normBars(x.bars) }); } catch {}
+    }
+    if (!stocks.length) return false;
+    state.stocks = stocks; state.source = 'pages'; state.selected = null; state.bt = {};
+    return true;
+  }
+  function renderPagesJobs() {
+    const mt = pages.meta || {}, nm = { KR: '국장', US: '미장' };
+    $('pagesJobs').innerHTML = ['KR', 'US'].map(m => { const x = mt[m];
+      const msg = !x ? '아직 받은 시세 없음 (첫 자동 실행을 기다리거나 [지금 시세 다시 받기])' : x.ok === false ? '최근 수집 실패 (' + (x.tried || '') + '): ' + (x.error || '') + (x.generated ? ' · 지난 시세 ' + x.generated + ' 사용 중' : '') : '수집 ' + x.generated + ' · ' + x.count + '종목';
+      return '<div class="job"><b>' + nm[m] + '</b><div class="bar"><i style="width:' + (x && x.generated ? 100 : 0) + '%"></i></div><span class="msg" title="' + esc(msg) + '">' + esc(msg) + '</span></div>'; }).join('') +
+      (pages.waiting ? '<div class="note">요청을 보냈습니다. 수집이 끝나면 자동으로 새 시세로 바뀝니다.</div>' : '');
+  }
+  async function pagesPoll() {
+    try { const m = await fetchMeta(); const sig = JSON.stringify(m); if (sig !== JSON.stringify(pages.meta)) { pages.meta = m; pages.waiting = false; if (await loadPagesData()) { run(); toast('새로 수집된 시세로 판정을 다시 했습니다'); } } renderPagesJobs(); } catch {}
+    clearTimeout(pages.timer); pages.timer = setTimeout(pagesPoll, pages.waiting ? 60000 : 300000);
+  }
+  async function initPages() {
+    if (!site) return false;
+    $('pagesPanel').hidden = false;
+    $('actionsLink').href = 'https://github.com/' + site.owner + '/' + site.repo + '/actions';
+    const first = document.querySelector('.steps3 li span'); if (first) first.textContent = '자동 수집 (평일 15:50 국장 · 06:40 미장)';
+    const firstB = document.querySelector('.steps3 li b'); if (firstB) firstB.textContent = '시세 확인';
+    $('dispatchBtn').onclick = async () => {
+      const g = ghCfg(), url = 'https://github.com/' + site.owner + '/' + site.repo + '/actions/workflows/update.yml';
+      if (!g) { toast('[내 주문 · 보유]에서 GitHub에 먼저 연결하거나, 열리는 GitHub 화면에서 Run workflow를 누르세요'); window.open(url, '_blank', 'noopener'); return; }
+      try { await gh('POST', '/repos/' + site.owner + '/' + site.repo + '/actions/workflows/update.yml/dispatches', { ref: 'main', inputs: { market: 'ALL' } }); pages.waiting = true; renderPagesJobs(); toast('시세 수집을 요청했습니다. 몇 분 뒤 자동으로 반영됩니다'); clearTimeout(pages.timer); pages.timer = setTimeout(pagesPoll, 60000); }
+      catch (e) { toast('요청 실패(' + e.message + '). 토큰에 ' + site.repo + ' Actions 권한이 없으면 GitHub 화면에서 Run workflow를 누르세요'); window.open(url, '_blank', 'noopener'); }
+    };
+    try { pages.meta = await fetchMeta(); } catch { pages.meta = null; }
+    renderPagesJobs();
+    pages.timer = setTimeout(pagesPoll, 300000);
+    return await loadPagesData();
+  }
+
+  (async () => {
+    const isLocal = await initLocal();
+    const pagesData = !isLocal && await initPages();
+    await loadTrades();
+    if (isLocal || site) {
+      try { applySettings(await remoteSettings()); } catch {}
+      renderSync();
+      setInterval(pullRemote, ghCfg() ? 30000 : 20000);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pullRemote(); });
+    }
+    if (isLocal && await loadLocalData()) return;
+    if (pagesData) { run(); return; }
+    const saved = store.get('data', null);
+    if (!isLocal && !site && saved?.stocks?.length) { state.stocks = saved.stocks; state.meta = saved.meta; state.source = 'file'; run(); }
+    else loadDemo();
+  })();
+  if (document.fonts?.ready) document.fonts.ready.then(redraw);
+})();
+</script>
+</body></html>
