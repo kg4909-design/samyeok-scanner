@@ -1397,8 +1397,14 @@ const DEMO = (() => {
     if (b.demo) txt += '<span class="stale">지금은 가상 데이터라 결과에 의미가 없습니다. 실제 시세로 다시 실행하세요.</span> ';
     if (!valid.length) txt += '거래가 30회 이상 나온 전략이 없어 판단하기 이릅니다. 기간을 늘리거나 종목 수를 늘리세요.';
     else {
-      const best = valid.reduce((a, k) => b.res[k].perYear > b.res[a].perYear ? k : a, valid[0]), x = b.res[best];
-      txt += '연간 누적 수익이 가장 큰 전략은 <b>' + S[best].name + '</b>입니다. 거래당 평균 <b class="' + cls(x.exp) + '">' + fmtR(x.exp) + '</b>, 연 ' + fmtN(x.perYearTrades, 0) + '회 거래로 연간 <b class="' + cls(x.perYear) + '">' + fmtR(x.perYear) + '</b>(1% 룰 기준 계좌 약 ' + fmtN(x.perYear, 1) + '%)입니다. ';
+      const pfKeys = keys.filter(k => b.pf && b.pf[k] && b.pf[k].taken > 0);
+      const best = valid.reduce((a, k) => b.res[k].exp > b.res[a].exp ? k : a, valid[0]), x = b.res[best];
+      txt += '거래당 평균 손익이 가장 좋은 전략은 <b>' + S[best].name + '</b>입니다 (거래당 <b class="' + cls(x.exp) + '">' + fmtR(x.exp) + '</b>, 승률 ' + fmtN(x.winRate * 100, 0) + '%). ';
+      if (pfKeys.length) {
+        const bp = pfKeys.reduce((a, k) => b.pf[k].cagr > b.pf[a].cagr ? k : a, pfKeys[0]), y = b.pf[bp];
+        txt += '내 시드와 동시 보유 ' + maxPos() + '종목 제한을 적용하면 가장 나은 전략은 <b>' + S[bp].short + '</b> 전략으로 <b class="' + cls(y.cagr) + '">연 ' + (y.cagr > 0 ? '+' : '') + fmtN(y.cagr * 100, 1) + '%</b>, 최대 낙폭 −' + fmtN(y.mdd * 100, 1) + '%입니다. ';
+      }
+      txt += '<span class="note">(표의 "연간 합계"는 신호를 전부 샀다고 가정한 값이라 실제 계좌 수익보다 훨씬 크게 나옵니다. 실제 기준은 아래 "내 시드로 돌렸다면"입니다.)</span> ';
       if (x.exp <= 0) txt += '다만 기대값이 0 이하라 이 기간 데이터로는 <b>세 전략 모두 비용을 이기지 못했습니다.</b> 실전 투입 전 조건을 다시 생각해야 합니다. ';
       else if (!(x.outExp > 0)) txt += '하지만 뒤 30% 기간의 기대값이 플러스가 아니어서 최근에는 통하지 않았을 수 있습니다. ';
       else txt += '뒤 30% 기간에서도 플러스(' + fmtR(x.outExp) + ')를 유지했습니다. ';
