@@ -29,7 +29,7 @@ def log(msg):
 def to_bars(df, kr):
     df = df.dropna(subset=["Open", "High", "Low", "Close"])
     out = []
-    rnd = (lambda x: int(round(float(x)))) if kr else (lambda x: round(float(x), 4))
+    rnd = (lambda x: int(round(float(x)))) if kr else (lambda x: round(float(x), 2))   # 미장은 센트 단위(소수 둘째 자리)
     for idx, r in df.iterrows():
         v = r.get("Volume", 0)
         o, h, l, c = rnd(r["Open"]), rnd(r["High"]), rnd(r["Low"]), rnd(r["Close"])
