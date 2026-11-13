@@ -87,6 +87,27 @@ def index_bars(kr, start):
     return None
 
 
+# ---------------- 금리 (코스톨라니 금리 사이클 참고용) ----------------
+def rate_series(kr):
+    """FRED 월별 금리. 국장 = 한국 콜금리(IRSTCI01KRM156N), 미장 = 실효 연방기금금리(DFF) 월평균. 못 받으면 None"""
+    sid = "IRSTCI01KRM156N" if kr else "DFF"
+    try:
+        import requests
+        r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": sid, "cosd": "1995-01-01"}, timeout=60)
+        df = pd.read_csv(StringIO(r.text))
+        df.columns = ["date", "v"]
+        df["v"] = pd.to_numeric(df["v"], errors="coerce")
+        df = df.dropna()
+        df["m"] = df["date"].astype(str).str[:7]
+        g = df.groupby("m")["v"].mean()
+        mon = [[k, round(float(v), 3)] for k, v in g.items()]
+        if len(mon) > 24:
+            return {"id": sid, "name": "한국 콜금리(월평균)" if kr else "미국 연방기금 실효금리(월평균)", "monthly": mon}
+    except Exception as e:
+        log(f"[{'KR' if kr else 'US'}] 금리 FRED 실패: {e}")
+    return None
+
+
 # ---------------- 국장 ----------------
 def kr_targets(n, out):
     """시가총액 상위 n개. 한국거래소 목록을 못 받으면 지난번 목록을 다시 씁니다."""
@@ -162,7 +183,7 @@ def fetch_kr(n, years, out):
         raise RuntimeError("국장 시세를 한 종목도 받지 못했습니다")
     idx = index_bars(True, start)
     if idx: idx["bars"] = drop_partial(idx["bars"], KST, 15, 40); log(f"[KR] 코스피 지수 {len(idx['bars'])}일")
-    write_json(os.path.join(out, "KR.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "KR", "index": idx, "stocks": stocks})
+    write_json(os.path.join(out, "KR.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "KR", "index": idx, "rate": rate_series(True), "stocks": stocks})
     log(f"[KR] 완료: {len(stocks)}종목 (야후 대체 {via_yahoo}, 실패 {fails})")
     return len(stocks)
 
@@ -219,7 +240,7 @@ def fetch_us(years, out):
     if n0 != len(stocks): log(f"[US] 같은 회사 다른 주식 종류 {n0 - len(stocks)}개 제외 (거래대금 큰 쪽만 남김)")
     idx = index_bars(False, start)
     if idx: idx["bars"] = drop_partial(idx["bars"], NY, 16, 10); log(f"[US] S&P 500 지수 {len(idx['bars'])}일")
-    write_json(os.path.join(out, "US.json"), {"index": idx, "generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "US", "stocks": stocks})
+    write_json(os.path.join(out, "US.json"), {"index": idx, "rate": rate_series(False), "generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "US", "stocks": stocks})
     log(f"[US] 완료: {len(stocks)}종목 (실패 {fails})")
     return len(stocks)
 

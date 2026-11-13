@@ -65,6 +65,15 @@ details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--mu
 .tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:10px 14px;font-size:14px;color:var(--muted)}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
 .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.regime{padding:12px 14px;margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.regime .rg-h{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.regime .rg-h b{font-size:14px}
+.regime .rg-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.regime .rg-m{background:var(--soft);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.6;min-width:0}
+.regime .rg-m .ph{display:inline-block;font-weight:700;padding:1px 8px;border-radius:99px;font-size:12px}
+.ph.cut{background:var(--accent-soft);color:var(--ink)} .ph.hike{background:var(--bad-soft);color:var(--ink)} .ph.none{background:var(--line);color:var(--ink)}
+.regime .rg-note{font-size:12px;color:var(--muted);line-height:1.6}
+@media (max-width:700px){.regime .rg-row{grid-template-columns:1fr}}
 .stat{padding:12px 14px}
 .stat b{display:block;font-family:var(--f-mono);font-size:22px;font-weight:600}
 .stat span{font-size:12px;color:var(--muted)}
@@ -470,6 +479,7 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
 
   <div id="viewSig" class="bt">
     <div class="summary" id="summary"></div>
+    <div class="panel regime" id="regime"></div>
     <div class="main">
       <div class="panel">
         <div class="listhead">
@@ -819,6 +829,16 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li><b>기술적 지표:</b> 이동평균 골든·데드크로스, MACD, RSI, 스토캐스틱, 볼린저밴드, 캔들 패턴(적삼병·흑삼병·도지)은 효과가 거의 없었습니다(책의 결론과 같음). 이격도 과대 낙폭과 52주 신고가는 평균보다 나았지만, 전략으로 만들거나 지금 전략에 조건으로 더하면 수익이 오히려 낮아졌습니다. "횡보 후 거래량 급증 상승"은 두 시장 모두 평균보다 나빴습니다.</li>
   <li><b>실제 코스피 지수 조건:</b> 코스피가 200일선 위일 때만 사는 조건도 시험했지만, 위·아래에서 나온 신호의 성과 차이가 우연 범위(t값 0.47)라 넣지 않았습니다.</li>
   <li>결론: 이번 검증에서 지금 규칙보다 수익을 의미 있게 올리는 지표는 없었습니다. 그래서 매수 규칙은 그대로 두었습니다.</li>
+</ul>
+<h3>코스톨라니 금리 사이클 (2026-11)</h3>
+<ul>
+  <li>앙드레 코스톨라니의 『돈, 뜨겁게 사랑하고 차갑게 다루어라』 핵심인 <b>"금리가 내리면 사고, 금리가 오르면 조심하라"</b>, <b>달걀 모형</b>, <b>거래량 신호</b>를 이 앱 자료와 30년치 지수·금리(FRED: 한국 콜금리, 미국 연방기금 실효금리)로 검증했습니다.</li>
+  <li><b>국면 판단 규칙:</b> 월평균 금리가 6개월 동안 0.2%p보다 크게 내리면 <b>인하기</b>, 0.2%p보다 크게 오르면 <b>인상기</b>, 그 사이면 직전 국면을 유지합니다. 금리 자료는 1~2개월 늦게 나오므로 검증에서도 2개월 늦게 반영했습니다.</li>
+  <li><b>국장 지수(코스피, 1996~2026):</b> 인하기에만 코스피를 들고 인상기엔 현금(콜금리)으로 있으면 연 <b>15.3%</b>, 최대 낙폭 <b>30%</b>. 그냥 들고 있으면 연 6.0%, 최대 낙폭 70%(배당 제외 지수 기준). 지연 1~3개월·문턱 0.1~0.4%p·3/6개월 18가지로 바꿔도 모두 그냥 보유보다 나았고, 1990년대(35.4% vs 3.9%)·2000년대(14.1% vs 5.1%)·2010년대(4.2% vs 2.7%)·2020년대(23.2% vs 13.6%) 모두 앞섰습니다. 인하기 코스피 월평균 +2.2%, 인상기 −0.8%.</li>
+  <li><b>미장 지수(S&amp;P 500):</b> 같은 규칙이 연 7.3% vs 그냥 보유 7.7%로 효과가 없었습니다. 그래서 미장은 국면을 보여주기만 합니다.</li>
+  <li><b>이 앱 전략에 붙였을 때:</b> 국장 미너비니 신호를 인하기에만 사면 거래당 평균 <b>1.46R</b>(169회), 인상기·중립에 산 것은 0.20R(276회)로 차이가 컸습니다(t값 2.47). 하지만 쉬는 기간이 길어 5년 계좌 연수익은 20.1%→10.0%로 줄고, 최대 낙폭은 7.8%→3.4%로 줄었습니다. 수익을 덜 벌고 덜 흔들리는 선택이라 <b>기본은 꺼 두고</b>, [오늘 살 종목] 위 [시장 국면] 상자의 "국장: 금리 인상기에는 새로 사지 않기"로 원할 때 켤 수 있게 했습니다. 켜면 해당 신호가 "금리 쉬기"로 표시됩니다. 미장 5일선 눌림목은 오히려 반대 방향이라(t값 −1.38) 적용하지 않습니다.</li>
+  <li><b>달걀 모형</b>(지수가 고점 대비 15~20% 빠지면 사고 과열되면 팔기)과 <b>거래량 신호</b>(하락+거래량 증가 = 바닥, 상승+거래량 폭증 = 꼭지)는 효과가 없거나 반대로 나왔습니다. 종목 단위로는 거래량 3배 하락이 이후 성과가 나빴고, 거래량 늘며 오른 종목이 더 좋았습니다. 그래서 넣지 않았습니다.</li>
+  <li>주의: 과거 30년에 인하기·인상기가 몇 번 안 되므로(30년간 국면 전환 약 27회) 우연이 섞였을 수 있습니다. 금리 자료는 매일 자동 수집 때 FRED에서 함께 받습니다.</li>
 </ul>
 <h3>어떤 종목을 보나요</h3>
 <ul>
@@ -1675,7 +1695,8 @@ const DEMO = (() => {
     cfg: Object.assign({}, ENGINE.DEFAULT_CFG, store.get('cfg', {})),
     seedKR: store.get('seedKR', 1000000), seedUS: store.get('seedUS', 0), fx: store.get('fx', 1360),
     capPct: store.get('capPct', 30), fractional: store.get('fractional', false), entry: {},
-    strat: Object.assign({ KR: 'pullback', US: 'trend' }, store.get('strat', {})), bt: {}, trades: []
+    strat: Object.assign({ KR: 'pullback', US: 'trend' }, store.get('strat', {})), bt: {}, trades: [],
+    rate: {}, rateGate: store.get('rateGate', false)
   };
   // 예전 버전은 미장도 미너비니로 고정 저장했으므로, 이번 업데이트 때 한 번만 미장을 새 기본값으로 바꿈
   if (!store.get('stratV2', false)) { state.strat = validStrat({ KR: store.get('strat', {}).KR }); store.set('stratV2', true); } else state.strat = validStrat(state.strat);
@@ -1781,6 +1802,7 @@ const DEMO = (() => {
           if (!Array.isArray(j)) meta = j;
           const mk = !Array.isArray(j) && j.market;
           if (!Array.isArray(j) && j.index && j.index.bars && mk) { state.index = Object.assign({}, state.index, { [String(mk).toUpperCase()]: { name: j.index.name, bars: normBars(j.index.bars) } }); }
+          if (!Array.isArray(j) && j.rate && j.rate.monthly && mk) state.rate = Object.assign({}, state.rate, { [String(mk).toUpperCase()]: j.rate });
           for (const s of arr) stocks.push({ symbol: String(s.symbol), name: s.name || s.symbol, market: (s.market || mk || guessMarket(String(s.symbol))).toUpperCase(), bars: normBars(s.bars) });
         } else stocks.push(parseCSV(text, f.name));
       } catch (e) { errors.push(e.message); }
@@ -1799,6 +1821,47 @@ const DEMO = (() => {
     for (const s of keep) { if (s.market !== 'US' || !s.name) continue; const k = String(s.name).replace(/\s*\(Class [A-Z]\)\s*$/, '').trim().toLowerCase(); const v = val(s); if (!best.has(k) || v > best.get(k)[0]) best.set(k, [v, s]); }
     const winners = new Set([...best.values()].map(x => x[1]));
     return keep.filter(s => s.market !== 'US' || !s.name || winners.has(s));
+  }
+  // ---------- 코스톨라니 금리 사이클 (시장 국면) ----------
+  // 30년 백테스트에서 쓴 규칙 그대로: 월평균 금리의 6개월 변화가 −0.2%p보다 크게 내리면 '인하기', +0.2%p보다 크게 오르면 '인상기', 그 사이면 직전 국면 유지
+  const RATE_FALLBACK = {"KR":[["2022-01",1.188],["2022-02",1.219],["2022-03",1.244],["2022-04",1.299],["2022-05",1.505],["2022-06",1.745],["2022-07",1.971],["2022-08",2.263],["2022-09",2.533],["2022-10",2.959],["2022-11",3.096],["2022-12",3.235],["2023-01",3.269],["2023-02",3.425],["2023-03",3.425],["2023-04",3.467],["2023-05",3.57],["2023-06",3.566],["2023-07",3.51],["2023-08",3.538],["2023-09",3.596],["2023-10",3.517],["2023-11",3.572],["2023-12",3.639],["2024-01",3.47],["2024-02",3.582],["2024-03",3.467],["2024-04",3.518],["2024-05",3.53],["2024-06",3.547],["2024-07",3.518],["2024-08",3.531],["2024-09",3.529],["2024-10",3.321],["2024-11",3.245],["2024-12",3.055],["2025-01",3.053],["2025-02",2.965],["2025-03",2.754],["2025-04",2.769],["2025-05",2.738],["2025-06",2.52],["2025-07",2.5],["2025-08",2.506],["2025-09",2.526],["2025-10",2.516],["2025-11",2.512],["2025-12",2.53],["2026-01",2.531],["2026-02",2.541],["2026-03",2.527],["2026-04",2.517],["2026-05",2.537],["2026-06",2.537],["2026-07",2.62],["2026-08",2.809],["2026-09",3.044]],"US":[["2022-01",0.079],["2022-02",0.08],["2022-03",0.201],["2022-04",0.33],["2022-05",0.765],["2022-06",1.205],["2022-07",1.676],["2022-08",2.33],["2022-09",2.555],["2022-10",3.08],["2022-11",3.78],["2022-12",4.104],["2023-01",4.33],["2023-02",4.57],["2023-03",4.649],["2023-04",4.83],["2023-05",5.056],["2023-06",5.076],["2023-07",5.12],["2023-08",5.33],["2023-09",5.33],["2023-10",5.33],["2023-11",5.33],["2023-12",5.33],["2024-01",5.33],["2024-02",5.33],["2024-03",5.33],["2024-04",5.33],["2024-05",5.33],["2024-06",5.33],["2024-07",5.33],["2024-08",5.33],["2024-09",5.13],["2024-10",4.83],["2024-11",4.638],["2024-12",4.475],["2025-01",4.33],["2025-02",4.33],["2025-03",4.33],["2025-04",4.33],["2025-05",4.33],["2025-06",4.33],["2025-07",4.33],["2025-08",4.33],["2025-09",4.225],["2025-10",4.088],["2025-11",3.876],["2025-12",3.721],["2026-01",3.64],["2026-02",3.64],["2026-03",3.64],["2026-04",3.64],["2026-05",3.628],["2026-06",3.625],["2026-07",3.628],["2026-08",3.63],["2026-09",3.747],["2026-10",3.88],["2026-11",3.88]]};
+  function rateInfo(m) {
+    const live = state.rate && state.rate[m] && state.rate[m].monthly && state.rate[m].monthly.length > 12 ? state.rate[m] : null;
+    const mon = live ? live.monthly : RATE_FALLBACK[m];
+    let st = null, since = null, d6 = null;
+    for (let i = 6; i < mon.length; i++) {
+      d6 = mon[i][1] - mon[i - 6][1];
+      const n = d6 < -0.2 ? 'cut' : d6 > 0.2 ? 'hike' : st;
+      if (n !== st) { st = n; since = mon[i][0]; }
+    }
+    return { st, since, d6, last: mon.at(-1), live: !!live, name: m === 'KR' ? '한국 콜금리' : '미국 연방기금 실효금리' };
+  }
+  function idxTrend(m) {
+    const ix = state.index && state.index[m]; if (!ix || !ix.bars || ix.bars.length < 200) return null;
+    const b = ix.bars, c = b.at(-1)[4], ma = b.slice(-200).reduce((a, x) => a + x[4], 0) / 200;
+    return { name: ix.name || (m === 'KR' ? '코스피' : 'S&P 500'), close: c, ma, gap: c / ma - 1, date: b.at(-1)[0] };
+  }
+  const rateBlocked = m => m === 'KR' && state.rateGate && rateInfo('KR').st === 'hike';
+  function renderRegime() {
+    const el = $('regime'); if (!el) return;
+    const ph = st => st === 'cut' ? '<span class="ph cut">금리 인하기</span>' : st === 'hike' ? '<span class="ph hike">금리 인상기</span>' : '<span class="ph none">판단 보류</span>';
+    const box = m => {
+      const r = rateInfo(m), t = idxTrend(m);
+      const mood = m === 'KR'
+        ? (r.st === 'cut' ? '코스톨라니가 말한 "돈이 풀리는" 구간. 30년 동안 국장 지수 수익은 대부분 이 구간에서 나왔습니다.' : r.st === 'hike' ? '코스톨라니가 말한 "돈이 마르는" 구간. 30년 동안 이 구간의 국장 지수 수익은 평균적으로 낮았습니다.' : '')
+        : '미장은 30년(1995~) 검증에서 이 국면 구분이 수익에 도움이 되지 않아 <b>참고만</b> 합니다.';
+      return '<div class="rg-m"><b>' + (m === 'KR' ? '국장' : '미장') + '</b> ' + ph(r.st) + (r.since ? ' <span class="note">' + r.since + '부터</span>' : '') +
+        '<br>' + r.name + ' <b class="mono">' + fmtN(r.last[1], 2) + '%</b> <span class="note">(' + r.last[0] + ' 월평균 · 6개월 변화 ' + (r.d6 >= 0 ? '+' : '') + fmtN(r.d6, 2) + '%p' + (r.live ? '' : ' · 앱 내장값') + ')</span>' +
+        (t ? '<br>' + esc(t.name) + ' ' + (t.gap >= 0 ? '200일 평균보다 <b class="c-up">+' : '200일 평균보다 <b class="c-down">') + fmtN(t.gap * 100, 1) + '%</b> <span class="note">(' + t.date + ')</span>' : '') +
+        (mood ? '<br><span class="note">' + mood + '</span>' : '') + '</div>';
+    };
+    const kr = rateInfo('KR');
+    el.innerHTML = '<div class="rg-h"><b>시장 국면 · 코스톨라니 금리 사이클</b><span class="note">참고용 · 종목 신호와 별개</span></div>' +
+      '<div class="rg-row">' + box('KR') + box('US') + '</div>' +
+      '<label class="chk"><input type="checkbox" id="rateGate"' + (state.rateGate ? ' checked' : '') + '> 국장: 금리 인상기에는 새로 사지 않기 (기본 꺼짐)</label>' +
+      '<div class="rg-note">' + (state.rateGate && kr.st === 'hike' ? '<b class="c-up">지금 켜져 있고 국장이 인상기라, 국장 신호는 "금리 쉬기"로 표시하고 매수 후보에서 뺍니다.</b> ' : '') +
+      '켜면 미너비니 거래당 성과는 좋아졌지만(1.46R vs 0.20R) 쉬는 기간이 길어 5년 계좌 연수익은 20%→10%로 줄었습니다(최대 낙폭 7.8%→3.4%). 자세한 내용은 [사용법] 탭 "코스톨라니 금리 사이클".</div>';
+    $('rateGate').onchange = () => { state.rateGate = $('rateGate').checked; store.set('rateGate', state.rateGate); pushSettings(); run(); };
   }
   // ---------- 오늘 신호 계산 ----------
   function run() {
@@ -1821,6 +1884,8 @@ const DEMO = (() => {
       r.gap = r.ev ? r.ev.conds.length - r.ev.score : 99;
       if (state.day > 0 && !r.back && r.gap === 0) r.gap = 1;   // 과거 신호 보기에서는 오늘 신호만 있는 종목을 후보에서 뺌 (오늘 탭에서 확인)
       r.afford = !!(r.plan && r.plan.valid && r.plan.qty > 0) && (!r.still || r.still.state === 'ok');
+      r.rateBlock = r.gap === 0 && (!r.still || r.still.state === 'ok') && rateBlocked(r.stock.market);
+      if (r.rateBlock) r.afford = false;
     }
     state.latest = latest;
     res.sort((a, b) => a.gap - b.gap || (a.stock.symbol < b.stock.symbol ? -1 : 1));
@@ -1841,10 +1906,10 @@ const DEMO = (() => {
   function renderSummary() {
     const R = state.results.filter(r => r.ev?.ready), hit = R.filter(r => r.gap === 0);
     const tile = m => {
-      const h = hit.filter(r => r.stock.market === m), ok = h.filter(r => r.afford).length, poor = h.length - ok;
+      const h = hit.filter(r => r.stock.market === m), ok = h.filter(r => r.afford).length, rb = h.filter(r => r.rateBlock).length, poor = h.length - ok - rb;
       const seed = m === 'KR' ? state.seedKR : state.seedUS;
       const sub = (m === 'KR' ? '국장' : '미장') + (state.day === 0 ? ' 오늘 살 수 있는 종목' : (state.day === 1 ? ' 전거래일' : ' 최근 5거래일') + ' 신호 중 아직 살 만한 종목');
-      const note = seed <= 0 ? (m === 'KR' ? '국장' : '미장') + ' 시드 0원 · 조건 충족 ' + h.length + '종목' : (poor ? '조건은 맞지만 시드 부족 ' + poor + '종목 · ' : '') + S[state.strat[m]].short;
+      const note = seed <= 0 ? (m === 'KR' ? '국장' : '미장') + ' 시드 0원 · 조건 충족 ' + h.length + '종목' : (rb ? '금리 인상기라 쉬는 종목 ' + rb + '개 · ' : '') + (poor ? '조건은 맞지만 시드 부족 ' + poor + '종목 · ' : '') + S[state.strat[m]].short;
       return ['hit', ok + '<small>종목</small>', sub, note];
     };
     $('summary').innerHTML = [
@@ -1852,7 +1917,7 @@ const DEMO = (() => {
       ['', R.filter(r => r.gap === 1).length + '<small>종목</small>', '조건 1개 부족 (관찰)', '내일 후보가 될 수 있는 종목'],
       ['', state.results.length + '<small>종목</small>', '오늘 분석한 종목', state.source === 'demo' ? '연습용 가상 데이터' : '실제 데이터']
     ].map(([c, v, l, n]) => '<div class="panel stat ' + c + '"><span class="st-l">' + l + '</span><b>' + v + '</b><span>' + n + '</span></div>').join('');
-    renderFund();
+    renderFund(); renderRegime();
   }
   function renderFund() {
     const k = state.seedKR, u = state.seedUS, usd = u / state.fx, rp = state.cfg.riskPct, cp = state.capPct;
@@ -1880,7 +1945,7 @@ const DEMO = (() => {
       const e = r.ev, lab = S[r.key].labels, p = r.plan, ok = p && p.valid && p.qty > 0;
       const miss = lab.filter((_, i) => !e.conds[i]);
       const stl = r.still, stTxt = stl ? '<div class="miss">' + r.lastDate.slice(5) + ' 신호 · ' + stl.basis + ' ' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%</div>' : '';
-      const v = r.gap === 0 ? (stl && stl.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' + stTxt : stl && stl.state === 'back' ? '<span class="verdict no">보류</span>' + stTxt : (r.afford ? '<span class="verdict go">매수 후보</span>' : '<span class="verdict poor">시드 부족</span>') + stTxt)
+      const v = r.gap === 0 ? (stl && stl.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' + stTxt : stl && stl.state === 'back' ? '<span class="verdict no">보류</span>' + stTxt : (r.afford ? '<span class="verdict go">매수 후보</span>' : r.rateBlock ? '<span class="verdict no">금리 쉬기</span>' : '<span class="verdict poor">시드 부족</span>') + stTxt)
         : r.gap === 1 ? '<span class="verdict near">관찰</span><div class="miss">부족: ' + miss[0] + '</div>' : '<span class="verdict no">대기</span>';
       const mon = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2);
       const tt = tradeFor(m, s.symbol, r.basisDate || r.lastDate);
@@ -1908,17 +1973,18 @@ const DEMO = (() => {
     if (r.short || !r.ev.ready) { box.innerHTML = '<div class="dhead"><div><h2>' + esc(s.symbol) + '</h2><div class="sub">' + esc(s.name) + '</div></div></div><div class="empty">지표 계산에 필요한 봉 수(260봉)가 부족합니다.</div>'; return; }
     const ST = S[r.key], e = r.ev, p = r.plan, cfg = state.cfg, P = v => fmtP(v, m);
     const nC = e.conds.length;
-    const verdict = r.gap === 0 ? (r.still && r.still.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' : r.still && r.still.state === 'back' ? '<span class="verdict no">보류</span>' : r.afford ? '<span class="verdict go">매수 후보</span>' : '<span class="verdict poor">시드 부족</span>') : '<span class="verdict ' + (r.gap === 1 ? 'near' : 'no') + '">' + e.score + '/' + nC + ' · 진입 금지</span>';
+    const verdict = r.gap === 0 ? (r.still && r.still.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' : r.still && r.still.state === 'back' ? '<span class="verdict no">보류</span>' : r.afford ? '<span class="verdict go">매수 후보</span>' : r.rateBlock ? '<span class="verdict no">금리 쉬기</span>' : '<span class="verdict poor">시드 부족</span>') : '<span class="verdict ' + (r.gap === 1 ? 'near' : 'no') + '">' + e.score + '/' + nC + ' · 진입 금지</span>';
     const miss = ST.labels.filter((_, i) => !e.conds[i]);
     const mainName = m === 'KR' ? s.name : s.symbol, subName = m === 'KR' ? s.symbol : s.name;
     let html = '<div class="dhead"><div><h2>' + esc(mainName) + '</h2><div class="sub"><span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> ' + esc(subName) + ' · ' + ST.name + (r.back ? ' · 신호일 <span class="mono">' + r.lastDate + '</span> · 오늘 <span class="mono">' + r.basisDate + '</span>' : ' · 기준일 <span class="mono">' + r.lastDate + '</span>') + (r.stale ? ' · <span class="stale">데이터 지연</span>' : '') + '</div></div>' + verdict + '</div>';
     const stl = r.still;
-    const say = r.gap === 0 && stl && stl.state !== 'ok' ? (stl.state === 'chase'
+    let say = r.gap === 0 && stl && stl.state !== 'ok' ? (stl.state === 'chase'
         ? '<b>' + r.lastDate + ' 신호였지만 지금은 추격 매수 구간입니다.</b> ' + stl.basis + ' ' + P(stl.piv) + ' 대비 오늘 종가 ' + P(stl.tc) + ' (+' + fmtN(stl.ext * 100, 1) + '%). ' + (ST.pro === 'minervini' ? '미너비니는 피벗에서 5% 넘게 오른 종목은 사지 않습니다.' : '5% 넘게 오른 뒤에는 손익비가 나빠집니다.')
         : '<b>' + r.lastDate + ' 신호였지만 지금은 보류입니다.</b> ' + stl.basis + ' ' + P(stl.piv) + ' 대비 오늘 종가 ' + P(stl.tc) + ' (' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%) · 피벗 아래로 되밀렸거나 50일선 아래입니다. 다시 돌파하면 새 신호로 나옵니다.')
       : r.gap === 0 && stl ? (r.afford ? '<b>' + r.lastDate + '에 나온 신호이고, 오늘 종가 기준으로도 아직 살 수 있는 구간입니다</b> (' + stl.basis + ' ' + P(stl.piv) + ' 대비 ' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%, 5% 이내). ' + (p && p.entryType === 'limit' ? '내일 지정가(' + P(p.entry) + ') 기준 주문표입니다.' : '내일 시가 기준 주문표입니다. 매수가는 오늘 종가로 추정했습니다.') : '<b>아직 살 수 있는 구간이지만 지금 시드로는 살 수 없습니다.</b>')
       : r.gap === 0 ? (r.afford ? '<b>오늘 종가 기준으로 ' + (nC > 1 ? '매수 조건 ' + nC + '개를 모두' : '매수 조건을') + ' 충족했습니다.</b> 아래 주문표대로 주문하세요.' : '<b>조건은 모두 충족했지만 지금 시드로는 살 수 없습니다.</b> 이유는 아래 주문표에 있습니다.')
       : '<b>아직 사면 안 됩니다.</b> 부족한 조건: ' + miss.join(', ');
+    if (r.rateBlock && !(stl && stl.state !== 'ok')) say = '<b>매수 조건은 충족했지만, "국장: 금리 인상기에는 새로 사지 않기"가 켜져 있고 지금이 금리 인상기라 사지 않습니다.</b> 위 [시장 국면] 상자에서 끌 수 있습니다.';
     html += '<div class="say ' + (r.gap === 0 && r.afford ? 'go' : r.gap === 0 && !(stl && stl.state === 'back') ? 'poor' : 'no') + '">' + say + '</div>';
     let tail = '<div class="chartbox"><canvas id="cv" aria-label="최근 120봉 캔들 차트"></canvas></div>';
     tail += '<div class="legend"><span><i style="background:var(--sma200)"></i>200일선</span><span><i style="background:var(--ema20)"></i>20 EMA</span><span><i style="background:var(--ema50)"></i>50 EMA</span><span><i style="background:var(--kijun)"></i>기준선</span><span><i style="background:var(--cloud-bull);height:8px"></i>구름대</span>' + (r.history.length ? '<span>▲ 최근 1년 신호 ' + r.history.length + '회</span>' : '') + '</div>';
@@ -2321,7 +2387,7 @@ const DEMO = (() => {
     return saveChain;
   }
   // 설정(시드·전략·세부 설정) 연동
-  const settingsObj = () => ({ seedKR: state.seedKR, seedUS: state.seedUS, fx: state.fx, capPct: state.capPct, fractional: state.fractional, strat: state.strat, stratV2: true, cfg: state.cfg, updatedAt: store.get('settingsTs', '') });
+  const settingsObj = () => ({ seedKR: state.seedKR, seedUS: state.seedUS, fx: state.fx, capPct: state.capPct, fractional: state.fractional, rateGate: !!state.rateGate, strat: state.strat, stratV2: true, cfg: state.cfg, updatedAt: store.get('settingsTs', '') });
   async function remoteSettings() {
     if (backend() === 'github') return (await ghRead('settings.json')).data;
     if (backend() === 'server') return await api('/api/settings');
@@ -2348,6 +2414,7 @@ const DEMO = (() => {
     if (!o || !o.updatedAt || o.updatedAt <= store.get('settingsTs', '')) return false;
     for (const k of ['seedKR', 'seedUS', 'fx', 'capPct']) if (typeof o[k] === 'number') { state[k] = o[k]; store.set(k, o[k]); }
     if (typeof o.fractional === 'boolean') { state.fractional = o.fractional; store.set('fractional', o.fractional); }
+    if (typeof o.rateGate === 'boolean') { state.rateGate = o.rateGate; store.set('rateGate', o.rateGate); }
     if (o.strat && o.stratV2) state.strat = validStrat(o.strat);
     if (o.cfg) { state.cfg = Object.assign({}, ENGINE.DEFAULT_CFG, o.cfg); store.set('cfg', state.cfg); }
     store.set('settingsTs', o.updatedAt);
@@ -3246,13 +3313,13 @@ const DEMO = (() => {
     finally { clearTimeout(to); }
   }
   async function loadLocalData() {
-    const stocks = [], idx = {};
+    const stocks = [], idx = {}, rt = {};
     for (const m of ['KR', 'US']) {
       try { const j = await fetch('/api/data?market=' + m, { cache: 'no-store' }); if (!j.ok) continue; const d = await j.json();
-        for (const s of d.stocks) stocks.push({ symbol: String(s.symbol), name: s.name, market: m, bars: normBars(s.bars) }); if (d.index && d.index.bars) idx[m] = { name: d.index.name, bars: normBars(d.index.bars) }; } catch {}
+        for (const s of d.stocks) stocks.push({ symbol: String(s.symbol), name: s.name, market: m, bars: normBars(s.bars) }); if (d.index && d.index.bars) idx[m] = { name: d.index.name, bars: normBars(d.index.bars) }; if (d.rate && d.rate.monthly) rt[m] = d.rate; } catch {}
     }
     if (!stocks.length) return false;
-    state.index = idx; state.stocks = cleanUniverse(stocks); state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
+    state.rate = rt; state.index = idx; state.stocks = cleanUniverse(stocks); state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
   }
   function renderJobs(st) {
     const names = { KR: '국장', US: '미장' };
@@ -3310,14 +3377,14 @@ const DEMO = (() => {
   const pages = { meta: null, timer: null, waiting: false };
   async function fetchMeta() { const r = await fetch('data/meta.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); }
   async function loadPagesData() {
-    const stocks = [], idx = {};
+    const stocks = [], idx = {}, rt = {};
     for (const m of ['KR', 'US']) {
       const info = pages.meta && pages.meta[m]; if (!info) continue;
       try { const r = await fetch('data/' + m + '.json?v=' + encodeURIComponent(info.generated || ''), { cache: 'no-store' }); if (!r.ok) continue; const d = await r.json();
-        for (const x of d.stocks) stocks.push({ symbol: String(x.symbol), name: x.name, market: m, bars: normBars(x.bars) }); if (d.index && d.index.bars) idx[m] = { name: d.index.name, bars: normBars(d.index.bars) }; } catch {}
+        for (const x of d.stocks) stocks.push({ symbol: String(x.symbol), name: x.name, market: m, bars: normBars(x.bars) }); if (d.index && d.index.bars) idx[m] = { name: d.index.name, bars: normBars(d.index.bars) }; if (d.rate && d.rate.monthly) rt[m] = d.rate; } catch {}
     }
     if (!stocks.length) return false;
-    state.index = idx; state.stocks = cleanUniverse(stocks); state.source = 'pages'; state.selected = null; state.bt = {};
+    state.rate = rt; state.index = idx; state.stocks = cleanUniverse(stocks); state.source = 'pages'; state.selected = null; state.bt = {};
     return true;
   }
   function renderPagesJobs() {
