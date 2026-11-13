@@ -1,0 +1,37 @@
+# 연구용: 뉴스 감성 자료 수집 (수동 실행만). 결과는 research-news 브랜치에 저장
+name: research-news
+on:
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: "나눠 돌릴 개수"
+        default: "10"
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install requests yfinance
+      - run: python research/news_gdelt.py --shard ${{ matrix.shard }} --shards 10 --out out
+      - uses: actions/upload-artifact@v4
+        with: { name: "news-${{ matrix.shard }}", path: out/ }
+  save:
+    needs: fetch
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: parts, merge-multiple: true }
+      - run: |
+          mkdir -p res && cp parts/*.json res/ 2>/dev/null || true
+          cd res && git init -q -b research-news && git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add -A && git commit -q -m "뉴스 감성 자료 $(date -u +%F)" && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" research-news
