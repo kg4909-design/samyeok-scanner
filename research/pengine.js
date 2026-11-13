@@ -10,6 +10,9 @@ const PENGINE = (() => {
     for (let i = 0; i < 10; i++) { t.setUTCDate(t.getUTCDate() + 1); const w = t.getUTCDay(), s = t.toISOString().slice(0, 10); if (w !== 0 && w !== 6 && !HOLI.has(s)) return s; }
     return null;
   }
+  // 묶음 매도가가 내려가는 날 수: 한국 날짜(미국 날짜+1일) 기준 평일 수 (라오어 33차 112.56·107.40·77.36 묶음에서 10일 연속 일치)
+  function kstWeekdays(d1, d2) { let n = 0; const t = new Date(d1 + 'T12:00:00Z'), e = new Date(d2 + 'T12:00:00Z'); t.setUTCDate(t.getUTCDate() + 1); e.setUTCDate(e.getUTCDate() + 1);
+    while (t < e) { t.setUTCDate(t.getUTCDate() + 1); const w = t.getUTCDay(); if (w >= 1 && w <= 5) n++; } return n; }
   const holdOf = lots => lots.reduce((a, l) => a + l.q, 0);
   
   // 다음 거래일 주문 만들기
@@ -59,7 +62,7 @@ const PENGINE = (() => {
       const [d, , , , C] = b;
       const day = { date: d, C, buys: [], sells: [], est: false, rough: false, recorded: rec.has(d), dayReal: 0 };
       if (orders) {
-        for (const L of st.lots) L.age++;
+        const step = kstWeekdays(prevDate, d); for (const L of st.lots) L.age += step;
         let fills;
         if (rec.has(d)) fills = rec.get(d).filter(x => !x.none);
         else if (cfg.auto !== false) {
@@ -95,10 +98,12 @@ const PENGINE = (() => {
       }
       if (!st.cycleStart && holdOf(st.lots) === 0) st.pendingStart = nextTradingDay(d);
       if (st.lastFill == null) st.lastFill = C;
-      orders = makeOrders(st, C);
+      const pred = makeOrders(st, C), rl = cfg.relay && cfg.relay[d];
+      if (rl) { const m = cfg.mult || 1; orders = { relay: true, buy: (rl.buy || []).map(([px, q]) => ({ px, q: q * m })), sell: (rl.sell || []).map(([px, q]) => q === 'all' ? { px, q: holdOf(st.lots), all: true } : { px, q: q * m }) }; }
+      else orders = pred;
       const H = holdOf(st.lots);
       rows.push(Object.assign(day, { cycleNo: st.cycleNo, cycleStart: st.cycleStart || st.pendingStart, hold: H, avg: st.avg, cash: st.cash, E0: st.E0, cycleReal: st.cycleReal, cumReal: st.cumReal,
-        net: day.buys.reduce((a, x) => a + x.q, 0) - day.sells.reduce((a, x) => a + x.q, 0), equity: st.cash + H * C, orders, lots: st.lots.map(L => Object.assign({}, L)), lossMode: st.lossMode }));
+        net: day.buys.reduce((a, x) => a + x.q, 0) - day.sells.reduce((a, x) => a + x.q, 0), equity: st.cash + H * C, orders, pred, lots: st.lots.map(L => Object.assign({}, L)), lossMode: st.lossMode }));
       prevDate = d;
     }
     const last = rows.at(-1);
@@ -113,10 +118,11 @@ const PENGINE = (() => {
     ['2026-10-23', 'none'], ['2026-10-26', 'sell', 9, 91.99], ['2026-10-27', 'sell', 9, 100.64], ['2026-10-28', 'sell', 19, 105.98], ['2026-10-29', 'buy', 20, 101.49], ['2026-10-30', 'buy', 22, 74.29],
     ['2026-11-02', 'buy', 13, 69.11], ['2026-11-03', 'sell', 11, 73.21], ['2026-11-04', 'buy', 12, 65.43], ['2026-11-05', 'buy', 1, 44.5], ['2026-11-06', 'sell', 6, 46.16], ['2026-11-09', 'sell', 6, 57.11],
     ['2026-11-10', 'buy', 3, 55.14], ['2026-11-11', 'sell', 12, 66.39], ['2026-11-12', 'buy', 4, 64.33]] };
+  const LAOER33_RELAY = {"2026-10-01":{"buy":[[164.41,6],[154.52,7]],"sell":[]},"2026-10-02":{"buy":[[163.78,6],[163.54,6]],"sell":[[164.83,"all"]]},"2026-10-05":{"buy":[[162.89,6],[163.75,6]],"sell":[[164.67,"all"]]},"2026-10-07":{"buy":[[157.11,7],[158.75,7]],"sell":[[159.02,6],[160.44,6]]},"2026-10-08":{"buy":[[138.58,8],[141.8,7]],"sell":[[158.86,6],[142.04,7],[143.54,7]]},"2026-10-09":{"buy":[[137.45,8],[139.62,8]],"sell":[[158.86,6],[141.04,7],[141.34,7]]},"2026-10-12":{"buy":[[125.61,8],[128.27,8]],"sell":[[140.75,7],[128.9,8],[129.9,8]]},"2026-10-13":{"buy":[[122.93,9],[126.28,9]],"sell":[[140.61,7],[128.77,8],[128.59,9]]},"2026-10-14":{"buy":[[108.95,10],[110.42,10]],"sell":[[128.64,8],[112.73,9],[113.04,10]]},"2026-10-15":{"buy":[[103.31,3]],"sell":[[112.62,9],[107.57,10],[108.46,10]]},"2026-10-16":{"buy":[],"sell":[[112.62,9],[107.57,10],[95.75,8]]},"2026-10-19":{"buy":[[96.67,9]],"sell":[[112.4,9],[107.35,10],[100.83,8]]},"2026-10-20":{"buy":[[96.67,9]],"sell":[[112.28,9],[107.24,10],[100.46,8]]},"2026-10-21":{"buy":[[101.1,10]],"sell":[[112.17,9],[107.14,10],[104.49,9]]},"2026-10-22":{"buy":[[80.46,10]],"sell":[[112.06,9],[107.03,10],[84.06,9]]},"2026-10-23":{"buy":[[80.46,10]],"sell":[[112.06,9],[107.03,10],[84.58,9]]},"2026-10-26":{"buy":[[88.01,12]],"sell":[[111.83,9],[106.81,10],[92.62,9]]},"2026-10-27":{"buy":[[98.17,11],[100.62,11]],"sell":[[111.72,9],[106.71,10],[102.1,9]]},"2026-10-28":{"buy":[[103.97,10],[105.46,10]],"sell":[[127.35,8],[111.61,9],[108.37,9]]},"2026-10-29":{"buy":[[99.1,11],[100.97,11]],"sell":[[111.5,9],[102.65,10],[103.41,9]]},"2026-10-30":{"buy":[[74.17,13]],"sell":[[101.65,10],[77.48,11],[78.07,10]]},"2026-11-02":{"buy":[[66.02,1]],"sell":[[101.44,10],[77.33,11],[69.87,11]]},"2026-11-03":{"buy":[[71.25,12]],"sell":[[101.34,10],[77.26,11],[74.29,11]]},"2026-11-04":{"buy":[[63.57,1]],"sell":[[101.24,10],[77.18,11],[68.2,11]]},"2026-11-05":{"buy":[[41.5,1]],"sell":[[101.14,10],[77.11,11],[44.35,6]]},"2026-11-06":{"buy":[[44.41,7]],"sell":[[101.14,10],[77.11,11],[47.17,6]]},"2026-11-09":{"buy":[[55.14,11]],"sell":[[65.43,6],[76.96,11],[57.9,6]]},"2026-11-10":{"buy":[[54.21,9]],"sell":[[65.42,6],[76.89,11],[57.28,6]]},"2026-11-11":{"buy":[[64.33,14]],"sell":[[76.81,11],[67.4,11]]},"2026-11-12":{"buy":[[63.29,16]],"sell":[[73.74,11],[67.05,11]]},"2026-11-13":{"buy":[[56.6,1]],"sell":[[73.74,11],[60.04,13]]}};
   function laoerPreset(n) {
-    return { startDate: LAOER33.startDate, capital: rd2(LAOER33.capital * n), cycleNo: LAOER33.cycleNo, mult: n,
+    return { startDate: LAOER33.startDate, capital: rd2(LAOER33.capital * n), cycleNo: LAOER33.cycleNo, mult: n, relay: JSON.parse(JSON.stringify(LAOER33_RELAY)),
       fills: LAOER33.fills.map(([date, side, q, px]) => side === 'none' ? { date, none: true } : { date, side, qty: q * n, px }) };
   }
-  return { replay, makeOrders, estFill, nextTradingDay, laoerPreset, LAOER33, SPLIT };
+  return { replay, kstWeekdays, makeOrders, estFill, nextTradingDay, laoerPreset, LAOER33, SPLIT };
 })();
 if (typeof module !== 'undefined') module.exports = PENGINE;
