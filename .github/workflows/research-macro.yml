@@ -1,0 +1,18 @@
+# 연구용: 장기 지수·금리 자료 (수동 실행만). 결과는 research-macro 브랜치
+name: research-macro
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install requests pandas yfinance finance-datareader lxml
+      - run: python research/macro_fetch.py out
+      - run: |
+          cd out && git init -q -b research-macro && git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add -A && git commit -q -m "장기 지수·금리 $(date -u +%F)" && git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" research-macro
