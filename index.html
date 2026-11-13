@@ -812,6 +812,12 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li><b>손절 폭이 넓어도 잃는 돈은 같습니다.</b> 수량은 "손절 시 운용 자산의 1%만 잃도록" 계산하므로, 손절이 −10%면 수량이 줄고 −4%면 늘어납니다. 손절 폭은 "얼마나 흔들림을 버틸지"만 정합니다.</li>
   <li>과거에 가장 좋았던 값을 고른 것이라 앞으로도 같다는 보장은 없습니다. 다만 앞 70%·뒤 30% 기간, 시드 10배, 5종목, 1회 손실 0.5% 조건에서도 모두 새 값이 더 나았습니다.</li>
 </ul>
+<h3>메트릭 스튜디오 지표 검증 (2026-11)</h3>
+<ul>
+  <li>문병로 교수의 『메트릭 스튜디오』(2014)에서 유의미하다고 한 기술적 지표(지수 이동평균 추세, 정배열, 볼린저밴드 돌파, 52주 신고가, 이격도, 6개월 모멘텀 등)를 이 앱의 최근 4년 일봉으로 다시 확인했습니다. PER·PBR 같은 기본적 지표는 재무 자료가 없어 확인하지 못했습니다.</li>
+  <li><b>반영한 것:</b> 국장 미너비니에 <b>"시장(국장 300종목 동일가중 지수)이 200일선 위일 때만 매수"</b> 조건을 더했습니다. 연 +19.9% → +20.2%로 수익은 비슷하고, 최대 낙폭은 7.8% → 4.1%로 줄었습니다. 시드 10배·5종목·1회 손실 0.5% 조건에서도 모두 수익이 같거나 높고 낙폭은 작았습니다. 책의 "개별 종목보다 지수의 이동평균 추세가 유의미하다"는 결론과 같은 방향입니다.</li>
+  <li><b>반영하지 않은 것:</b> 미장에는 같은 시장 조건이 효과가 없었습니다. 6개월 모멘텀·이격도 반등은 따로 보면 평균보다 나았지만, 전략으로 만들면 지금 전략보다 수익이 낮았습니다. 변동성이 작을 때의 볼린저밴드 상단 돌파는 책과 달리 이 기간에는 오히려 평균보다 나빴습니다.</li>
+</ul>
 <h3>어떤 종목을 보나요</h3>
 <ul>
   <li><b>국장:</b> 코스피·코스닥 <b>시가총액 상위 300개 보통주</b>. 우선주(삼성전자우, 현대차2우B 등)는 거래하지 않으므로 뺍니다. 순위는 시세를 받을 때마다 새로 정합니다.</li>
@@ -1132,6 +1138,12 @@ const ENGINE = (() => {
       for (let i = 252; i < L; i++) { const d = ind.dates[i]; if (!byDate.has(d)) byDate.set(d, []); byDate.get(d).push([sc[i], ind, i]); }
     }
     for (const arr of byDate.values()) { arr.sort((a, b) => a[0] - b[0]); const n = arr.length; arr.forEach(([, ind, i], k) => { ind._x.rsPct[i] = n > 1 ? Math.floor(k / (n - 1) * 99) : 50; }); }
+    // 시장 지수 대용: 같은 시장 종목 전체의 하루 수익률 평균을 이어 붙인 동일가중 지수와 그 200일선 (메트릭 스튜디오: 개별 종목보다 지수 추세가 유의미)
+    const rets = new Map();
+    for (const s of stocks) { const ind = compute(s.bars); for (let i = 1; i < ind.c.length; i++) { const r = ind.c[i] / ind.c[i - 1] - 1; if (!(Math.abs(r) <= 0.5)) continue; const a = rets.get(ind.dates[i]) || [0, 0]; a[0] += r; a[1]++; rets.set(ind.dates[i], a); } }
+    const ds = [...rets.keys()].sort(), lvl = new Map(); let v = 100, sum = 0; const q = [];
+    for (const d of ds) { const [a, n] = rets.get(d); v *= 1 + a / n; q.push(v); sum += v; if (q.length > 200) sum -= q[q.length - 201]; lvl.set(d, { v, ma: q.length >= 200 ? sum / 200 : NaN }); }
+    for (const s of stocks) { const ind = compute(s.bars); ind._x.mkt = ind.dates.map(d => lvl.get(d) || { v: NaN, ma: NaN }); }
   }
   const sma50 = ind => smaX(ind, 50), sma150 = ind => smaX(ind, 150);
   // 첫 장대양봉: +7% 이상 양봉 · 거래대금(종가×거래량) 국장 500억원 / 미장 5억달러 이상 · 거래량 20일 평균 1.5배 이상 · 직전 60일 고가 돌파 · 직전 20일 안에 같은 봉 없음
@@ -1171,7 +1183,7 @@ const ENGINE = (() => {
       proof: { level: 'high', text: '실계좌로 겨루는 미국 투자 챔피언십(U.S. Investing Championship) 우승: 1997년 연 155%, 2021년 연 334.8%(주최 측 발표·보도자료 기준). 규칙은 저서 『초수익 성장주 투자』 등에 공개. 같은 대회 3연패한 데이비드 라이언(오닐의 CAN SLIM)도 비슷한 기술적 기준을 씀' },
       original: '트렌드 템플릿 8개 조건(주가>50·150·200일선, 50>150>200일선, 200일선 1개월 이상 상승, 52주 저가 대비 +30% 이상, 52주 고가의 75% 이상, 상대강도 70 이상) + 변동성이 줄어든 횡보(VCP) 후 거래량 40% 이상 늘며 피벗 돌파 매수 · 손절 7~8%',
       afterWork: '조건을 모두 갖추고 종가가 피벗(직전 10일 고가)을 거래량과 함께 넘은 날 저녁 → 다음 날 시가 예약 매수. 손절 감시주문 −10%(원래 규칙 −7~8%를 이 앱 4년 백테스트로 조정), +15% 오르면 손절가를 산 가격으로 올림. 익절 목표가는 두지 않고, 종가가 50일선 아래로 마감하면 다음 날 시가 매도',
-      labels: ['트렌드 템플릿 (이평선 정배열)', '52주 고가·저가 위치', '상대강도 70 이상', '좁은 횡보 후 피벗 돌파 + 거래량'], custom: true, needsRS: true,
+      labels: ['트렌드 템플릿 (이평선 정배열)', '52주 고가·저가 위치', '상대강도 70 이상', '좁은 횡보 후 피벗 돌파 + 거래량', '시장이 200일선 위 (국장만)'], custom: true, needsRS: true,
       evaluate(ind, t) {
         const s50 = sma50(ind), s150 = sma150(ind), s200 = ind.sma200, H = hiNX(ind, 10), Lo = loPrevX(ind, 10), hi52 = hi252X(ind), lo52 = lo252X(ind), rs = ind._x.rsPct;
         const x = { close: ind.c[t], s50: s50[t], s150: s150[t], s200: s200[t], s200m: s200[t - 21], hi52: hi52[t], lo52: lo52[t], rs: rs ? rs[t] : NaN, pivot: H[t], baseLo: Lo[t], volRatio: ind.v[t] / ind.volAvg20[t - 1], rsi: ind.rsi[t] };
@@ -1181,13 +1193,17 @@ const ENGINE = (() => {
         const c2 = x.close >= x.lo52 * 1.3 && x.close >= x.hi52 * 0.75;
         const c3 = ok(x.rs) && x.rs >= 70;
         const c4 = x.depth <= 10 && x.close > x.pivot && x.volRatio >= 1.4;
-        return { ready: true, x, conds: [c1, c2, c3, c4] };
+        // 국장만: 시장(300종목 동일가중 지수)이 200일선 위일 때만 (2026-11 백테스트에서 국장은 수익 유지·낙폭 감소, 미장은 효과 없음)
+        const mk = ind._x.mkt && ind._x.mkt[t]; x.mk = ind._mk; x.mkV = mk ? mk.v : NaN; x.mkMa = mk ? mk.ma : NaN;
+        const c5 = ind._mk !== 'KR' || !(ok(x.mkV) && ok(x.mkMa)) || x.mkV > x.mkMa;
+        return { ready: true, x, conds: [c1, c2, c3, c4, c5] };
       },
       rows: (e, P, cfg, F) => [
         ['주가 > 50·150·200일선, 50 > 150 > 200일선, 200일선 1개월 전보다 위', P(e.x.close) + ' · ' + P(e.x.s50) + ' / ' + P(e.x.s150) + ' / ' + P(e.x.s200)],
         ['52주 저가 대비 +30% 이상 · 52주 고가의 75% 이상', '저가 ' + P(e.x.lo52) + ' · 고가 ' + P(e.x.hi52)],
         ['상대강도 백분위 ≥ 70 (같은 날 전 종목 대비)', ok(e.x.rs) ? e.x.rs + '' : '–'],
-        ['직전 10일 변동폭 ≤ 10% · 종가 > 피벗(10일 고가) · 거래량 ≥ 1.4배', '변동폭 ' + F.n(e.x.depth, 1) + '% · 피벗 ' + P(e.x.pivot) + ' · ' + F.n(e.x.volRatio, 2) + '배']],
+        ['직전 10일 변동폭 ≤ 10% · 종가 > 피벗(10일 고가) · 거래량 ≥ 1.4배', '변동폭 ' + F.n(e.x.depth, 1) + '% · 피벗 ' + P(e.x.pivot) + ' · ' + F.n(e.x.volRatio, 2) + '배'],
+        ['국장만: 시장 지수(국장 300종목 동일가중)가 200일선 위', e.x.mk !== 'KR' ? '미장은 적용 안 함' : ok(e.x.mkV) && ok(e.x.mkMa) ? '200일선 대비 ' + (e.x.mkV >= e.x.mkMa ? '+' : '') + F.n((e.x.mkV / e.x.mkMa - 1) * 100, 1) + '%' : '자료 부족 (통과)']],
       entry: () => ({ type: 'open' }),
       stopRule: () => ({ type: 'pct', v: 0.10 }), stopSrc: '산 가격 − 10%',
       breakeven: 1.15,
