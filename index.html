@@ -65,7 +65,16 @@ details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--mu
 .tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;padding:10px 14px;font-size:14px;color:var(--muted)}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
 .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.todo{padding:14px 16px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px}
+.todo h3{margin:0;font-size:15px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.todo .td-i{display:grid;grid-template-columns:28px minmax(0,1fr);gap:4px 10px;align-items:start;font-size:13px;line-height:1.6}
+.todo .td-n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;background:var(--line);color:var(--ink);font-family:var(--f-mono)}
+.todo .td-n.act{background:var(--up);color:#fff} .todo .td-n.go{background:var(--accent);color:var(--accent-ink)}
+.todo .td-b{min-width:0} .todo .td-b>b{font-size:14px}
+.todo ol.picks{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.todo .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .regime{padding:12px 14px;margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.regime summary.rg-h{cursor:pointer}
 .regime .rg-h{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
 .regime .rg-h b{font-size:14px}
 .regime .rg-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -478,6 +487,7 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <div class="bkbanner" id="bkBanner" hidden></div>
 
   <div id="viewSig" class="bt">
+    <div class="panel todo" id="todo"></div>
     <div class="summary" id="summary"></div>
     <div class="panel regime" id="regime"></div>
     <div class="main">
@@ -799,6 +809,21 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li>휴대폰에서도 "여러 기기 기록 연동"에 같은 토큰을 한 번 넣으면 PC와 같은 기록이 보입니다. 인터넷이 끊겨도 마지막으로 받은 화면은 열립니다.</li>
 </ol>
 
+<h2>매일 쓰는 순서 (오늘 할 일)</h2>
+<ol>
+  <li><b>장 마감 후 [오늘 살 종목] 맨 위 "오늘 할 일" 상자만 보면 됩니다.</b> 세 줄을 위에서부터 처리하세요.</li>
+  <li><b>① 보유 종목 점검:</b> 손절가에 닿았거나 매도 조건(종가가 50일선·20일선 아래 등)이 나온 종목을 "팔 차례"로 빨갛게 보여줍니다. 없으면 감시주문만 그대로 두면 됩니다.</li>
+  <li><b>② 체결 확인:</b> 어제 예약한 주문이 체결됐는지 매매일지에 적습니다(다음 거래일 시세로 체결 여부를 추정해 줍니다).</li>
+  <li><b>③ 새로 살 종목:</b> 동시 보유 한도(기본 3종목)에서 남은 자리만큼만 순위대로 보여줍니다. [예약 주문 저장]을 누르고, [주문 내용 복사]로 증권사 앱에 넣을 내용을 그대로 보세요.</li>
+</ol>
+<h3>매수 순위는 어떻게 정하나 (2026-11 백테스트)</h3>
+<ul>
+  <li>같은 날 살 수 있는 후보가 남은 자리보다 많으면 <b>변동성(최근 20일 평균 하루 등락폭 ÷ 주가)이 큰 종목부터</b> 삽니다. 뒤 순위는 "예비"로 표시하고, 앞 순위를 못 샀을 때만 씁니다. 이미 보유·예약한 종목은 다시 사지 않습니다.</li>
+  <li>최근 4년, 동시 3종목·1회 위험 1% 기준으로 무작위로 고를 때와 비교했습니다. <b>국장 미너비니:</b> 연 17%→33%, 최대 낙폭 8.9%→5.5%. 다만 큰 수익 3건(+57R·+47R·+32R)을 빼면 15.0%→15.6%로 차이가 작아집니다(낙폭은 8.8%→5.5%로 계속 낮음). <b>미장 5일선 눌림목:</b> 연 22%→25%, 낙폭 6.4%→5.1%. 2023~2026년 매년 같거나 나았습니다.</li>
+  <li>손절이 산 가격 기준 고정 %라서, 많이 움직이는 종목이 같은 위험으로 더 크게 오를 여지가 있기 때문으로 보입니다. 시드가 작아 한 번에 1종목만 살 수 있으면 효과가 거의 없습니다.</li>
+  <li><b>함께 시험했지만 넣지 않은 것:</b> 계좌가 5~10% 빠지면 위험을 절반으로 줄이기(효과 없거나 손해), 연속 손실 뒤 위험 줄이기(수익이 낙폭보다 더 줄어듦), 국장에 5일선 눌림목·미장에 미너비니 섞기(두 시장 모두 수익 크게 감소), 보유 4~5종목(낙폭이 커짐).</li>
+  <li><b>1회 위험(기본 1%):</b> 1.25%로 올리면 백테스트 수익과 낙폭이 거의 비례해서 함께 커집니다(국장 연 33%→41%, 낙폭 5.5%→7.0%). 실제 낙폭은 백테스트보다 크게 나오는 경우가 많으니, 30회 거래를 채우기 전에는 1%를 권합니다.</li>
+</ul>
 <h2>매매 전략: 국장 미너비니 SEPA · 미장 5일선 눌림목</h2>
 <p>[설정 → 전략 · 데이터 · 세부 설정]에서 시장별로 둘 중 하나를 고릅니다. 기본값은 이 앱 백테스트에서 그 시장에 더 나았던 쪽입니다.</p>
 <h3>미너비니 SEPA (국장 기본)</h3>
@@ -1830,6 +1855,47 @@ const DEMO = (() => {
     const winners = new Set([...best.values()].map(x => x[1]));
     return keep.filter(s => s.market !== 'US' || !s.name || winners.has(s));
   }
+  // ---------- 오늘 할 일 (보유 점검 → 체결 확인 → 새로 살 종목) ----------
+  function orderLine(r) {
+    const m = r.stock.market, p = r.plan, P = v => fmtP(v, m), Sx = S[r.key];
+    const nm = m === 'KR' ? r.stock.name + '(' + r.stock.symbol + ')' : r.stock.symbol + ' ' + (r.stock.name || '');
+    const how = p.entryType === 'limit' ? '지정가 ' + P(p.entry) + ' 매수 예약 (안 내려오면 미체결)' : p.entryType === 'stop' ? P(p.entry) + ' 이상이면 매수 (감시 주문)' : '시가 매수 예약 (예상가 ' + P(p.entry) + ')';
+    return { nm, how, qty: fmtQ(p.qty, p.frac) + '주', sl: P(p.sl), exit: Sx.exitText ? Sx.exitText + '하면 다음 날 시가 매도' : '',
+      text: '[' + (m === 'KR' ? '국장' : '미장') + ' ' + r.rank + '순위] ' + nm + ' — 다음 거래일 ' + how + ' · ' + fmtQ(p.qty, p.frac) + '주 · 체결되면 손절 감시주문 ' + P(p.sl) + (p.breakeven ? ' · +' + Math.round((p.breakeven - 1) * 100) + '% 오르면 손절가를 산 가격으로' : '') + (Sx.exitText ? ' · ' + Sx.exitText + '하면 다음 날 시가 매도' : '') + ' · 익절 목표 없음' };
+  }
+  function renderTodo() {
+    const el = $('todo'); if (!el) return;
+    const hold = state.trades.filter(t => t.status === 'open'), pend = state.trades.filter(t => t.status === 'planned');
+    const act = [];
+    for (const tr of hold) { const st = findStock(tr); if (!st) continue; try { const tk = ENGINE.track(st, tr); if (tk && !tk.waiting && tk.alerts.some(a => a.act === 'sell' || ['stop', 'tp', 'time'].includes(a.lv))) act.push(tr.market === 'KR' ? tr.name : tr.symbol); } catch {} }
+    const day = state.day === 0 ? '' : state.day === 1 ? ' (전거래일 신호 기준)' : ' (최근 5거래일 신호 기준)';
+    const item = (n, cls, title, body) => '<div class="td-i"><span class="td-n ' + cls + '">' + n + '</span><div class="td-b"><b>' + title + '</b><br>' + body + '</div></div>';
+    let h = '<h3>오늘 할 일<span class="note">' + Object.entries(state.latest || {}).map(([m, d]) => (m === 'KR' ? '국장 ' : '미장 ') + d).join(' · ') + ' 종가 기준' + day + '</span></h3>';
+    h += item(1, act.length ? 'act' : '', '보유 종목 점검',
+      !hold.length ? '보유 중인 종목이 없습니다.'
+        : act.length ? '<b class="c-up">팔 차례 ' + act.length + '종목: ' + act.map(esc).join(', ') + '</b> · 보유 ' + hold.length + '종목 <button type="button" class="linkbtn" data-goto="pos">매매일지에서 확인</button>'
+        : '보유 ' + hold.length + '종목 모두 할 일 없음. 손절 감시주문만 그대로 두세요. <button type="button" class="linkbtn" data-goto="pos">매매일지</button>');
+    h += item(2, pend.length ? 'act' : '', '어제 예약한 주문 체결 확인',
+      pend.length ? '예약 ' + pend.length + '건이 체결됐는지 매매일지에 적어 주세요. <button type="button" class="linkbtn" data-goto="pos">체결 입력</button>' : '확인할 예약 주문이 없습니다.');
+    const sl = state.slots || {}, lines = [];
+    let body = '';
+    for (const m of ['KR', 'US']) {
+      const x = sl[m]; if (!x) continue;
+      const seed = m === 'KR' ? state.seedKR : state.seedUS, lab = m === 'KR' ? '국장' : '미장';
+      if (seed <= 0) { body += '<div class="note">' + lab + ': 운용 자산 0원이라 계산하지 않습니다.</div>'; continue; }
+      body += '<div><b>' + lab + '</b> 보유 자리 ' + x.free + '/' + x.max + ' 남음 · ';
+      if (!x.picks.length) body += x.free ? '오늘 살 종목 없음' + (x.spare.length ? '' : '') : '자리가 차서 새로 사지 않음' + (x.spare.length ? ' (예비 ' + x.spare.length + '종목)' : '');
+      else body += '살 종목 ' + x.picks.length + '개' + (x.spare.length ? ' · 예비 ' + x.spare.length + '개' : '');
+      body += '</div>';
+      if (x.picks.length) body += '<ol class="picks">' + x.picks.map(r => { const o = orderLine(r); lines.push(o.text); return '<li data-cur="' + m + '"><button type="button" class="linkbtn" data-pick="' + esc(r.stock.symbol) + '">' + esc(o.nm) + '</button> · ' + o.how + ' · <b>' + o.qty + '</b> · 손절 <b class="c-down">' + o.sl + '</b></li>'; }).join('') + '</ol>';
+    }
+    if (lines.length) body += '<div class="row"><button type="button" class="primary" id="todoSave">' + lines.length + '개 예약 주문 저장</button><button type="button" id="todoCopy">주문 내용 복사</button></div><div class="note">같은 날 후보가 자리보다 많으면 변동성(20일 평균 등락폭)이 큰 종목부터 고릅니다. 수수료·세금 전 기준.</div>';
+    h += item(3, lines.length ? 'go' : '', '새로 살 종목', body || '시세를 받으면 표시합니다.');
+    el.innerHTML = h;
+    for (const b of el.querySelectorAll('[data-pick]')) b.onclick = () => { state.selected = b.dataset.pick; renderTable(); renderDetail(); const d = document.querySelector('.detail'); if (d && innerWidth < 900) d.scrollIntoView({ behavior: 'smooth' }); };
+    if ($('todoCopy')) $('todoCopy').onclick = async () => { const t = lines.join('\n'); try { await navigator.clipboard.writeText(t); toast('주문 내용을 복사했습니다'); } catch { prompt('복사해서 쓰세요', t); } };
+    if ($('todoSave')) $('todoSave').onclick = async () => { let n = 0; for (const m of ['KR', 'US']) for (const r of (sl[m] ? sl[m].picks : [])) if (await savePlan(r)) n++; if (n) { await saveTrades(); run(); } toast(n ? n + '개 예약 주문을 저장했습니다 · 체결되면 매매일지에 적어 주세요' : '이미 저장되어 있습니다'); };
+  }
   // ---------- 코스톨라니 금리 사이클 (시장 국면) ----------
   // 30년 백테스트에서 쓴 규칙 그대로: 월평균 금리의 6개월 변화가 −0.2%p보다 크게 내리면 '인하기', +0.2%p보다 크게 오르면 '인상기', 그 사이면 직전 국면 유지
   const RATE_FALLBACK = {"KR":[["2022-01",1.188],["2022-02",1.219],["2022-03",1.244],["2022-04",1.299],["2022-05",1.505],["2022-06",1.745],["2022-07",1.971],["2022-08",2.263],["2022-09",2.533],["2022-10",2.959],["2022-11",3.096],["2022-12",3.235],["2023-01",3.269],["2023-02",3.425],["2023-03",3.425],["2023-04",3.467],["2023-05",3.57],["2023-06",3.566],["2023-07",3.51],["2023-08",3.538],["2023-09",3.596],["2023-10",3.517],["2023-11",3.572],["2023-12",3.639],["2024-01",3.47],["2024-02",3.582],["2024-03",3.467],["2024-04",3.518],["2024-05",3.53],["2024-06",3.547],["2024-07",3.518],["2024-08",3.531],["2024-09",3.529],["2024-10",3.321],["2024-11",3.245],["2024-12",3.055],["2025-01",3.053],["2025-02",2.965],["2025-03",2.754],["2025-04",2.769],["2025-05",2.738],["2025-06",2.52],["2025-07",2.5],["2025-08",2.506],["2025-09",2.526],["2025-10",2.516],["2025-11",2.512],["2025-12",2.53],["2026-01",2.531],["2026-02",2.541],["2026-03",2.527],["2026-04",2.517],["2026-05",2.537],["2026-06",2.537],["2026-07",2.62],["2026-08",2.809],["2026-09",3.044]],"US":[["2022-01",0.079],["2022-02",0.08],["2022-03",0.201],["2022-04",0.33],["2022-05",0.765],["2022-06",1.205],["2022-07",1.676],["2022-08",2.33],["2022-09",2.555],["2022-10",3.08],["2022-11",3.78],["2022-12",4.104],["2023-01",4.33],["2023-02",4.57],["2023-03",4.649],["2023-04",4.83],["2023-05",5.056],["2023-06",5.076],["2023-07",5.12],["2023-08",5.33],["2023-09",5.33],["2023-10",5.33],["2023-11",5.33],["2023-12",5.33],["2024-01",5.33],["2024-02",5.33],["2024-03",5.33],["2024-04",5.33],["2024-05",5.33],["2024-06",5.33],["2024-07",5.33],["2024-08",5.33],["2024-09",5.13],["2024-10",4.83],["2024-11",4.638],["2024-12",4.475],["2025-01",4.33],["2025-02",4.33],["2025-03",4.33],["2025-04",4.33],["2025-05",4.33],["2025-06",4.33],["2025-07",4.33],["2025-08",4.33],["2025-09",4.225],["2025-10",4.088],["2025-11",3.876],["2025-12",3.721],["2026-01",3.64],["2026-02",3.64],["2026-03",3.64],["2026-04",3.64],["2026-05",3.628],["2026-06",3.625],["2026-07",3.628],["2026-08",3.63],["2026-09",3.747],["2026-10",3.88],["2026-11",3.88]]};
@@ -1862,10 +1928,19 @@ const DEMO = (() => {
         (t ? '<br>' + esc(t.name) + ' ' + (t.gap >= 0 ? '200일 평균보다 <b class="c-up">+' : '200일 평균보다 <b class="c-down">') + fmtN(t.gap * 100, 1) + '%</b> <span class="note">(' + t.date + ')</span>' : '') +
         (mood ? '<br><span class="note">' + mood + '</span>' : '') + '</div>';
     };
-    el.innerHTML = '<div class="rg-h"><b>시장 국면 · 코스톨라니 금리 사이클</b><span class="note">참고용 · 매수 판단에는 쓰지 않음</span></div>' +
-      '<div class="rg-row">' + box('KR') + box('US') + '</div>' +
-      '<div class="rg-note">국장 지수는 30년간 인하기에 훨씬 좋았지만, 이 앱 전략에 "인상기 쉬기"를 붙이면 계좌 연수익이 20%→10%로 줄어 넣지 않았습니다. 자세한 내용은 [사용법] 탭 "코스톨라니 금리 사이클".</div>';
+    const nm = st => st === 'cut' ? '인하기' : st === 'hike' ? '인상기' : '판단 보류';
+    let open = false; try { open = localStorage.getItem('sy_rgOpen') === '1'; } catch {}
+    el.innerHTML = '<details id="rgDet"' + (open ? ' open' : '') + '><summary class="rg-h"><b>시장 국면 (참고)</b><span class="note">국장 금리 ' + nm(rateInfo('KR').st) + ' · 미장 금리 ' + nm(rateInfo('US').st) + ' · 매수 판단에는 쓰지 않음</span></summary>' +
+      '<div class="rg-row" style="margin-top:8px">' + box('KR') + box('US') + '</div>' +
+      '<div class="rg-note">국장 지수는 30년간 인하기에 훨씬 좋았지만, 이 앱 전략에 "인상기 쉬기"를 붙이면 계좌 연수익이 20%→10%로 줄어 넣지 않았습니다. 자세한 내용은 [사용법] 탭 "코스톨라니 금리 사이클".</div></details>';
+    $('rgDet').ontoggle = () => { try { localStorage.setItem('sy_rgOpen', $('rgDet').open ? '1' : '0'); } catch {} };
   }
+  function atrPct(b) {
+    const n = b.length; if (n < 22) return 0; let a = 0;
+    for (let i = n - 20; i < n; i++) { const pc = b[i - 1][4]; a += Math.max(b[i][2] - b[i][3], Math.abs(b[i][2] - pc), Math.abs(b[i][3] - pc)); }
+    return a / 20 / b[n - 1][4];
+  }
+  const buyTag = r => r.held ? '<span class="verdict near">이미 보유·예약</span>' : r.slot ? '<span class="verdict go">매수 ' + r.rank + '순위</span>' : r.rank ? '<span class="verdict near">예비 ' + r.rank + '순위</span>' : '<span class="verdict go">매수 후보</span>';
   // ---------- 오늘 신호 계산 ----------
   function run() {
     ensureRS();
@@ -1888,10 +1963,21 @@ const DEMO = (() => {
       if (state.day > 0 && !r.back && r.gap === 0) r.gap = 1;   // 과거 신호 보기에서는 오늘 신호만 있는 종목을 후보에서 뺌 (오늘 탭에서 확인)
       r.afford = !!(r.plan && r.plan.valid && r.plan.qty > 0) && (!r.still || r.still.state === 'ok');
     }
+    // 같은 시장에 살 수 있는 후보가 여러 개면 변동성(20일 ATR ÷ 종가)이 큰 종목부터. 4년 백테스트에서 두 시장 모두 무작위로 고를 때보다 수익은 높고 낙폭은 낮았음
+    state.slots = {};
+    for (const m of ['KR', 'US']) {
+      const mine = state.trades.filter(t => t.market === m && (t.status === 'open' || t.status === 'planned'));
+      const held = new Set(mine.map(t => String(t.symbol))), used = held.size, free = Math.max(0, maxPos() - used);
+      const c = res.filter(r => r.stock.market === m && r.gap === 0 && r.afford);
+      for (const r of c) { r.atrp = atrPct(r.stock.bars); r.held = held.has(String(r.stock.symbol)); }
+      const rk = c.filter(r => !r.held).sort((a, b) => b.atrp - a.atrp);
+      rk.forEach((r, i) => { r.rank = i + 1; r.slot = i < free; });
+      state.slots[m] = { max: maxPos(), used, free, picks: rk.filter(r => r.slot), spare: rk.filter(r => !r.slot) };
+    }
     state.latest = latest;
-    res.sort((a, b) => a.gap - b.gap || (a.stock.symbol < b.stock.symbol ? -1 : 1));
+    res.sort((a, b) => a.gap - b.gap || (a.rank || 999) - (b.rank || 999) || (a.stock.symbol < b.stock.symbol ? -1 : 1));
     state.results = res;
-    if (!state.selected || !res.find(r => r.stock.symbol === state.selected)) state.selected = (res.find(r => r.gap === 0 && r.afford) || res.find(r => r.gap === 0) || res[0])?.stock.symbol;
+    if (!state.selected || !res.find(r => r.stock.symbol === state.selected)) state.selected = (res.find(r => r.slot) || res.find(r => r.gap === 0 && r.afford) || res.find(r => r.gap === 0) || res[0])?.stock.symbol;
     render();
   }
 
@@ -1907,10 +1993,10 @@ const DEMO = (() => {
   function renderSummary() {
     const R = state.results.filter(r => r.ev?.ready), hit = R.filter(r => r.gap === 0);
     const tile = m => {
-      const h = hit.filter(r => r.stock.market === m), ok = h.filter(r => r.afford).length, poor = h.length - ok;
+      const h = hit.filter(r => r.stock.market === m), ok = h.filter(r => r.slot).length, poor = h.filter(r => !r.afford).length, spare = h.filter(r => r.afford && !r.slot && !r.held).length;
       const seed = m === 'KR' ? state.seedKR : state.seedUS;
       const sub = (m === 'KR' ? '국장' : '미장') + (state.day === 0 ? ' 오늘 살 수 있는 종목' : (state.day === 1 ? ' 전거래일' : ' 최근 5거래일') + ' 신호 중 아직 살 만한 종목');
-      const note = seed <= 0 ? (m === 'KR' ? '국장' : '미장') + ' 시드 0원 · 조건 충족 ' + h.length + '종목' : (poor ? '조건은 맞지만 시드 부족 ' + poor + '종목 · ' : '') + S[state.strat[m]].short;
+      const note = seed <= 0 ? (m === 'KR' ? '국장' : '미장') + ' 시드 0원 · 조건 충족 ' + h.length + '종목' : (spare ? '자리 없어 예비 ' + spare + '종목 · ' : '') + (poor ? '조건은 맞지만 못 사는 ' + poor + '종목 · ' : '') + S[state.strat[m]].short;
       return ['hit', ok + '<small>종목</small>', sub, note];
     };
     $('summary').innerHTML = [
@@ -1918,7 +2004,7 @@ const DEMO = (() => {
       ['', R.filter(r => r.gap === 1).length + '<small>종목</small>', '조건 1개 부족 (관찰)', '내일 후보가 될 수 있는 종목'],
       ['', state.results.length + '<small>종목</small>', '오늘 분석한 종목', state.source === 'demo' ? '연습용 가상 데이터' : '실제 데이터']
     ].map(([c, v, l, n]) => '<div class="panel stat ' + c + '"><span class="st-l">' + l + '</span><b>' + v + '</b><span>' + n + '</span></div>').join('');
-    renderFund(); renderRegime();
+    renderFund(); renderRegime(); renderTodo();
   }
   function renderFund() {
     const k = state.seedKR, u = state.seedUS, usd = u / state.fx, rp = state.cfg.riskPct, cp = state.capPct;
@@ -1946,7 +2032,7 @@ const DEMO = (() => {
       const e = r.ev, lab = S[r.key].labels, p = r.plan, ok = p && p.valid && p.qty > 0;
       const miss = lab.filter((_, i) => !e.conds[i]);
       const stl = r.still, stTxt = stl ? '<div class="miss">' + r.lastDate.slice(5) + ' 신호 · ' + stl.basis + ' ' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%</div>' : '';
-      const v = r.gap === 0 ? (stl && stl.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' + stTxt : stl && stl.state === 'back' ? '<span class="verdict no">보류</span>' + stTxt : (r.afford ? '<span class="verdict go">매수 후보</span>' : '<span class="verdict poor">시드 부족</span>') + stTxt)
+      const v = r.gap === 0 ? (stl && stl.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' + stTxt : stl && stl.state === 'back' ? '<span class="verdict no">보류</span>' + stTxt : (r.afford ? buyTag(r) + (r.rank && !r.slot ? '<div class="miss">보유 자리 없음 (' + state.slots[m].used + '/' + state.slots[m].max + ')</div>' : '') : '<span class="verdict poor">시드 부족</span>') + stTxt)
         : r.gap === 1 ? '<span class="verdict near">관찰</span><div class="miss">부족: ' + miss[0] + '</div>' : '<span class="verdict no">대기</span>';
       const mon = v => m === 'KR' ? fmtInt(v) + '원' : '$' + fmtN(v, 2);
       const tt = tradeFor(m, s.symbol, r.basisDate || r.lastDate);
@@ -1974,17 +2060,20 @@ const DEMO = (() => {
     if (r.short || !r.ev.ready) { box.innerHTML = '<div class="dhead"><div><h2>' + esc(s.symbol) + '</h2><div class="sub">' + esc(s.name) + '</div></div></div><div class="empty">지표 계산에 필요한 봉 수(260봉)가 부족합니다.</div>'; return; }
     const ST = S[r.key], e = r.ev, p = r.plan, cfg = state.cfg, P = v => fmtP(v, m);
     const nC = e.conds.length;
-    const verdict = r.gap === 0 ? (r.still && r.still.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' : r.still && r.still.state === 'back' ? '<span class="verdict no">보류</span>' : r.afford ? '<span class="verdict go">매수 후보</span>' : '<span class="verdict poor">시드 부족</span>') : '<span class="verdict ' + (r.gap === 1 ? 'near' : 'no') + '">' + e.score + '/' + nC + ' · 진입 금지</span>';
+    const verdict = r.gap === 0 ? (r.still && r.still.state === 'chase' ? '<span class="verdict poor">추격 금지</span>' : r.still && r.still.state === 'back' ? '<span class="verdict no">보류</span>' : r.afford ? buyTag(r) : '<span class="verdict poor">시드 부족</span>') : '<span class="verdict ' + (r.gap === 1 ? 'near' : 'no') + '">' + e.score + '/' + nC + ' · 진입 금지</span>';
     const miss = ST.labels.filter((_, i) => !e.conds[i]);
     const mainName = m === 'KR' ? s.name : s.symbol, subName = m === 'KR' ? s.symbol : s.name;
     let html = '<div class="dhead"><div><h2>' + esc(mainName) + '</h2><div class="sub"><span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> ' + esc(subName) + ' · ' + ST.name + (r.back ? ' · 신호일 <span class="mono">' + r.lastDate + '</span> · 오늘 <span class="mono">' + r.basisDate + '</span>' : ' · 기준일 <span class="mono">' + r.lastDate + '</span>') + (r.stale ? ' · <span class="stale">데이터 지연</span>' : '') + '</div></div>' + verdict + '</div>';
     const stl = r.still;
-    const say = r.gap === 0 && stl && stl.state !== 'ok' ? (stl.state === 'chase'
+    let say = r.gap === 0 && stl && stl.state !== 'ok' ? (stl.state === 'chase'
         ? '<b>' + r.lastDate + ' 신호였지만 지금은 추격 매수 구간입니다.</b> ' + stl.basis + ' ' + P(stl.piv) + ' 대비 오늘 종가 ' + P(stl.tc) + ' (+' + fmtN(stl.ext * 100, 1) + '%). ' + (ST.pro === 'minervini' ? '미너비니는 피벗에서 5% 넘게 오른 종목은 사지 않습니다.' : '5% 넘게 오른 뒤에는 손익비가 나빠집니다.')
         : '<b>' + r.lastDate + ' 신호였지만 지금은 보류입니다.</b> ' + stl.basis + ' ' + P(stl.piv) + ' 대비 오늘 종가 ' + P(stl.tc) + ' (' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%) · 피벗 아래로 되밀렸거나 50일선 아래입니다. 다시 돌파하면 새 신호로 나옵니다.')
       : r.gap === 0 && stl ? (r.afford ? '<b>' + r.lastDate + '에 나온 신호이고, 오늘 종가 기준으로도 아직 살 수 있는 구간입니다</b> (' + stl.basis + ' ' + P(stl.piv) + ' 대비 ' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%, 5% 이내). ' + (p && p.entryType === 'limit' ? '내일 지정가(' + P(p.entry) + ') 기준 주문표입니다.' : '내일 시가 기준 주문표입니다. 매수가는 오늘 종가로 추정했습니다.') : '<b>아직 살 수 있는 구간이지만 지금 시드로는 살 수 없습니다.</b>')
       : r.gap === 0 ? (r.afford ? '<b>오늘 종가 기준으로 ' + (nC > 1 ? '매수 조건 ' + nC + '개를 모두' : '매수 조건을') + ' 충족했습니다.</b> 아래 주문표대로 주문하세요.' : '<b>조건은 모두 충족했지만 지금 시드로는 살 수 없습니다.</b> 이유는 아래 주문표에 있습니다.')
       : '<b>아직 사면 안 됩니다.</b> 부족한 조건: ' + miss.join(', ');
+    if (r.gap === 0 && r.afford && r.held) say += '<br>이 종목은 이미 보유 중이거나 예약 주문이 저장되어 있습니다. 같은 종목을 또 사지 않습니다.';
+    else if (r.gap === 0 && r.afford && r.rank && !r.slot) say += '<br><b>다만 지금은 예비 ' + r.rank + '순위입니다.</b> 동시 보유 한도(' + state.slots[m].max + '종목)에 자리가 ' + state.slots[m].free + '개라, 앞 순위 종목을 못 샀을 때만 사세요.';
+    else if (r.slot && state.slots[m].picks.length > 1) say += '<br>오늘 살 수 있는 후보 중 <b>' + r.rank + '순위</b>입니다 (변동성이 큰 종목부터).';
     html += '<div class="say ' + (r.gap === 0 && r.afford ? 'go' : r.gap === 0 && !(stl && stl.state === 'back') ? 'poor' : 'no') + '">' + say + '</div>';
     let tail = '<div class="chartbox"><canvas id="cv" aria-label="최근 120봉 캔들 차트"></canvas></div>';
     tail += '<div class="legend"><span><i style="background:var(--sma200)"></i>200일선</span><span><i style="background:var(--ema20)"></i>20 EMA</span><span><i style="background:var(--ema50)"></i>50 EMA</span><span><i style="background:var(--kijun)"></i>기준선</span><span><i style="background:var(--cloud-bull);height:8px"></i>구름대</span>' + (r.history.length ? '<span>▲ 최근 1년 신호 ' + r.history.length + '회</span>' : '') + '</div>';
@@ -3276,7 +3365,7 @@ const DEMO = (() => {
     await saveLedger(); renderNet(); const rows = $('nwAccts').querySelectorAll('[data-acct]'); const last = rows[rows.length - 1]; if (last) { const i = last.querySelector('[data-a="name"]'); i.focus(); i.select(); } };
   $('syncToggle').onclick = () => renderSync($('syncBody').hidden);
   $('saveAll').onclick = async () => {
-    const list = filtered().filter(r => r.gap === 0 && r.afford);
+    const list = filtered().filter(r => r.slot);
     let n = 0; for (const r of list) if (await savePlan(r)) n++;
     if (n) { await saveTrades(); renderTable(); renderDetail(); }
     toast(n ? n + '개 종목의 주문 계획을 저장했습니다' : list.length ? '이미 모두 저장되어 있습니다' : '저장할 매수 후보가 없습니다');
