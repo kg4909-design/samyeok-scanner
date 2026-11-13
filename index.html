@@ -814,9 +814,11 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
 </ul>
 <h3>메트릭 스튜디오 지표 검증 (2026-11)</h3>
 <ul>
-  <li>문병로 교수의 『메트릭 스튜디오』(2014)에서 유의미하다고 한 기술적 지표(지수 이동평균 추세, 정배열, 볼린저밴드 돌파, 52주 신고가, 이격도, 6개월 모멘텀 등)를 이 앱의 최근 4년 일봉으로 다시 확인했습니다. PER·PBR 같은 기본적 지표는 재무 자료가 없어 확인하지 못했습니다.</li>
-  <li><b>반영한 것:</b> 국장 미너비니에 <b>"시장(국장 300종목 동일가중 지수)이 200일선 위일 때만 매수"</b> 조건을 더했습니다. 연 +19.9% → +20.2%로 수익은 비슷하고, 최대 낙폭은 7.8% → 4.1%로 줄었습니다. 시드 10배·5종목·1회 손실 0.5% 조건에서도 모두 수익이 같거나 높고 낙폭은 작았습니다. 책의 "개별 종목보다 지수의 이동평균 추세가 유의미하다"는 결론과 같은 방향입니다.</li>
-  <li><b>반영하지 않은 것:</b> 미장에는 같은 시장 조건이 효과가 없었습니다. 6개월 모멘텀·이격도 반등은 따로 보면 평균보다 나았지만, 전략으로 만들면 지금 전략보다 수익이 낮았습니다. 변동성이 작을 때의 볼린저밴드 상단 돌파는 책과 달리 이 기간에는 오히려 평균보다 나빴습니다.</li>
+  <li>문병로 교수의 『메트릭 스튜디오』(2014)가 다룬 지표를 이 앱 자료로 다시 검증했습니다. 기술적 지표는 최근 4년 일봉(국장 296·미장 498종목), 기본적 지표는 DART 연간 재무제표(국장 294종목, 2019~2025년)를 썼고, 공시 전 정보를 쓰지 않도록 사업보고서는 다음 해 4월 1일부터 반영했습니다.</li>
+  <li><b>기본적 지표 (국장, 매달 5분위·다음 달 수익, 59개월):</b> 저PCR·저PBR·저PSR·저PER·저POR·고배당·ROE·ROA·마법공식·F-스코어·가치 혼합 모두 평균과 통계적으로 다르지 않았습니다. 미너비니 신호를 이 지표로 나눠도 차이가 없었습니다. 소형주 효과는 크게 나왔지만, 종목 목록이 "지금" 시가총액 상위 300개라 과거에 작았다가 크게 오른 종목만 남은 착시(생존 편향)라 쓰지 않았습니다.</li>
+  <li><b>기술적 지표:</b> 이동평균 골든·데드크로스, MACD, RSI, 스토캐스틱, 볼린저밴드, 캔들 패턴(적삼병·흑삼병·도지)은 효과가 거의 없었습니다(책의 결론과 같음). 이격도 과대 낙폭과 52주 신고가는 평균보다 나았지만, 전략으로 만들거나 지금 전략에 조건으로 더하면 수익이 오히려 낮아졌습니다. "횡보 후 거래량 급증 상승"은 두 시장 모두 평균보다 나빴습니다.</li>
+  <li><b>실제 코스피 지수 조건:</b> 코스피가 200일선 위일 때만 사는 조건도 시험했지만, 위·아래에서 나온 신호의 성과 차이가 우연 범위(t값 0.47)라 넣지 않았습니다.</li>
+  <li>결론: 이번 검증에서 지금 규칙보다 수익을 의미 있게 올리는 지표는 없었습니다. 그래서 매수 규칙은 그대로 두었습니다.</li>
 </ul>
 <h3>어떤 종목을 보나요</h3>
 <ul>
@@ -1129,7 +1131,7 @@ const ENGINE = (() => {
   const lo252X = ind => X(ind, 'lo252', () => { const L = ind.c.length, out = NaNs(L); for (let i = 251; i < L; i++) { let m = Infinity; for (let j = i - 251; j <= i; j++) if (ind.l[j] < m) m = ind.l[j]; out[i] = m; } return out; });
   const hi252X = ind => X(ind, 'hi252', () => { const L = ind.c.length, out = NaNs(L); for (let i = 251; i < L; i++) { let m = -Infinity; for (let j = i - 251; j <= i; j++) if (ind.h[j] > m) m = ind.h[j]; out[i] = m; } return out; });
   // 상대강도(RS) 백분위: IBD 방식 가중 수익률(최근 3개월 40% + 이전 3개 분기 각 20%)을 같은 날 전 종목과 비교 (0~99)
-  function attachRS(stocks) {
+  function attachRS(stocks, index) {
     const byDate = new Map();
     for (const s of stocks) {
       const ind = compute(s.bars), c = ind.c, L = c.length, sc = NaNs(L);
@@ -1138,12 +1140,13 @@ const ENGINE = (() => {
       for (let i = 252; i < L; i++) { const d = ind.dates[i]; if (!byDate.has(d)) byDate.set(d, []); byDate.get(d).push([sc[i], ind, i]); }
     }
     for (const arr of byDate.values()) { arr.sort((a, b) => a[0] - b[0]); const n = arr.length; arr.forEach(([, ind, i], k) => { ind._x.rsPct[i] = n > 1 ? Math.floor(k / (n - 1) * 99) : 50; }); }
-    // 시장 지수 대용: 같은 시장 종목 전체의 하루 수익률 평균을 이어 붙인 동일가중 지수와 그 200일선 (메트릭 스튜디오: 개별 종목보다 지수 추세가 유의미)
-    const rets = new Map();
-    for (const s of stocks) { const ind = compute(s.bars); for (let i = 1; i < ind.c.length; i++) { const r = ind.c[i] / ind.c[i - 1] - 1; if (!(Math.abs(r) <= 0.5)) continue; const a = rets.get(ind.dates[i]) || [0, 0]; a[0] += r; a[1]++; rets.set(ind.dates[i], a); } }
-    const ds = [...rets.keys()].sort(), lvl = new Map(); let v = 100, sum = 0; const q = [];
-    for (const d of ds) { const [a, n] = rets.get(d); v *= 1 + a / n; q.push(v); sum += v; if (q.length > 200) sum -= q[q.length - 201]; lvl.set(d, { v, ma: q.length >= 200 ? sum / 200 : NaN }); }
-    for (const s of stocks) { const ind = compute(s.bars); ind._x.mkt = ind.dates.map(d => lvl.get(d) || { v: NaN, ma: NaN }); }
+    // 시장 지수: 실제 코스피(국장) · S&P 500(미장) 일봉과 200일선 (메트릭 스튜디오: 개별 종목보다 지수 추세가 유의미)
+    const lvl = new Map();
+    if (index && index.length > 200) {
+      let sum = 0; const q = [];
+      for (const b of index) { const d = b[0], v = +b[4]; if (!(v > 0)) continue; q.push(v); sum += v; if (q.length > 200) sum -= q[q.length - 201]; lvl.set(d, { v, ma: q.length >= 200 ? sum / 200 : NaN }); }
+    }
+    for (const s of stocks) { const ind = compute(s.bars); ind._x.mkt = lvl.size ? ind.dates.map(d => lvl.get(d) || { v: NaN, ma: NaN }) : null; }
   }
   const sma50 = ind => smaX(ind, 50), sma150 = ind => smaX(ind, 150);
   // 첫 장대양봉: +7% 이상 양봉 · 거래대금(종가×거래량) 국장 500억원 / 미장 5억달러 이상 · 거래량 20일 평균 1.5배 이상 · 직전 60일 고가 돌파 · 직전 20일 안에 같은 봉 없음
@@ -1183,7 +1186,7 @@ const ENGINE = (() => {
       proof: { level: 'high', text: '실계좌로 겨루는 미국 투자 챔피언십(U.S. Investing Championship) 우승: 1997년 연 155%, 2021년 연 334.8%(주최 측 발표·보도자료 기준). 규칙은 저서 『초수익 성장주 투자』 등에 공개. 같은 대회 3연패한 데이비드 라이언(오닐의 CAN SLIM)도 비슷한 기술적 기준을 씀' },
       original: '트렌드 템플릿 8개 조건(주가>50·150·200일선, 50>150>200일선, 200일선 1개월 이상 상승, 52주 저가 대비 +30% 이상, 52주 고가의 75% 이상, 상대강도 70 이상) + 변동성이 줄어든 횡보(VCP) 후 거래량 40% 이상 늘며 피벗 돌파 매수 · 손절 7~8%',
       afterWork: '조건을 모두 갖추고 종가가 피벗(직전 10일 고가)을 거래량과 함께 넘은 날 저녁 → 다음 날 시가 예약 매수. 손절 감시주문 −10%(원래 규칙 −7~8%를 이 앱 4년 백테스트로 조정), +15% 오르면 손절가를 산 가격으로 올림. 익절 목표가는 두지 않고, 종가가 50일선 아래로 마감하면 다음 날 시가 매도',
-      labels: ['트렌드 템플릿 (이평선 정배열)', '52주 고가·저가 위치', '상대강도 70 이상', '좁은 횡보 후 피벗 돌파 + 거래량', '시장이 200일선 위 (국장만)'], custom: true, needsRS: true,
+      labels: ['트렌드 템플릿 (이평선 정배열)', '52주 고가·저가 위치', '상대강도 70 이상', '좁은 횡보 후 피벗 돌파 + 거래량'], custom: true, needsRS: true,
       evaluate(ind, t) {
         const s50 = sma50(ind), s150 = sma150(ind), s200 = ind.sma200, H = hiNX(ind, 10), Lo = loPrevX(ind, 10), hi52 = hi252X(ind), lo52 = lo252X(ind), rs = ind._x.rsPct;
         const x = { close: ind.c[t], s50: s50[t], s150: s150[t], s200: s200[t], s200m: s200[t - 21], hi52: hi52[t], lo52: lo52[t], rs: rs ? rs[t] : NaN, pivot: H[t], baseLo: Lo[t], volRatio: ind.v[t] / ind.volAvg20[t - 1], rsi: ind.rsi[t] };
@@ -1193,17 +1196,13 @@ const ENGINE = (() => {
         const c2 = x.close >= x.lo52 * 1.3 && x.close >= x.hi52 * 0.75;
         const c3 = ok(x.rs) && x.rs >= 70;
         const c4 = x.depth <= 10 && x.close > x.pivot && x.volRatio >= 1.4;
-        // 국장만: 시장(300종목 동일가중 지수)이 200일선 위일 때만 (2026-11 백테스트에서 국장은 수익 유지·낙폭 감소, 미장은 효과 없음)
-        const mk = ind._x.mkt && ind._x.mkt[t]; x.mk = ind._mk; x.mkV = mk ? mk.v : NaN; x.mkMa = mk ? mk.ma : NaN;
-        const c5 = ind._mk !== 'KR' || !(ok(x.mkV) && ok(x.mkMa)) || x.mkV > x.mkMa;
-        return { ready: true, x, conds: [c1, c2, c3, c4, c5] };
+        return { ready: true, x, conds: [c1, c2, c3, c4] };
       },
       rows: (e, P, cfg, F) => [
         ['주가 > 50·150·200일선, 50 > 150 > 200일선, 200일선 1개월 전보다 위', P(e.x.close) + ' · ' + P(e.x.s50) + ' / ' + P(e.x.s150) + ' / ' + P(e.x.s200)],
         ['52주 저가 대비 +30% 이상 · 52주 고가의 75% 이상', '저가 ' + P(e.x.lo52) + ' · 고가 ' + P(e.x.hi52)],
         ['상대강도 백분위 ≥ 70 (같은 날 전 종목 대비)', ok(e.x.rs) ? e.x.rs + '' : '–'],
-        ['직전 10일 변동폭 ≤ 10% · 종가 > 피벗(10일 고가) · 거래량 ≥ 1.4배', '변동폭 ' + F.n(e.x.depth, 1) + '% · 피벗 ' + P(e.x.pivot) + ' · ' + F.n(e.x.volRatio, 2) + '배'],
-        ['국장만: 시장 지수(국장 300종목 동일가중)가 200일선 위', e.x.mk !== 'KR' ? '미장은 적용 안 함' : ok(e.x.mkV) && ok(e.x.mkMa) ? '200일선 대비 ' + (e.x.mkV >= e.x.mkMa ? '+' : '') + F.n((e.x.mkV / e.x.mkMa - 1) * 100, 1) + '%' : '자료 부족 (통과)']],
+        ['직전 10일 변동폭 ≤ 10% · 종가 > 피벗(10일 고가) · 거래량 ≥ 1.4배', '변동폭 ' + F.n(e.x.depth, 1) + '% · 피벗 ' + P(e.x.pivot) + ' · ' + F.n(e.x.volRatio, 2) + '배']],
       entry: () => ({ type: 'open' }),
       stopRule: () => ({ type: 'pct', v: 0.10 }), stopSrc: '산 가격 − 10%',
       breakeven: 1.15,
@@ -1781,6 +1780,7 @@ const DEMO = (() => {
           if (!Array.isArray(arr)) throw new Error(f.name + ': stocks 배열이 없습니다');
           if (!Array.isArray(j)) meta = j;
           const mk = !Array.isArray(j) && j.market;
+          if (!Array.isArray(j) && j.index && j.index.bars && mk) { state.index = Object.assign({}, state.index, { [String(mk).toUpperCase()]: { name: j.index.name, bars: normBars(j.index.bars) } }); }
           for (const s of arr) stocks.push({ symbol: String(s.symbol), name: s.name || s.symbol, market: (s.market || mk || guessMarket(String(s.symbol))).toUpperCase(), bars: normBars(s.bars) });
         } else stocks.push(parseCSV(text, f.name));
       } catch (e) { errors.push(e.message); }
@@ -3086,7 +3086,7 @@ const DEMO = (() => {
   const LAB_KEYS = () => ENGINE.PRO_KEYS.concat(MY_KEYS);
   const pct1 = v => v == null || !isFinite(v) ? '–' : (v > 0 ? '+' : '') + fmtN(v * 100, 1) + '%';
   const PROOF_RANK = { high: 3, mid: 2, low: 1 };
-  function ensureRS() { if (state._rsFor !== state.stocks) { for (const m of ['KR', 'US']) ENGINE.attachRS(state.stocks.filter(s => s.market === m && s.bars.length >= 260)); state._rsFor = state.stocks; } }
+  function ensureRS() { if (state._rsFor !== state.stocks || state._rsIdx !== state.index) { for (const m of ['KR', 'US']) ENGINE.attachRS(state.stocks.filter(s => s.market === m && s.bars.length >= 260), state.index && state.index[m] ? state.index[m].bars : null); state._rsFor = state.stocks; state._rsIdx = state.index; } }
   async function runLab() {
     const m = state.labMkt, list = state.stocks.filter(s => s.market === m && s.bars.length >= 260), btn = $('labRun');
     if (!list.length) { $('labVerdict').textContent = (m === 'KR' ? '국장' : '미장') + ' 데이터가 없습니다. 시세가 들어온 뒤 다시 누르세요.'; return; }
@@ -3246,13 +3246,13 @@ const DEMO = (() => {
     finally { clearTimeout(to); }
   }
   async function loadLocalData() {
-    const stocks = [];
+    const stocks = [], idx = {};
     for (const m of ['KR', 'US']) {
       try { const j = await fetch('/api/data?market=' + m, { cache: 'no-store' }); if (!j.ok) continue; const d = await j.json();
-        for (const s of d.stocks) stocks.push({ symbol: String(s.symbol), name: s.name, market: m, bars: normBars(s.bars) }); } catch {}
+        for (const s of d.stocks) stocks.push({ symbol: String(s.symbol), name: s.name, market: m, bars: normBars(s.bars) }); if (d.index && d.index.bars) idx[m] = { name: d.index.name, bars: normBars(d.index.bars) }; } catch {}
     }
     if (!stocks.length) return false;
-    state.stocks = cleanUniverse(stocks); state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
+    state.index = idx; state.stocks = cleanUniverse(stocks); state.source = 'local'; state.selected = null; state.bt = {}; run(); return true;
   }
   function renderJobs(st) {
     const names = { KR: '국장', US: '미장' };
@@ -3310,14 +3310,14 @@ const DEMO = (() => {
   const pages = { meta: null, timer: null, waiting: false };
   async function fetchMeta() { const r = await fetch('data/meta.json?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) throw new Error(r.status); return r.json(); }
   async function loadPagesData() {
-    const stocks = [];
+    const stocks = [], idx = {};
     for (const m of ['KR', 'US']) {
       const info = pages.meta && pages.meta[m]; if (!info) continue;
       try { const r = await fetch('data/' + m + '.json?v=' + encodeURIComponent(info.generated || ''), { cache: 'no-store' }); if (!r.ok) continue; const d = await r.json();
-        for (const x of d.stocks) stocks.push({ symbol: String(x.symbol), name: x.name, market: m, bars: normBars(x.bars) }); } catch {}
+        for (const x of d.stocks) stocks.push({ symbol: String(x.symbol), name: x.name, market: m, bars: normBars(x.bars) }); if (d.index && d.index.bars) idx[m] = { name: d.index.name, bars: normBars(d.index.bars) }; } catch {}
     }
     if (!stocks.length) return false;
-    state.stocks = cleanUniverse(stocks); state.source = 'pages'; state.selected = null; state.bt = {};
+    state.index = idx; state.stocks = cleanUniverse(stocks); state.source = 'pages'; state.selected = null; state.bt = {};
     return true;
   }
   function renderPagesJobs() {
