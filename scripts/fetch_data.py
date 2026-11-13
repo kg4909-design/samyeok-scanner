@@ -254,6 +254,9 @@ def fetch_soxl(out):
         df.columns = df.columns.get_level_values(0)
     df = df.dropna(subset=["Close"])
     bars = [[pd.Timestamp(i).strftime("%Y-%m-%d"), round(float(r["Open"]), 4), round(float(r["High"]), 4), round(float(r["Low"]), 4), round(float(r["Close"]), 4), int(r["Volume"])] for i, r in df.iterrows()]
+    now_ny = dt.datetime.now(NY)
+    if bars and bars[-1][0] == now_ny.strftime("%Y-%m-%d") and now_ny.strftime("%H:%M") < "16:15":
+        bars = bars[:-1]   # 장 중에 받은 오늘 봉은 아직 종가가 아니므로 버림
     last30 = {}
     try:
         m = yf.download("SOXL", period="60d", interval="5m", auto_adjust=False, progress=False, threads=False, prepost=False)
@@ -265,7 +268,7 @@ def fetch_soxl(out):
                 continue
             tp = (float(r["High"]) + float(r["Low"]) + float(r["Close"])) / 3
             last30.setdefault(i.strftime("%Y-%m-%d"), []).append([round(tp, 4), int(r["Volume"])])
-        last30 = {k: v for k, v in last30.items() if len(v) >= 5}
+        last30 = {k: v for k, v in last30.items() if len(v) >= 6 and k <= bars[-1][0]}
     except Exception as e:
         log(f"[SOXL] 5분봉 실패: {e}")
     write_json(os.path.join(out, "SOXL.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "bars": bars, "last30": last30})
