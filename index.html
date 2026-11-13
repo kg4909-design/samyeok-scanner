@@ -307,6 +307,8 @@ textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
 .nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
 .nwrow .k{font-size:12px;color:var(--muted)}
 .acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.wonsub.inl{display:inline;margin-left:3px;font-size:.85em}
+.wonsub{display:block;font-size:11px;font-weight:500;color:var(--muted);line-height:1.25;margin-top:1px;font-family:var(--f-sans);letter-spacing:0;text-transform:none;white-space:nowrap}
 .wonhint{display:block;font-size:12.5px;font-weight:600;color:var(--accent);min-height:1.2em;line-height:1.3;margin-top:2px;font-family:var(--f-sans);letter-spacing:0;text-transform:none}
 .rpctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}
 .rpctl .field{min-width:150px}
@@ -410,7 +412,7 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
           <span class="note">종목당 최소 260봉, 전략 검증은 5년 이상 권장</span>
         </div>
         <h4>미국 주식</h4>
-        <label class="field"><span>환율 (원/달러)</span><input id="fx" type="number" min="500" max="3000" step="1"></label>
+        <label class="field"><span>환율 (원/달러)</span><input id="fx" type="number" min="500" max="3000" step="1" data-won></label>
         <label class="chk"><input id="fractional" type="checkbox"> 소수점 매수로 계산</label>
         <div hidden>
         <h4>추세 추종 (삼역호전 5조건)</h4>
@@ -1663,7 +1665,26 @@ const DEMO = (() => {
     const txt = raw !== '' && isFinite(+raw) ? korWon(+raw) : '';
     if (h.textContent !== txt) h.textContent = txt;   // 같으면 건드리지 않음 (화면 감시가 무한 반복하지 않게)
   }
-  const wonHints = (root = document) => { for (const el of root.querySelectorAll('input[data-won]')) wonHint(el); };
+  // 화면에 보이는 원화 금액(글자만 있는 칸)에도 아래에 작게 한글 금액: "3,500,000원" 또는 국장 칸의 "52,000"
+  const WON_RE = /^[+−-]?\d{1,3}(,\d{3})+원?$/;
+  function wonDisplays(root) {
+    const w = document.createTreeWalker(root.body || root, NodeFilter.SHOW_TEXT, { acceptNode(n) {
+      const t = n.nodeValue.trim(); if (t.length < 5 || t.length > 18 || !WON_RE.test(t)) return 2;
+      const p = n.parentElement; if (!p || p.closest('svg, script, style, textarea, option, select, button, title, .wonhint, .wonsub, .toast, .tabs')) return 2;
+      const nx = n.nextSibling; if (nx && nx.nodeType === 1 && nx.classList.contains('wonsub')) return 2;
+      if (!t.endsWith('원') && !p.closest('[data-cur="KR"]')) return 2;   // 숫자만 있는 칸은 국장 종목 칸일 때만
+      return 1; } });
+    const list = []; while (w.nextNode()) list.push(w.currentNode);
+    for (const n of list) {
+      const t = n.nodeValue.trim(), v = parseFloat(t.replace(/[,원+]/g, '').replace('−', '-')); if (!(Math.abs(v) >= 1e4)) continue;
+      const p = n.parentElement, block = p.closest('td, .lvgrid > div, .jstats > div, .kv > div') && !p.closest('.note, .alert, p');
+      const sm = document.createElement('small'); sm.className = 'wonsub' + (block ? '' : ' inl');
+      const k = korWon(v).replace(/^(?=\d)/, t.startsWith('+') ? '+' : '');
+      sm.textContent = block ? k : '(' + k + ')';
+      n.after(sm);
+    }
+  }
+  const wonHints = (root = document) => { for (const el of root.querySelectorAll('input[data-won]')) wonHint(el); wonDisplays(root); };
   document.addEventListener('input', e => { if (e.target.matches && e.target.matches('input[data-won]')) wonHint(e.target); });
   { let q = 0; new MutationObserver(() => { if (q) return; q = requestAnimationFrame(() => { q = 0; wonHints(); }); }).observe(document.body, { childList: true, subtree: true }); }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1796,7 +1817,7 @@ const DEMO = (() => {
   function renderTable() {
     const rows = filtered();
     $('tbody').innerHTML = rows.map(r => {
-      const s = r.stock, m = s.market, sel = state.selected === s.symbol ? ' class="sel"' : '';
+      const s = r.stock, m = s.market, sel = (state.selected === s.symbol ? ' class="sel"' : '') + ' data-cur="' + m + '"';
       const main = m === 'KR' ? s.name : s.symbol, sub = (m === 'KR' ? s.symbol : s.name);
       const nameCell = '<td><div class="sym">' + esc(main) + '</div><div class="nm"><span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span> ' + esc(sub) +
         (r.key ? ' · ' + S[r.key].short : '') + (r.stale ? ' · <span class="stale">데이터 지연</span>' : '') + '</div></td>';
@@ -1829,7 +1850,7 @@ const DEMO = (() => {
   function renderDetail() {
     const r = state.results.find(x => x.stock.symbol === state.selected), box = $('detail');
     if (!r) { box.innerHTML = '<div class="empty">목록에서 종목을 고르면 차트와 주문 계획이 표시됩니다.</div>'; return; }
-    const s = r.stock, m = s.market;
+    const s = r.stock, m = s.market; box.dataset.cur = m;
     if (r.short || !r.ev.ready) { box.innerHTML = '<div class="dhead"><div><h2>' + esc(s.symbol) + '</h2><div class="sub">' + esc(s.name) + '</div></div></div><div class="empty">지표 계산에 필요한 봉 수(260봉)가 부족합니다.</div>'; return; }
     const ST = S[r.key], e = r.ev, p = r.plan, cfg = state.cfg, P = v => fmtP(v, m);
     const nC = e.conds.length;
@@ -2358,7 +2379,7 @@ const DEMO = (() => {
     $('posCnt').hidden = !n; $('posCnt').textContent = n;
   }
   function lvBox(m, rows) {
-    return '<div class="lvgrid">' + rows.map(([k, v, sub, c]) => '<div class="' + (c || '') + '"><span>' + k + '</span><b>' + v + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>').join('') + '</div>';
+    return '<div class="lvgrid" data-cur="' + m + '">' + rows.map(([k, v, sub, c]) => '<div class="' + (c || '') + '"><span>' + k + '</span><b>' + v + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>').join('') + '</div>';
   }
   function renderPositions() {
     renderPosBadge();
@@ -2611,7 +2632,7 @@ const DEMO = (() => {
     renderMonth(done);
     // ⑤ 표
     $('journalBody').innerHTML = done.length ? done.map(tr => { const m = tr.market, pnl = realized(tr), r = rOf(tr), last = (tr.events || []).at(-1), rl = ruleOf(tr);
-      return '<tr data-id="' + tr.id + '"><td><b>' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span></td><td class="mono">' + tr.fillDate + '</td><td class="mono">' + (tr.closeDate || '') + '</td>' +
+      return '<tr data-id="' + tr.id + '" data-cur="' + m + '"><td><b>' + esc(m === 'KR' ? tr.name : tr.symbol) + '</b> <span class="mk">' + (m === 'KR' ? '국장' : '미장') + '</span></td><td class="mono">' + tr.fillDate + '</td><td class="mono">' + (tr.closeDate || '') + '</td>' +
         '<td class="r num">' + fmtP(tr.fill, m) + '</td><td class="r num">' + fmtQ(tr.qty, tr.qty % 1 !== 0) + '</td><td class="r num ' + (pnl >= 0 ? 'c-up' : 'c-down') + '">' + sgnM(m, pnl) + '</td>' +
         '<td class="r num">' + fmtR(r) + '</td><td><button type="button" class="ghost rulebtn ' + (rl === true ? 'y' : rl === false ? 'n' : '') + '" data-rule="' + tr.id + '" title="원칙 준수 여부 바꾸기">' + (rl === true ? '✓' : rl === false ? '✗' : '?') + '</button></td><td>' + (last ? REASONS[last.reason] || '' : '') + (last && last.memo ? ' <span class="note">' + esc(last.memo) + '</span>' : '') + '</td><td><button type="button" class="ghost" data-undo="' + tr.id + '">되돌리기</button></td></tr>'; }).join('')
       : '<tr><td colspan="10" class="empty">아직 다 판 종목이 없습니다.</td></tr>';
@@ -2740,11 +2761,11 @@ const DEMO = (() => {
     box.innerHTML = list.length ? list.map((r, i) => {
       const filledR = r.status === 'open' || r.status === 'closed';
       const px = r.status === 'closed' ? P(r.exitPx) + '<br><span class="note">' + r.exitDate.slice(5) + ' 판 가격' + (r.events.length > 1 ? '(평균)' : '') + '</span>' : r.status === 'open' ? P(r.last) + '<br><span class="note">' + r.lastDate.slice(5) + ' 종가</span>' : P(r.last) + '<br><span class="note">현재가</span>';
-      const buy = filledR ? r.entryDate.slice(5) + ' · ' + P(r.entry) + '<br><span class="note">' + (r.entryType === 'limit' ? '지정가' : r.entryType === 'stop' ? '감시 매수' : '시가') + ' · 첫 손절 ' + P(r.sl0) + '</span>'
+      const buy = filledR ? r.entryDate.slice(5) + ' · <span>' + P(r.entry) + '</span><br><span class="note">' + (r.entryType === 'limit' ? '지정가' : r.entryType === 'stop' ? '감시 매수' : '시가') + ' · 첫 손절 ' + P(r.sl0) + '</span>'
         : r.status === 'nofill' ? '<span class="note">' + (r.badStop ? '손절가 계산 불가' : (r.entryType === 'limit' ? '지정가 ' + P(r.level) + ' → ' + r.nextDate.slice(5) + ' 저가 ' + P(r.nextLow) : r.entryType === 'stop' ? '감시가 ' + P(r.level) + ' → ' + r.nextDate.slice(5) + ' 고가 ' + P(r.nextHigh) : '')) + '</span>'
         : '<span class="note">' + (r.entryType === 'limit' ? '내일 지정가 ' + P(r.level) : r.entryType === 'stop' ? '내일 감시 매수 ' + P(r.level) : '내일 시가') + '</span>';
       const acct = !filledR ? '–' : r.inAcct ? fmtQ(r.qty, r.qty % 1 !== 0) + '주 · <span class="' + cls2(r.pnlAcct) + '">' + sgnM(m, r.pnlAcct) + '</span>' : '<span class="note">' + (r.qty > 0 ? '보유 한도 초과' : '1주도 못 삼') + '</span>';
-      return '<tr class="rprow" data-i="' + i + '"><td>' + name(r.stock) + '</td><td class="mono">' + r.signalDate.slice(5) + '</td><td class="mono">' + buy + '</td><td>' + stTag(r) + '</td><td class="r num">' + px + '</td>' +
+      return '<tr class="rprow" data-i="' + i + '" data-cur="' + m + '"><td>' + name(r.stock) + '</td><td class="mono">' + r.signalDate.slice(5) + '</td><td class="mono">' + buy + '</td><td>' + stTag(r) + '</td><td class="r num">' + px + '</td>' +
         '<td class="r num ' + (filledR ? cls2(r.ret) : '') + '">' + (filledR ? pct1(r.ret) : '–') + '</td><td class="r num">' + (filledR ? fmtR(r.rNow) : '–') + '</td><td class="r num">' + acct + '</td></tr>';
     }).join('') : '<tr><td colspan="8" class="empty">' + (mode === 'day' ? date + '에는 이 전략 신호가 없었습니다. 날짜를 바꾸거나 [그날부터 오늘까지 매일 신호]로 보세요.' : '이 기간에 신호가 없었습니다.') + '</td></tr>';
     for (const tr of box.querySelectorAll('tr.rprow')) tr.onclick = () => {
