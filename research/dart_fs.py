@@ -110,6 +110,9 @@ def main():
     root = ET.fromstring(z.read(z.namelist()[0]))
     codes = {el.findtext("stock_code").strip(): el.findtext("corp_code").strip() for el in root.iter("list") if (el.findtext("stock_code") or "").strip()}
     uni = json.load(open(os.path.join(os.path.dirname(__file__), "kr_universe.json"), encoding="utf-8"))
+    shard, shards = (int(sys.argv[2]), int(sys.argv[3])) if len(sys.argv) > 3 else (0, 1)
+    uni = [s for i, s in enumerate(uni) if i % shards == shard]
+    t0 = time.time()
     res = {}
     for k, s in enumerate(uni, 1):
         corp = codes.get(s["sym"])
@@ -122,9 +125,10 @@ def main():
             if f or sh:
                 res[s["sym"]][y] = {**f, **sh, "dps": dv}
             time.sleep(0.05)
-        if k % 20 == 0 or k <= 2:
-            print(f"{k}/{len(uni)} {s['name']} 연도 {len(res[s['sym']])} (호출 {calls})", flush=True)
-    json.dump(res, open(os.path.join(out, "fs.json"), "w", encoding="utf-8"), ensure_ascii=False)
+        print(f"[{shard}] {k}/{len(uni)} {s['name']} 연도 {len(res[s['sym']])} (호출 {calls}, 경과 {int(time.time() - t0)}초)", flush=True)
+        if k % 10 == 0:   # 중간 저장 (시간 초과로 끊겨도 받은 만큼은 남게)
+            json.dump(res, open(os.path.join(out, f"fs_{shard}.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump(res, open(os.path.join(out, f"fs_{shard}.json"), "w", encoding="utf-8"), ensure_ascii=False)
     print("완료", len(res), "호출", calls)
 
 
