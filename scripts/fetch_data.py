@@ -245,6 +245,33 @@ def fetch_us(years, out):
     return len(stocks)
 
 
+# ---------------- SOXL (P 사이클 탭용) ----------------
+def fetch_soxl(out):
+    """SOXL 일봉 + 최근 60일 장 마감 30분 5분봉(체결 추정용)"""
+    import yfinance as yf
+    df = yf.download("SOXL", start="2025-01-01", interval="1d", auto_adjust=False, progress=False, threads=False)
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
+    df = df.dropna(subset=["Close"])
+    bars = [[pd.Timestamp(i).strftime("%Y-%m-%d"), round(float(r["Open"]), 4), round(float(r["High"]), 4), round(float(r["Low"]), 4), round(float(r["Close"]), 4), int(r["Volume"])] for i, r in df.iterrows()]
+    last30 = {}
+    try:
+        m = yf.download("SOXL", period="60d", interval="5m", auto_adjust=False, progress=False, threads=False, prepost=False)
+        if isinstance(m.columns, pd.MultiIndex):
+            m.columns = m.columns.get_level_values(0)
+        m.index = m.index.tz_convert("America/New_York")
+        for i, r in m.iterrows():
+            if i.strftime("%H:%M") < "15:30" or pd.isna(r["Close"]):
+                continue
+            tp = (float(r["High"]) + float(r["Low"]) + float(r["Close"])) / 3
+            last30.setdefault(i.strftime("%Y-%m-%d"), []).append([round(tp, 4), int(r["Volume"])])
+        last30 = {k: v for k, v in last30.items() if len(v) >= 5}
+    except Exception as e:
+        log(f"[SOXL] 5분봉 실패: {e}")
+    write_json(os.path.join(out, "SOXL.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "bars": bars, "last30": last30})
+    log(f"[SOXL] 일봉 {len(bars)}개 · 마감 30분 {len(last30)}일")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--market", default="ALL", choices=["KR", "US", "ALL"])
@@ -264,6 +291,10 @@ def main():
             errors.append(m)
             old = meta.get(m, {})
             meta[m] = dict(old, ok=False, error=str(e)[:300], tried=dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"))
+    try:
+        fetch_soxl(a.out)
+    except Exception as e:
+        log(f"[SOXL] 실패: {e}")
     write_json(os.path.join(a.out, "meta.json"), meta)
     if errors and len(errors) == (2 if a.market == "ALL" else 1):
         sys.exit(1)   # 전부 실패하면 GitHub에 실패로 표시 (메일 알림)
