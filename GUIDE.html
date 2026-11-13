@@ -80,7 +80,7 @@ td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 #tbody tr.sel{background:var(--accent-soft)}
 td.r,th.r{text-align:right}
 .sym{font-weight:600}
-.nm{color:var(--muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.nm{color:var(--muted);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
 .mk{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
 .st{font-size:11px;color:var(--muted)}
 .dots{display:inline-flex;gap:3px}
@@ -137,7 +137,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.7;max-width:900px}
 .job{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px}
 .bar{height:8px;border-radius:4px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);width:0}
-.job .msg{font-size:12px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.job .msg{font-size:12px;color:var(--muted);font-family:var(--f-mono);white-space:normal;overflow-wrap:anywhere;min-width:0}
 .lede{margin:4px 0 0;color:var(--muted);font-size:14px}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.6}
 .banner b{color:inherit}
@@ -156,7 +156,8 @@ footer{font-size:12px;color:var(--muted);line-height:1.7;max-width:900px}
 table.list td{padding:11px 10px}
 table.list .sym{font-size:14px}
 .dot{width:10px;height:10px;border-radius:50%;padding:0;font-size:0}
-.miss{font-size:11px;color:var(--muted);margin-top:3px}
+.miss{font-size:11px;color:var(--muted);margin-top:3px;white-space:normal;min-width:140px;max-width:200px}
+.big>div:has(b.txt){flex-basis:100%}
 td.strong{font-weight:700;font-size:14px}
 .c-down{color:var(--down)} .c-up{color:var(--up)}
 .say{margin:12px 16px 0;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;background:var(--soft)}
@@ -194,7 +195,9 @@ details.why b{color:var(--ink);font-family:var(--f-mono)}
 .lvgrid>div{background:var(--soft);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;gap:1px;border-left:3px solid var(--line)}
 .lvgrid>div.down{border-left-color:var(--down)} .lvgrid>div.up{border-left-color:var(--up)}
 .lvgrid span{font-size:12px;color:var(--muted)}
-.lvgrid b{font-family:var(--f-mono);font-size:17px}
+.lvgrid b{font-family:var(--f-mono);font-size:17px;overflow-wrap:anywhere}
+.lvgrid b.txt,.big b.txt{font-family:var(--f-sans);font-size:13px;line-height:1.45;font-weight:600}
+.wonsub:not(.inl) + br{display:none}
 .lvgrid small{font-size:11px;color:var(--muted)}
 .alert{border-radius:8px;padding:9px 12px;font-size:13px;line-height:1.6}
 .alert b{margin-right:4px}
@@ -266,6 +269,8 @@ table.orders td,table.orders th{padding:7px 6px;font-size:12px}
 table.orders td:first-child,table.orders td:last-child{white-space:normal}
 .detail .big{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
 .detail .big b{font-size:16px}
+.detail .big b.txt{font-size:13px}
+.detail .big>div:has(b.txt){grid-column:1/-1}
 table.orders tr.loss td:last-child{color:var(--down)}
 table.orders tr.gain td:last-child{color:var(--up)}
 .scen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -303,6 +308,9 @@ textarea{font-family:var(--f-sans);line-height:1.6;resize:vertical}
 .nwrow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:end}
 .nwrow .k{font-size:12px;color:var(--muted)}
 .acctrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.wonsub.inl{display:inline;margin-left:3px;font-size:.85em}
+.wonsub{display:block;font-size:11px;font-weight:500;color:var(--muted);line-height:1.25;margin-top:1px;font-family:var(--f-sans);letter-spacing:0;text-transform:none;white-space:nowrap}
+.wonhint{display:block;font-size:12.5px;font-weight:600;color:var(--accent);min-height:1.2em;line-height:1.3;margin-top:2px;font-family:var(--f-sans);letter-spacing:0;text-transform:none}
 .rpctl{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;padding:12px 16px;border-bottom:1px solid var(--line)}
 .rpctl .field{min-width:150px}
 .rpctl .seg button{white-space:nowrap}
@@ -311,6 +319,21 @@ tr.rprow{cursor:pointer}
 .mtrades{display:flex;flex-direction:column;gap:6px}
 .mtrades>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
 @media (max-width:760px){.jrule{grid-template-columns:minmax(0,1fr)}.nwrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nwrow .k{grid-column:1/-1}.acctrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.acctrow>button{grid-column:1/-1}}
+
+/* 휴대폰: 표를 카드처럼 세로로 (각 칸 위에 머리글 이름) */
+@media (max-width:760px){
+  .tablewrap table.stk thead{display:none}
+  .tablewrap table.stk,.stk tbody{display:block;width:100%}
+  .stk tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .tablewrap table.stk td{display:block;padding:0;border:0;text-align:left!important;white-space:normal;min-width:0;overflow-wrap:anywhere}
+  .stk td::before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);font-family:var(--f-sans);font-weight:500;letter-spacing:.02em}
+  .stk td[data-label=""]::before,.stk td[colspan]::before{display:none}
+  .stk td:first-child,.stk td[colspan]{grid-column:1/-1}
+  .stk td:first-child::before{display:none}
+  .stk td:empty{display:none}
+  .stk tr.sel{background:var(--accent-soft)}
+  .nm{max-width:none}
+}
 /* 휴대폰 (갤럭시 S21 등 360px): 탭 가로 스크롤, 손가락 크기 버튼 */
 @media (max-width:760px){
   .tabs{overflow-x:auto;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg)}
@@ -320,7 +343,7 @@ tr.rprow{cursor:pointer}
   .lvgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
-@media (max-width:760px){.steps3{display:none!important}.lede{display:none}.jstats b{font-size:15px}.jstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.steps3{display:none!important}.lede{display:none}.jstats b{font-size:14px;word-break:keep-all}.jstats{grid-template-columns:repeat(2,minmax(0,1fr))}.big b{font-size:16px}.detail .big b.txt{font-size:13px}}
 @media (pointer:coarse){button,.btn{min-height:40px}.seg button{min-height:38px}input[type=number],input[type=text],input[type=date],input[type=month],select{font-size:16px;min-height:40px}}
 @media (display-mode:standalone){body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}}
 @media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.detail{position:static}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.controls>section:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
@@ -395,7 +418,7 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li><b>샀을 때:</b> [오늘 살 종목]에서 종목을 누르고 주문표의 <b>[매수 기록]</b>. 종목·날짜·진입가·손절가·1R·수량이 채워져 있으니 <b>실제 체결가와 수량만</b> 고치고 [보유 종목으로 기록]. 체결가를 바꾸면 손절가·1R·익절가가 그 가격 기준으로 다시 계산됩니다.
     <ul><li>예약만 걸어 둔 경우는 <b>[예약 주문 저장]</b> → 다음 날 [매매일지] "① 체결 확인 대기"에서 [체결됨]/[안 사짐].</li>
     <li>신호대로 산 게 아니면(추격 매수, 수량 초과 등) "원칙대로 샀다" 체크를 끄세요.</li></ul></li>
-  <li><b>보유하는 동안:</b> "② 보유 중"이 새 시세가 들어올 때마다 <b>그 종목을 산 전략의 규칙</b>으로 점검합니다. 미너비니는 손절 −7%, +15% 뒤 본전 손절, 종가 50일선 이탈. 5일선 눌림목은 손절 −5%, +3·6·9% 분할 익절, 종가 10일선 이탈, 15거래일.</li>
+  <li><b>보유하는 동안:</b> "② 보유 중"이 새 시세가 들어올 때마다 <b>그 종목을 산 전략의 규칙</b>으로 점검합니다. 미너비니는 손절 −10%, +15% 뒤 본전 손절, 종가 50일선 이탈. 5일선 눌림목은 손절 −4%, +5% 뒤 본전 손절, 종가 20일선 이탈, 15거래일.</li>
   <li><b>팔았을 때:</b> [매도 기록] → 판 날·가격·수량·사유를 적고 <b>"원칙대로 팔았다"</b>를 체크합니다. 알림이 떠서 판 경우만 체크하고, 겁이 나서 일찍 팔았거나 손절가를 무시하고 버틴 경우는 체크하지 않습니다.</li>
   <li><b>성과 보기:</b> "③ 성과"에 승률, 거래당 평균 R, 누적 손익, 최대 낙폭, 계좌 곡선이 나오고, <b>원칙 지킨 매매와 어긴 매매</b>를 나눠 비교합니다.</li>
   <li><b>한 달에 한 번:</b> "④ 월간 복기"에서 그달 판 종목과 원칙 준수율을 보고 메모를 남깁니다.</li>
@@ -439,15 +462,23 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
 <h3>미너비니 SEPA (국장 기본)</h3>
 <ul>
   <li><b>마크 미너비니</b>(미국 투자 챔피언십 우승)의 공개 규칙: 이평선 정배열 + 52주 고가 근처 + 상대강도 70 이상 + 좁은 횡보 후 거래량 실린 피벗 돌파.</li>
-  <li>살 때: 신호가 나온 날 저녁 <b>다음 날 시가 예약 매수</b>. 손절 <b>−7%</b>, <b>+15%</b> 오르면 손절가를 산 가격으로 올림, <b>종가가 50일선 아래</b>로 마감하면 다음 날 시가 매도.</li>
+  <li>살 때: 신호가 나온 날 저녁 <b>다음 날 시가 예약 매수</b>. 손절 <b>−10%</b>, <b>+15%</b> 오르면 손절가를 산 가격으로 올림, 익절 목표가는 없음, <b>종가가 50일선 아래</b>로 마감하면 다음 날 시가 매도.</li>
   <li>조건이 까다로워 신호가 드뭅니다(최근 국장 기준 한 달에 1~2번 수준). 살 종목이 없는 날이 대부분이며, 그날은 규칙상 쉬는 날입니다.</li>
 </ul>
 <h3>5일선 눌림목 (미장 기본)</h3>
 <ul>
   <li>거래대금이 크게 터진 <b>첫 장대양봉</b>(하루 +7% 이상, 거래대금 미장 5억 달러·국장 500억 원 이상, 거래량 1.5배, 60일 신고가) 뒤, 아직 <b>5일선까지 안 내려온</b> 종목.</li>
   <li>살 때: 저녁에 다음 날 <b>오늘 5일선 가격 지정가 매수</b>를 예약합니다. 안 사지면 다음 날 저녁 새 5일선 가격으로 다시 겁니다(장대양봉 뒤 6거래일까지).</li>
-  <li>사지면: 손절 감시주문 <b>−5%</b>, 익절 지정가 <b>+3% · +6% · +9%</b>에 1/3씩. 종가가 <b>10일선 아래</b>로 마감하면 다음 날 시가에 남은 수량 매도. 최대 15거래일 보유.</li>
+  <li>사지면: 손절 감시주문 <b>−4%</b>, <b>+5%</b> 오르면 손절가를 산 가격으로 올림, 익절 목표가는 없음. 종가가 <b>20일선 아래</b>로 마감하면 다음 날 시가 매도. 최대 15거래일 보유.</li>
   <li>국장 백테스트에서는 손실이었습니다. 국장에서 쓰려면 [고수 전략 검증] 결과를 먼저 확인하세요.</li>
+</ul>
+<h3>손절·익절 비율은 어떻게 정했나 (2026-11 백테스트)</h3>
+<ul>
+  <li>신호는 그대로 두고 손절 폭, 익절 목표, 본전 손절 시점, 추세 청산선, 최대 보유일만 바꿔 국장 미너비니 2,240가지, 미장 눌림목 2,688가지를 최근 4년 일봉으로 돌렸습니다. 같은 날 신호를 사는 순서를 200번 무작위로 바꾼 결과의 중앙값으로 비교했습니다.</li>
+  <li><b>국장 미너비니:</b> 손절 −7% → <b>−10%</b>. 연 +11.6% → +21.0%, 최대 낙폭 15.7% → 6.5% (시드 100만 원·3종목·1회 손실 1%). −7%는 정상적인 흔들림에 자주 걸려 손절된 뒤 다시 오르는 경우가 많았습니다. 익절 목표가(+10~50%)를 두면 모든 경우 수익이 크게 줄어 두지 않습니다.</li>
+  <li><b>미장 눌림목:</b> 손절 −5% → <b>−4%</b>, +5%에서 본전 손절, +3·6·9% 분할 익절 폐지, 청산선 10일선 → <b>20일선</b>. 연 +10.8% → +22.0%, 최대 낙폭 3.8% → 6.4%. 작은 분할 익절이 크게 오르는 종목의 수익을 잘라 먹었습니다.</li>
+  <li><b>손절 폭이 넓어도 잃는 돈은 같습니다.</b> 수량은 "손절 시 운용 자산의 1%만 잃도록" 계산하므로, 손절이 −10%면 수량이 줄고 −4%면 늘어납니다. 손절 폭은 "얼마나 흔들림을 버틸지"만 정합니다.</li>
+  <li>과거에 가장 좋았던 값을 고른 것이라 앞으로도 같다는 보장은 없습니다. 다만 앞 70%·뒤 30% 기간, 시드 10배, 5종목, 1회 손실 0.5% 조건에서도 모두 새 값이 더 나았습니다.</li>
 </ul>
 <h3>어떤 종목을 보나요</h3>
 <ul>

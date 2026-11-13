@@ -84,7 +84,7 @@ td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
 #tbody tr.sel{background:var(--accent-soft)}
 td.r,th.r{text-align:right}
 .sym{font-weight:600}
-.nm{color:var(--muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.nm{color:var(--muted);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
 .mk{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;border:1px solid var(--line);color:var(--muted)}
 .st{font-size:11px;color:var(--muted)}
 .dots{display:inline-flex;gap:3px}
@@ -141,7 +141,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.7;max-width:900px}
 .job{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:13px}
 .bar{height:8px;border-radius:4px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);width:0}
-.job .msg{font-size:12px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.job .msg{font-size:12px;color:var(--muted);font-family:var(--f-mono);white-space:normal;overflow-wrap:anywhere;min-width:0}
 .lede{margin:4px 0 0;color:var(--muted);font-size:14px}
 .banner{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:12px 16px;font-size:14px;line-height:1.6}
 .banner b{color:inherit}
@@ -160,7 +160,8 @@ footer{font-size:12px;color:var(--muted);line-height:1.7;max-width:900px}
 table.list td{padding:11px 10px}
 table.list .sym{font-size:14px}
 .dot{width:10px;height:10px;border-radius:50%;padding:0;font-size:0}
-.miss{font-size:11px;color:var(--muted);margin-top:3px}
+.miss{font-size:11px;color:var(--muted);margin-top:3px;white-space:normal;min-width:140px;max-width:200px}
+.big>div:has(b.txt){flex-basis:100%}
 td.strong{font-weight:700;font-size:14px}
 .c-down{color:var(--down)} .c-up{color:var(--up)}
 .say{margin:12px 16px 0;padding:10px 12px;border-radius:8px;font-size:13px;line-height:1.6;background:var(--soft)}
@@ -198,7 +199,9 @@ details.why b{color:var(--ink);font-family:var(--f-mono)}
 .lvgrid>div{background:var(--soft);border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;gap:1px;border-left:3px solid var(--line)}
 .lvgrid>div.down{border-left-color:var(--down)} .lvgrid>div.up{border-left-color:var(--up)}
 .lvgrid span{font-size:12px;color:var(--muted)}
-.lvgrid b{font-family:var(--f-mono);font-size:17px}
+.lvgrid b{font-family:var(--f-mono);font-size:17px;overflow-wrap:anywhere}
+.lvgrid b.txt,.big b.txt{font-family:var(--f-sans);font-size:13px;line-height:1.45;font-weight:600}
+.wonsub:not(.inl) + br{display:none}
 .lvgrid small{font-size:11px;color:var(--muted)}
 .alert{border-radius:8px;padding:9px 12px;font-size:13px;line-height:1.6}
 .alert b{margin-right:4px}
@@ -270,6 +273,8 @@ table.orders td,table.orders th{padding:7px 6px;font-size:12px}
 table.orders td:first-child,table.orders td:last-child{white-space:normal}
 .detail .big{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
 .detail .big b{font-size:16px}
+.detail .big b.txt{font-size:13px}
+.detail .big>div:has(b.txt){grid-column:1/-1}
 table.orders tr.loss td:last-child{color:var(--down)}
 table.orders tr.gain td:last-child{color:var(--up)}
 .scen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
@@ -318,6 +323,21 @@ tr.rprow{cursor:pointer}
 .mtrades{display:flex;flex-direction:column;gap:6px}
 .mtrades>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;border-bottom:1px dashed var(--line);padding-bottom:6px}
 @media (max-width:760px){.jrule{grid-template-columns:minmax(0,1fr)}.nwrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nwrow .k{grid-column:1/-1}.acctrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.acctrow>button{grid-column:1/-1}}
+
+/* 휴대폰: 표를 카드처럼 세로로 (각 칸 위에 머리글 이름) */
+@media (max-width:760px){
+  .tablewrap table.stk thead{display:none}
+  .tablewrap table.stk,.stk tbody{display:block;width:100%}
+  .stk tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .tablewrap table.stk td{display:block;padding:0;border:0;text-align:left!important;white-space:normal;min-width:0;overflow-wrap:anywhere}
+  .stk td::before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);font-family:var(--f-sans);font-weight:500;letter-spacing:.02em}
+  .stk td[data-label=""]::before,.stk td[colspan]::before{display:none}
+  .stk td:first-child,.stk td[colspan]{grid-column:1/-1}
+  .stk td:first-child::before{display:none}
+  .stk td:empty{display:none}
+  .stk tr.sel{background:var(--accent-soft)}
+  .nm{max-width:none}
+}
 /* 휴대폰 (갤럭시 S21 등 360px): 탭 가로 스크롤, 손가락 크기 버튼 */
 @media (max-width:760px){
   .tabs{overflow-x:auto;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg)}
@@ -327,7 +347,7 @@ tr.rprow{cursor:pointer}
   .lvgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
-@media (max-width:760px){.steps3{display:none!important}.lede{display:none}.jstats b{font-size:15px}.jstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.steps3{display:none!important}.lede{display:none}.jstats b{font-size:14px;word-break:keep-all}.jstats{grid-template-columns:repeat(2,minmax(0,1fr))}.big b{font-size:16px}.detail .big b.txt{font-size:13px}}
 @media (pointer:coarse){button,.btn{min-height:40px}.seg button{min-height:38px}input[type=number],input[type=text],input[type=date],input[type=month],select{font-size:16px;min-height:40px}}
 @media (display-mode:standalone){body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}}
 @media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.detail{position:static}.controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.controls>section:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
@@ -730,7 +750,7 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
   <li><b>샀을 때:</b> [오늘 살 종목]에서 종목을 누르고 주문표의 <b>[매수 기록]</b>. 종목·날짜·진입가·손절가·1R·수량이 채워져 있으니 <b>실제 체결가와 수량만</b> 고치고 [보유 종목으로 기록]. 체결가를 바꾸면 손절가·1R·익절가가 그 가격 기준으로 다시 계산됩니다.
     <ul><li>예약만 걸어 둔 경우는 <b>[예약 주문 저장]</b> → 다음 날 [매매일지] "① 체결 확인 대기"에서 [체결됨]/[안 사짐].</li>
     <li>신호대로 산 게 아니면(추격 매수, 수량 초과 등) "원칙대로 샀다" 체크를 끄세요.</li></ul></li>
-  <li><b>보유하는 동안:</b> "② 보유 중"이 새 시세가 들어올 때마다 <b>그 종목을 산 전략의 규칙</b>으로 점검합니다. 미너비니는 손절 −7%, +15% 뒤 본전 손절, 종가 50일선 이탈. 5일선 눌림목은 손절 −5%, +3·6·9% 분할 익절, 종가 10일선 이탈, 15거래일.</li>
+  <li><b>보유하는 동안:</b> "② 보유 중"이 새 시세가 들어올 때마다 <b>그 종목을 산 전략의 규칙</b>으로 점검합니다. 미너비니는 손절 −10%, +15% 뒤 본전 손절, 종가 50일선 이탈. 5일선 눌림목은 손절 −4%, +5% 뒤 본전 손절, 종가 20일선 이탈, 15거래일.</li>
   <li><b>팔았을 때:</b> [매도 기록] → 판 날·가격·수량·사유를 적고 <b>"원칙대로 팔았다"</b>를 체크합니다. 알림이 떠서 판 경우만 체크하고, 겁이 나서 일찍 팔았거나 손절가를 무시하고 버틴 경우는 체크하지 않습니다.</li>
   <li><b>성과 보기:</b> "③ 성과"에 승률, 거래당 평균 R, 누적 손익, 최대 낙폭, 계좌 곡선이 나오고, <b>원칙 지킨 매매와 어긴 매매</b>를 나눠 비교합니다.</li>
   <li><b>한 달에 한 번:</b> "④ 월간 복기"에서 그달 판 종목과 원칙 준수율을 보고 메모를 남깁니다.</li>
@@ -774,15 +794,23 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
 <h3>미너비니 SEPA (국장 기본)</h3>
 <ul>
   <li><b>마크 미너비니</b>(미국 투자 챔피언십 우승)의 공개 규칙: 이평선 정배열 + 52주 고가 근처 + 상대강도 70 이상 + 좁은 횡보 후 거래량 실린 피벗 돌파.</li>
-  <li>살 때: 신호가 나온 날 저녁 <b>다음 날 시가 예약 매수</b>. 손절 <b>−7%</b>, <b>+15%</b> 오르면 손절가를 산 가격으로 올림, <b>종가가 50일선 아래</b>로 마감하면 다음 날 시가 매도.</li>
+  <li>살 때: 신호가 나온 날 저녁 <b>다음 날 시가 예약 매수</b>. 손절 <b>−10%</b>, <b>+15%</b> 오르면 손절가를 산 가격으로 올림, 익절 목표가는 없음, <b>종가가 50일선 아래</b>로 마감하면 다음 날 시가 매도.</li>
   <li>조건이 까다로워 신호가 드뭅니다(최근 국장 기준 한 달에 1~2번 수준). 살 종목이 없는 날이 대부분이며, 그날은 규칙상 쉬는 날입니다.</li>
 </ul>
 <h3>5일선 눌림목 (미장 기본)</h3>
 <ul>
   <li>거래대금이 크게 터진 <b>첫 장대양봉</b>(하루 +7% 이상, 거래대금 미장 5억 달러·국장 500억 원 이상, 거래량 1.5배, 60일 신고가) 뒤, 아직 <b>5일선까지 안 내려온</b> 종목.</li>
   <li>살 때: 저녁에 다음 날 <b>오늘 5일선 가격 지정가 매수</b>를 예약합니다. 안 사지면 다음 날 저녁 새 5일선 가격으로 다시 겁니다(장대양봉 뒤 6거래일까지).</li>
-  <li>사지면: 손절 감시주문 <b>−5%</b>, 익절 지정가 <b>+3% · +6% · +9%</b>에 1/3씩. 종가가 <b>10일선 아래</b>로 마감하면 다음 날 시가에 남은 수량 매도. 최대 15거래일 보유.</li>
+  <li>사지면: 손절 감시주문 <b>−4%</b>, <b>+5%</b> 오르면 손절가를 산 가격으로 올림, 익절 목표가는 없음. 종가가 <b>20일선 아래</b>로 마감하면 다음 날 시가 매도. 최대 15거래일 보유.</li>
   <li>국장 백테스트에서는 손실이었습니다. 국장에서 쓰려면 [고수 전략 검증] 결과를 먼저 확인하세요.</li>
+</ul>
+<h3>손절·익절 비율은 어떻게 정했나 (2026-11 백테스트)</h3>
+<ul>
+  <li>신호는 그대로 두고 손절 폭, 익절 목표, 본전 손절 시점, 추세 청산선, 최대 보유일만 바꿔 국장 미너비니 2,240가지, 미장 눌림목 2,688가지를 최근 4년 일봉으로 돌렸습니다. 같은 날 신호를 사는 순서를 200번 무작위로 바꾼 결과의 중앙값으로 비교했습니다.</li>
+  <li><b>국장 미너비니:</b> 손절 −7% → <b>−10%</b>. 연 +11.6% → +21.0%, 최대 낙폭 15.7% → 6.5% (시드 100만 원·3종목·1회 손실 1%). −7%는 정상적인 흔들림에 자주 걸려 손절된 뒤 다시 오르는 경우가 많았습니다. 익절 목표가(+10~50%)를 두면 모든 경우 수익이 크게 줄어 두지 않습니다.</li>
+  <li><b>미장 눌림목:</b> 손절 −5% → <b>−4%</b>, +5%에서 본전 손절, +3·6·9% 분할 익절 폐지, 청산선 10일선 → <b>20일선</b>. 연 +10.8% → +22.0%, 최대 낙폭 3.8% → 6.4%. 작은 분할 익절이 크게 오르는 종목의 수익을 잘라 먹었습니다.</li>
+  <li><b>손절 폭이 넓어도 잃는 돈은 같습니다.</b> 수량은 "손절 시 운용 자산의 1%만 잃도록" 계산하므로, 손절이 −10%면 수량이 줄고 −4%면 늘어납니다. 손절 폭은 "얼마나 흔들림을 버틸지"만 정합니다.</li>
+  <li>과거에 가장 좋았던 값을 고른 것이라 앞으로도 같다는 보장은 없습니다. 다만 앞 70%·뒤 30% 기간, 시드 10배, 5종목, 1회 손실 0.5% 조건에서도 모두 새 값이 더 나았습니다.</li>
 </ul>
 <h3>어떤 종목을 보나요</h3>
 <ul>
@@ -1142,7 +1170,7 @@ const ENGINE = (() => {
       name: '미너비니 트렌드 템플릿 + 피벗 돌파', short: '미너비니 SEPA', who: '마크 미너비니',
       proof: { level: 'high', text: '실계좌로 겨루는 미국 투자 챔피언십(U.S. Investing Championship) 우승: 1997년 연 155%, 2021년 연 334.8%(주최 측 발표·보도자료 기준). 규칙은 저서 『초수익 성장주 투자』 등에 공개. 같은 대회 3연패한 데이비드 라이언(오닐의 CAN SLIM)도 비슷한 기술적 기준을 씀' },
       original: '트렌드 템플릿 8개 조건(주가>50·150·200일선, 50>150>200일선, 200일선 1개월 이상 상승, 52주 저가 대비 +30% 이상, 52주 고가의 75% 이상, 상대강도 70 이상) + 변동성이 줄어든 횡보(VCP) 후 거래량 40% 이상 늘며 피벗 돌파 매수 · 손절 7~8%',
-      afterWork: '조건을 모두 갖추고 종가가 피벗(직전 10일 고가)을 거래량과 함께 넘은 날 저녁 → 다음 날 시가 예약 매수. 손절 감시주문 −7%, +15% 오르면 손절가를 산 가격으로 올림. 종가가 50일선 아래로 마감하면 다음 날 시가 매도',
+      afterWork: '조건을 모두 갖추고 종가가 피벗(직전 10일 고가)을 거래량과 함께 넘은 날 저녁 → 다음 날 시가 예약 매수. 손절 감시주문 −10%(원래 규칙 −7~8%를 이 앱 4년 백테스트로 조정), +15% 오르면 손절가를 산 가격으로 올림. 익절 목표가는 두지 않고, 종가가 50일선 아래로 마감하면 다음 날 시가 매도',
       labels: ['트렌드 템플릿 (이평선 정배열)', '52주 고가·저가 위치', '상대강도 70 이상', '좁은 횡보 후 피벗 돌파 + 거래량'], custom: true, needsRS: true,
       evaluate(ind, t) {
         const s50 = sma50(ind), s150 = sma150(ind), s200 = ind.sma200, H = hiNX(ind, 10), Lo = loPrevX(ind, 10), hi52 = hi252X(ind), lo52 = lo252X(ind), rs = ind._x.rsPct;
@@ -1161,7 +1189,7 @@ const ENGINE = (() => {
         ['상대강도 백분위 ≥ 70 (같은 날 전 종목 대비)', ok(e.x.rs) ? e.x.rs + '' : '–'],
         ['직전 10일 변동폭 ≤ 10% · 종가 > 피벗(10일 고가) · 거래량 ≥ 1.4배', '변동폭 ' + F.n(e.x.depth, 1) + '% · 피벗 ' + P(e.x.pivot) + ' · ' + F.n(e.x.volRatio, 2) + '배']],
       entry: () => ({ type: 'open' }),
-      stopRule: () => ({ type: 'pct', v: 0.07 }), stopSrc: '산 가격 − 7%',
+      stopRule: () => ({ type: 'pct', v: 0.10 }), stopSrc: '산 가격 − 10%',
       breakeven: 1.15,
       exitClose: (ind, j) => ind.c[j] < sma50(ind)[j], exitText: '종가가 50일선 아래로 마감',
       cap: 0
@@ -1185,7 +1213,7 @@ const ENGINE = (() => {
       name: '장대양봉 후 5일선 첫 눌림목', short: '5일선 눌림목', who: '국내 단기 트레이더 공통 기법 · 부자회사원 채널 소개',
       proof: { level: 'low', text: '남석관·강창권 등 국내 실전투자대회 입상자들이 쓰는 기법으로 소개되지만(부자회사원 채널·Gemini 요약), 정확한 규칙과 계좌 수익을 확인할 1차 자료는 찾지 못했습니다. 이 앱 백테스트(최근 4년)에서는 미장 S&P 500이 매년 플러스, 국장은 손실이었습니다' },
       original: '거래대금이 크게 터진 첫 장대양봉 → 다음 날 추격 매수 금지 → 처음 5일선(또는 10일선)에 닿는 자리에서 분할 매수 · +3%·+6%·+9%에서 3번 나눠 익절 · 10일선 종가 이탈 시 전량 손절',
-      afterWork: '장대양봉 뒤 아직 5일선에 안 닿은 종목이면 저녁에 → 다음 날 "오늘 5일선 가격" 지정가 매수 예약(안 닿으면 미체결). 체결되면 손절 감시주문 −5%, 익절 지정가 +3%·+6%·+9%에 1/3씩. 종가가 10일선 아래로 마감하면 다음 날 시가 매도, 최대 15거래일 보유',
+      afterWork: '장대양봉 뒤 아직 5일선에 안 닿은 종목이면 저녁에 → 다음 날 "오늘 5일선 가격" 지정가 매수 예약(안 닿으면 미체결). 체결되면 손절 감시주문 −4%, +5% 오르면 손절가를 산 가격으로 올림. 익절 목표가는 두지 않고(원래 +3·6·9% 분할 익절은 백테스트에서 수익을 깎아 뺌), 종가가 20일선 아래로 마감하면 다음 날 시가 매도, 최대 15거래일 보유',
       labels: ['최근 6거래일 안에 첫 장대양봉 (+7% 이상 · 거래대금 500억원/5억달러 이상 · 60일 신고가)', '그 뒤 아직 5일선에 닿지 않았고 종가가 5일선 위'], custom: true,
       evaluate(ind, t) {
         const S5 = smaX(ind, 5), S10 = smaX(ind, 10), B = bigCandleX(ind);
@@ -1201,9 +1229,9 @@ const ENGINE = (() => {
         ['최근 6거래일 안 첫 장대양봉: +7% 이상 · 거래대금 500억원(미장 5억달러) 이상 · 거래량 1.5배 · 60일 신고가', e.x.bigDate ? e.x.bigDate + ' · ' + F.n(e.x.bigChg * 100, 1) + '% · 거래대금 ' + (e.x.mk === 'US' ? '$' + F.n(e.x.bigVal / 1e6, 0) + 'M' : F.int(e.x.bigVal / 1e8) + '억원') : '없음'],
         ['그 뒤 아직 5일선에 닿지 않음 · 오늘 종가 > 5일선', e.x.bigDate ? (e.x.touched ? '이미 닿음' : '아직 안 닿음') + ' · 종가 ' + P(e.x.close) + ' / 5일선 ' + P(e.x.sma5) : '–']],
       entry: (ind, t) => ({ type: 'limit', level: smaX(ind, 5)[t] }),
-      stopRule: () => ({ type: 'pct', v: 0.05 }), stopSrc: '산 가격 − 5%',
-      scale: [[1.03, 1 / 3], [1.06, 1 / 3], [1.09, 1 / 3]], scaleText: '+3% · +6% · +9%에서 1/3씩',
-      exitClose: (ind, j) => ind.c[j] < smaX(ind, 10)[j], exitText: '종가가 10일선 아래로 마감',
+      stopRule: () => ({ type: 'pct', v: 0.04 }), stopSrc: '산 가격 − 4%',
+      breakeven: 1.05,
+      exitClose: (ind, j) => ind.c[j] < smaX(ind, 20)[j], exitText: '종가가 20일선 아래로 마감',
       limitDaily: true, cap: 15
     }
   };
@@ -1561,7 +1589,7 @@ const ENGINE = (() => {
     return res;
   }
 
-  return { _h: { X, smaX, atr, hiNX, loPrevX, hi252X, lo252X, ok }, DEFAULT_CFG, STRATS, BASE_KEYS, PRO_KEYS, CLOUD_MODES, tickKR, floorPx: (m, v) => m === 'KR' ? floorTick(v) : Math.floor(v * 100 + 1e-9) / 100, strat, attachRS, stopFrom, scaleLevels, replay, exitMode, benchmark, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
+  return { _h: { X, smaX, atr, hiNX, loPrevX, hi252X, lo252X, ok, simCustom }, DEFAULT_CFG, STRATS, BASE_KEYS, PRO_KEYS, CLOUD_MODES, tickKR, floorPx: (m, v) => m === 'KR' ? floorTick(v) : Math.floor(v * 100 + 1e-9) / 100, strat, attachRS, stopFrom, scaleLevels, replay, exitMode, benchmark, levels, track, compute, evaluate, plan, simulate, backtestStock, stats, portfolio, analyze, sma, ema, rsi };
 })();
 
 
@@ -1684,7 +1712,17 @@ const DEMO = (() => {
       n.after(sm);
     }
   }
-  const wonHints = (root = document) => { for (const el of root.querySelectorAll('input[data-won]')) wonHint(el); wonDisplays(root); };
+  // 표마다 각 칸에 머리글 이름을 붙여 둠 → 휴대폰에서는 카드처럼 세로로 보여 줌
+  function labelTables(root) {
+    for (const tb of (root.body || root).querySelectorAll('.tablewrap table')) {
+      const ths = tb.tHead ? [...(tb.tHead.rows[tb.tHead.rows.length - 1] || { cells: [] }).cells] : [];
+      if (!ths.length) continue;
+      if (!tb.classList.contains('stk')) tb.classList.add('stk');
+      const names = []; for (const th of ths) { const n = th.colSpan || 1; for (let i = 0; i < n; i++) names.push(th.textContent.trim().replace(/[▲▼↑↓]/g, '')); }
+      for (const tr of tb.tBodies[0] ? tb.tBodies[0].rows : []) { let i = 0; for (const td of tr.cells) { const l = td.colSpan > 1 ? '' : (names[i] || ''); if (td.getAttribute('data-label') !== l) td.setAttribute('data-label', l); i += td.colSpan || 1; } }
+    }
+  }
+  const wonHints = (root = document) => { for (const el of root.querySelectorAll('input[data-won]')) wonHint(el); wonDisplays(root); labelTables(root); };
   document.addEventListener('input', e => { if (e.target.matches && e.target.matches('input[data-won]')) wonHint(e.target); });
   { let q = 0; new MutationObserver(() => { if (q) return; q = requestAnimationFrame(() => { q = 0; wonHints(); }); }).observe(document.body, { childList: true, subtree: true }); }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1836,7 +1874,7 @@ const DEMO = (() => {
         '<td class="r num strong">' + (ok ? fmtQ(p.qty, p.frac) + '주' : '<span class="note">–</span>') + '</td>' +
         '<td class="r num">' + (ok ? mon(p.amount) : '<span class="note">–</span>') + '</td>' +
         '<td class="r num c-down">' + (p && p.valid ? fmtP(p.sl, m) : '–') + '</td>' +
-        '<td class="r num c-up">' + (p && p.valid ? fmtP(p.scale ? p.scale[0].px : p.tp1, m) : '–') + '</td>' +
+        '<td class="r num c-up">' + (p && p.valid ? (p.scale || isFinite(p.tp1) ? fmtP(p.scale ? p.scale[0].px : p.tp1, m) : '<span class="note">추세 청산</span>') : '–') + '</td>' +
         '<td><span class="dots">' + e.conds.map((c, i) => '<span class="dot' + (c ? ' on' : '') + '" title="' + lab[i] + (c ? ' 충족' : ' 미충족') + '"></span>').join('') + '</span></td></tr>';
     }).join('');
     const em = $('empty');
@@ -1862,7 +1900,7 @@ const DEMO = (() => {
     const say = r.gap === 0 && stl && stl.state !== 'ok' ? (stl.state === 'chase'
         ? '<b>' + r.lastDate + ' 신호였지만 지금은 추격 매수 구간입니다.</b> ' + stl.basis + ' ' + P(stl.piv) + ' 대비 오늘 종가 ' + P(stl.tc) + ' (+' + fmtN(stl.ext * 100, 1) + '%). ' + (ST.pro === 'minervini' ? '미너비니는 피벗에서 5% 넘게 오른 종목은 사지 않습니다.' : '5% 넘게 오른 뒤에는 손익비가 나빠집니다.')
         : '<b>' + r.lastDate + ' 신호였지만 지금은 보류입니다.</b> ' + stl.basis + ' ' + P(stl.piv) + ' 대비 오늘 종가 ' + P(stl.tc) + ' (' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%) · 피벗 아래로 되밀렸거나 50일선 아래입니다. 다시 돌파하면 새 신호로 나옵니다.')
-      : r.gap === 0 && stl ? (r.afford ? '<b>' + r.lastDate + '에 나온 신호이고, 오늘 종가 기준으로도 아직 살 수 있는 구간입니다</b> (' + stl.basis + ' ' + P(stl.piv) + ' 대비 ' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%, 5% 이내). 내일 시가 기준 주문표입니다. 매수가는 오늘 종가로 추정했습니다.' : '<b>아직 살 수 있는 구간이지만 지금 시드로는 살 수 없습니다.</b>')
+      : r.gap === 0 && stl ? (r.afford ? '<b>' + r.lastDate + '에 나온 신호이고, 오늘 종가 기준으로도 아직 살 수 있는 구간입니다</b> (' + stl.basis + ' ' + P(stl.piv) + ' 대비 ' + (stl.ext >= 0 ? '+' : '') + fmtN(stl.ext * 100, 1) + '%, 5% 이내). ' + (p && p.entryType === 'limit' ? '내일 지정가(' + P(p.entry) + ') 기준 주문표입니다.' : '내일 시가 기준 주문표입니다. 매수가는 오늘 종가로 추정했습니다.') : '<b>아직 살 수 있는 구간이지만 지금 시드로는 살 수 없습니다.</b>')
       : r.gap === 0 ? (r.afford ? '<b>오늘 종가 기준으로 ' + (nC > 1 ? '매수 조건 ' + nC + '개를 모두' : '매수 조건을') + ' 충족했습니다.</b> 아래 주문표대로 주문하세요.' : '<b>조건은 모두 충족했지만 지금 시드로는 살 수 없습니다.</b> 이유는 아래 주문표에 있습니다.')
       : '<b>아직 사면 안 됩니다.</b> 부족한 조건: ' + miss.join(', ');
     html += '<div class="say ' + (r.gap === 0 && r.afford ? 'go' : r.gap === 0 && !(stl && stl.state === 'back') ? 'poor' : 'no') + '">' + say + '</div>';
@@ -1884,14 +1922,14 @@ const DEMO = (() => {
       const stillOk = !r.still || r.still.state === 'ok';
       const saveBtn = '<span class="row">' + (p.valid && p.qty > 0 && stillOk ? (saved ? '<button type="button" data-goto="pos" class="savedbtn">' + (saved.status === 'open' ? '보유 중 · 매매일지에서 보기' : '예약 저장됨 · 매매일지에서 보기') + '</button>' : '<button type="button" id="savePlan">예약 주문 저장</button>') : '') +
         (p.valid && !(saved && saved.status === 'open') ? '<button type="button" class="primary" id="buyRec">매수 기록</button>' : '') + '</span>';
-      html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">' + (r.gap === 0 ? '주문표' : '주문표 (참고용 · 지금은 사면 안 됨)') + (state.entry[ekey] ? ' · 체결가 ' + P(p.entry) + ' 기준' : r.back ? ' · 내일 시가 매수, 매수가는 오늘 종가로 추정' : '') + '</div>' + saveBtn + '</div>';
+      html += '<div class="dsec"><div class="row" style="justify-content:space-between"><div class="label">' + (r.gap === 0 ? '주문표' : '주문표 (참고용 · 지금은 사면 안 됨)') + (state.entry[ekey] ? ' · 체결가 ' + P(p.entry) + ' 기준' : r.back ? (p.entryType === 'limit' ? ' · 내일 ' + P(p.entry) + ' 지정가 매수' : p.entryType === 'stop' ? ' · 내일 ' + P(p.entry) + ' 이상이면 감시 매수' : ' · 내일 시가 매수, 매수가는 오늘 종가로 추정') : '') + '</div>' + saveBtn + '</div>';
       if (p.valid && !(saved && saved.status === 'open')) html += '<div class="note">' + (p.qty > 0 && !saved && stillOk ? '예약만 걸었다면 [예약 주문 저장] → 다음 날 [매매일지]에서 [체결됨]. ' : '') + '이미 샀다면 [매수 기록]: 종목·날짜·진입가·손절가·1R·수량이 채워지고 실제 체결가와 수량만 고치면 됩니다.</div><div class="posform" id="buyForm" hidden></div>';
       if (!p.valid) html += '<div class="warnbox">체결가(' + P(p.entry) + ')가 손절가(' + P(p.sl) + ') 이하라 진입하면 안 됩니다. 규칙상 이 신호는 건너뜁니다.</div>' + calcHtml + '</div>';
       else {
         const blockedMsg = { noseed: '미장 시드가 0원이라 수량을 계산하지 않았습니다. 위 "미장 시드"에 금액을 넣으세요.',
           price: '1주 가격(' + moneyT(p.entry) + ')이 종목당 최대 투자금(' + moneyT(p.capAmount) + ')보다 비싸 살 수 없습니다. 이 종목은 건너뛰거나 종목당 비중을 올려야 합니다.' + (m === 'US' && !p.frac ? ' 소수점 매수를 켜면 계산됩니다.' : ''),
           risk: '1주만 사도 손절 시 손실(' + moneyT(p.R) + ')이 1회 허용 손실(' + moneyT(p.riskBudget) + ')보다 큽니다. 1% 규칙상 이 종목은 건너뜁니다.' }[p.blocked];
-        html += '<div class="big"><div><span>살 수량</span><b>' + fmtQ(p.qty, p.frac) + '주</b></div><div><span>투자 금액</span><b>' + (m === 'KR' ? fmtInt(p.amount) : '$' + fmtN(p.amount, 2)) + '</b></div><div><span>손절가</span><b>' + P(p.sl) + '</b></div><div><span>1차 익절가</span><b>' + P(p.scale ? p.scale[0].px : p.tp1) + '</b></div></div>';
+        html += '<div class="big"><div><span>살 수량</span><b>' + fmtQ(p.qty, p.frac) + '주</b></div><div><span>투자 금액</span><b>' + (m === 'KR' ? fmtInt(p.amount) : '$' + fmtN(p.amount, 2)) + '</b></div><div><span>손절가</span><b>' + P(p.sl) + '</b></div><div><span>' + (p.scale || isFinite(p.tp1) ? '1차 익절가' : '익절') + '</span><b' + (p.scale || isFinite(p.tp1) ? '>' + P(p.scale ? p.scale[0].px : p.tp1) : ' class="txt">목표가 없음 · ' + (p.breakeven ? '+' + Math.round((p.breakeven - 1) * 100) + '%면 본전 손절, ' : '') + esc(p.exitText || '추세 청산') + '면 매도') + '</b></div></div>';
         if (p.blocked) html += '<div class="warnbox">' + blockedMsg + '</div>';
         else {
           const ex = p.exit, isSplit = ex === 'swing' || ex === 'kr' || ex === 'trail', hN = p.holdN || 0, isTime = ex === 'time5' || ex === 'time20';
@@ -2027,8 +2065,10 @@ const DEMO = (() => {
     g.fillStyle = col('accent');
     for (const i of r.history) if (i >= s0) { const x = X(i), y = Y(ind.l[i]) + 10; g.beginPath(); g.moveTo(x, y - 5); g.lineTo(x - 4, y + 2); g.lineTo(x + 4, y + 2); g.closePath(); g.fill(); }
     if (p?.valid) {
+      const tagY = [];   // 가격선 이름표가 겹치지 않게 위아래로 비켜 그림
       const lvl = (v, c, label) => { const y = Y(v); g.strokeStyle = c; g.lineWidth = 1; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(pad.l, y); g.lineTo(W - pad.r, y); g.stroke(); g.setLineDash([]);
-        g.fillStyle = c; g.fillRect(W - pad.r, y - 7, pad.r, 14); g.fillStyle = col('panel'); g.textBaseline = 'middle'; g.fillText(label, W - pad.r + 3, y); };
+        let ly = y; for (let k = 0; k < 6 && tagY.some(t => Math.abs(t - ly) < 15); k++) ly += (k % 2 ? -1 : 1) * 15 * (k + 1); tagY.push(ly);
+        g.fillStyle = c; g.fillRect(W - pad.r, ly - 7, pad.r, 14); g.fillStyle = col('panel'); g.textBaseline = 'middle'; g.fillText(label, W - pad.r + 3, ly); };
       lvl(p.sl, col('down'), 'SL'); lvl(p.entry, col('ink'), '진입'); if (p.scale) p.scale.forEach(z => z.q > 0 && lvl(z.px, col('up'), '+' + z.pct + '%')); else if (isFinite(p.tp1)) lvl(p.tp1, col('up'), p.exit === 'custom' ? '익절' : p.exit === 'target' ? '+2R' : '+1.5R'); if (isFinite(p.tp2) && p.exit !== 'trail') lvl(p.tp2, col('up'), '+2.5R');
     }
   }
@@ -2379,7 +2419,7 @@ const DEMO = (() => {
     $('posCnt').hidden = !n; $('posCnt').textContent = n;
   }
   function lvBox(m, rows) {
-    return '<div class="lvgrid" data-cur="' + m + '">' + rows.map(([k, v, sub, c]) => '<div class="' + (c || '') + '"><span>' + k + '</span><b>' + v + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>').join('') + '</div>';
+    return '<div class="lvgrid" data-cur="' + m + '">' + rows.map(([k, v, sub, c]) => '<div class="' + (c || '') + '"><span>' + k + '</span><b' + (/[가-힣]{3,}/.test(String(v).replace(/<[^>]+>/g, '')) ? ' class="txt"' : '') + '>' + v + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>').join('') + '</div>';
   }
   function renderPositions() {
     renderPosBadge();
@@ -3128,8 +3168,8 @@ const DEMO = (() => {
   for (const id of ['cloudOffset', 'chikouOffset']) { const el = $(id); el.value = String(state.cfg[id]); el.onchange = () => { state.cfg[id] = +el.value; saveCfg(); }; }
   { const el = $('cloudMode'); el.innerHTML = Object.entries(ENGINE.CLOUD_MODES).map(([k, v]) => '<option value="' + k + '">' + v + '</option>').join(''); el.value = state.cfg.cloudMode; el.onchange = () => { state.cfg.cloudMode = el.value; saveCfg(); }; }
   for (const [id, key] of [['volEx', 'volAvgExcludeToday']]) { const el = $(id); el.checked = !!state.cfg[key]; el.onchange = () => { state.cfg[key] = el.checked; saveCfg(); }; }
-  function refreshStratSelects() { for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? '고수 · ' + S[k].who.split(' · ')[0] + ': ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m]; } }
-  for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? '고수 · ' + S[k].who.split(' · ')[0] + ': ' : '') + S[k].name + '</option>').join(''); el.value = state.strat[m];
+  function refreshStratSelects() { for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? S[k].short + ' (' + S[k].who.split(' · ')[0] + ')' : S[k].name) + '</option>').join(''); el.value = state.strat[m]; } }
+  for (const m of ['KR', 'US']) { const el = $('strat' + m); el.innerHTML = stratKeysFor(m).map(k => '<option value="' + k + '">' + (S[k].pro ? S[k].short + ' (' + S[k].who.split(' · ')[0] + ')' : S[k].name) + '</option>').join(''); el.value = state.strat[m];
     el.onchange = () => { const k = el.value; guardStrat(m, k, () => { state.strat[m] = k; store.set('strat', state.strat); state.selected = null; run(); pushSettings(); refreshStratSelects(); }); }; }
   const seg = (id, fn) => $(id).addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; for (const x of $(id).children) x.setAttribute('aria-pressed', x === b); fn(b.dataset.v); });
   seg('fScore', v => { state.fGap = +v; renderTable(); });
