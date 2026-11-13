@@ -63,6 +63,30 @@ def write_json(path, data):
     os.replace(tmp, path)
 
 
+# ---------------- 시장 지수 (코스피 · S&P 500) ----------------
+def index_bars(kr, start):
+    """국장은 코스피(KS11), 미장은 S&P 500(^GSPC) 일봉. 못 받으면 None"""
+    if kr:
+        try:
+            import FinanceDataReader as fdr
+            b = to_bars(fdr.DataReader("KS11", start), False)
+            if len(b) > 200:
+                return {"symbol": "KS11", "name": "코스피", "bars": b}
+        except Exception as e:
+            log(f"[KR] 코스피 지수 FinanceDataReader 실패: {e}")
+    try:
+        import yfinance as yf
+        df = yf.download("^KS11" if kr else "^GSPC", start=start, interval="1d", auto_adjust=False, progress=False, threads=False)
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        b = to_bars(df, False)
+        if len(b) > 200:
+            return {"symbol": "KS11" if kr else "SPX", "name": "코스피" if kr else "S&P 500", "bars": b}
+    except Exception as e:
+        log(f"[{'KR' if kr else 'US'}] 지수 야후 실패: {e}")
+    return None
+
+
 # ---------------- 국장 ----------------
 def kr_targets(n, out):
     """시가총액 상위 n개. 한국거래소 목록을 못 받으면 지난번 목록을 다시 씁니다."""
@@ -136,7 +160,9 @@ def fetch_kr(n, years, out):
             log(f"[KR] {i}/{len(codes)}")
     if not stocks:
         raise RuntimeError("국장 시세를 한 종목도 받지 못했습니다")
-    write_json(os.path.join(out, "KR.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "KR", "stocks": stocks})
+    idx = index_bars(True, start)
+    if idx: idx["bars"] = drop_partial(idx["bars"], KST, 15, 40); log(f"[KR] 코스피 지수 {len(idx['bars'])}일")
+    write_json(os.path.join(out, "KR.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "KR", "index": idx, "stocks": stocks})
     log(f"[KR] 완료: {len(stocks)}종목 (야후 대체 {via_yahoo}, 실패 {fails})")
     return len(stocks)
 
@@ -191,7 +217,9 @@ def fetch_us(years, out):
         raise RuntimeError("미장 시세를 한 종목도 받지 못했습니다")
     n0 = len(stocks); stocks = dedupe_share_classes(stocks)
     if n0 != len(stocks): log(f"[US] 같은 회사 다른 주식 종류 {n0 - len(stocks)}개 제외 (거래대금 큰 쪽만 남김)")
-    write_json(os.path.join(out, "US.json"), {"generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "US", "stocks": stocks})
+    idx = index_bars(False, start)
+    if idx: idx["bars"] = drop_partial(idx["bars"], NY, 16, 10); log(f"[US] S&P 500 지수 {len(idx['bars'])}일")
+    write_json(os.path.join(out, "US.json"), {"index": idx, "generated": dt.datetime.now(KST).strftime("%Y-%m-%d %H:%M"), "market": "US", "stocks": stocks})
     log(f"[US] 완료: {len(stocks)}종목 (실패 {fails})")
     return len(stocks)
 
