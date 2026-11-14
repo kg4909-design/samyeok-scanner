@@ -78,14 +78,17 @@ const PENGINE = (() => {
         } else fills = [];
         const hadPos = holdOf(st.lots) > 0;
         wasStartG = !hadPos;
-        for (const x of fills.filter(x => x.side === 'sell')) {
+        const seq = rec.has(d) ? fills : fills.filter(x => x.side === 'sell').concat(fills.filter(x => x.side === 'buy'));   // 직접 기록한 날은 적은 순서대로
+        for (const x of seq) {
+          if (x.side === 'sell') {
           const H = holdOf(st.lots), q = Math.min(x.qty, H); if (q <= 0) continue;
           const r = q * (x.px - st.avg);   // 실현손익은 평단 기준 (매도해도 평단은 그대로)
           removeLots(st, q, x.px, orders.sell);
           st.cash += q * x.px; st.cycleReal += r; st.cumReal += r; day.dayReal += r; day.sells.push({ q, px: x.px, partial: x.partial });
           if (r < 0) st.lossMode = true;
-        }
-        for (const x of fills.filter(x => x.side === 'buy')) {
+        
+            if (holdOf(st.lots) === 0) st.avg = 0;
+          } else {
           const q = Math.min(x.qty, Math.floor(st.cash / x.px + 1e-9)); if (q <= 0) continue;
           if (holdOf(st.lots) === 0 && !st.cycleStart) st.cycleStart = d;
           const H0 = holdOf(st.lots); st.avg = (st.avg * H0 + q * x.px) / (H0 + q);
@@ -93,6 +96,8 @@ const PENGINE = (() => {
           let r = q; for (const o of orders.buy.filter(o => o.px + 1e-9 >= x.px)) { if (r <= 0) break; const t = Math.min(r, o.q); st.lots.push({ id: ++st.seq, q: t, px: x.px, age: 0, date: d }); r -= t; }
           if (r > 0) st.lots.push({ id: ++st.seq, q: r, px: x.px, age: 0, date: d });
           st.cash -= q * x.px; day.buys.push({ q, px: x.px, partial: x.partial });
+        
+          }
         }
         if (day.sells.length) st.lastFill = day.sells.at(-1).px; else if (day.buys.length) st.lastFill = day.buys.at(-1).px;
         if (holdOf(st.lots) === 0) st.avg = 0;

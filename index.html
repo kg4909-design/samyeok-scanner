@@ -1789,14 +1789,17 @@ const PENGINE = (() => {
         } else fills = [];
         const hadPos = holdOf(st.lots) > 0;
         wasStartG = !hadPos;
-        for (const x of fills.filter(x => x.side === 'sell')) {
+        const seq = rec.has(d) ? fills : fills.filter(x => x.side === 'sell').concat(fills.filter(x => x.side === 'buy'));   // 직접 기록한 날은 적은 순서대로
+        for (const x of seq) {
+          if (x.side === 'sell') {
           const H = holdOf(st.lots), q = Math.min(x.qty, H); if (q <= 0) continue;
           const r = q * (x.px - st.avg);   // 실현손익은 평단 기준 (매도해도 평단은 그대로)
           removeLots(st, q, x.px, orders.sell);
           st.cash += q * x.px; st.cycleReal += r; st.cumReal += r; day.dayReal += r; day.sells.push({ q, px: x.px, partial: x.partial });
           if (r < 0) st.lossMode = true;
-        }
-        for (const x of fills.filter(x => x.side === 'buy')) {
+        
+            if (holdOf(st.lots) === 0) st.avg = 0;
+          } else {
           const q = Math.min(x.qty, Math.floor(st.cash / x.px + 1e-9)); if (q <= 0) continue;
           if (holdOf(st.lots) === 0 && !st.cycleStart) st.cycleStart = d;
           const H0 = holdOf(st.lots); st.avg = (st.avg * H0 + q * x.px) / (H0 + q);
@@ -1804,6 +1807,8 @@ const PENGINE = (() => {
           let r = q; for (const o of orders.buy.filter(o => o.px + 1e-9 >= x.px)) { if (r <= 0) break; const t = Math.min(r, o.q); st.lots.push({ id: ++st.seq, q: t, px: x.px, age: 0, date: d }); r -= t; }
           if (r > 0) st.lots.push({ id: ++st.seq, q: r, px: x.px, age: 0, date: d });
           st.cash -= q * x.px; day.buys.push({ q, px: x.px, partial: x.partial });
+        
+          }
         }
         if (day.sells.length) st.lastFill = day.sells.at(-1).px; else if (day.buys.length) st.lastFill = day.buys.at(-1).px;
         if (holdOf(st.lots) === 0) st.avg = 0;
@@ -3262,7 +3267,7 @@ const DEMO = (() => {
       '<div class="note" style="margin:8px 0">중계표의 1배 숫자를 그대로 넣으세요. 빈 칸은 비워 두면 됩니다. 개수는 아래 배수만큼 곱해서 내 주문으로 바꿉니다. 넣은 값은 추정 규칙을 고치는 자료로도 쓰입니다.</div>' +
       '<div class="pfill"><div style="display:flex;flex-direction:column;gap:6px"><b class="c-up">Limit VWAP 매수</b>' + [0, 1].map(i => row('buy', i, b[i])).join('') + '</div>' +
       '<div style="display:flex;flex-direction:column;gap:6px"><b class="c-down">Limit VWAP 매도</b>' + [0, 1, 2].map(i => row('sell', i, sl[i])).join('') + '</div></div>' +
-      (p.setup.mult ? '' : '<label class="field" style="max-width:200px"><span>내 배수 (N배)</span><input type="number" id="pRMult" min="1" step="1" value="' + mult + '"></label>') +
+      '<label class="field" style="max-width:200px"><span>내 배수 (N배) · 라오어 표 개수에 곱함</span><input type="number" id="pRMult" min="1" step="1" value="' + mult + '"></label>' +
       '<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px"><button type="button" class="primary" id="pRSave">라오어 표 저장</button>' + (rl ? '<button type="button" id="pRDel">입력 지우기</button>' : '') + '</div>';
     // 내 추정과 라오어 표 비교 (최근 10일)
     const cmp = R.rows.filter(r => p.relay && p.relay[r.date] && r.pred).slice(-10).reverse();
@@ -3282,7 +3287,7 @@ const DEMO = (() => {
       for (const i of [0, 1, 2]) { const px = parseFloat(val('sell', i, 'px')), q = parseInt(val('sell', i, 'q')), all = val('sell', i, 'all'); if (px > 0 && (all || q > 0)) sell.push([px, all ? 'all' : q]); }
       if (!buy.length && !sell.length) { toast('가격과 개수를 넣어 주세요'); return; }
       p.relay = p.relay || {}; p.relay[L.date] = { buy, sell };
-      if ($('pRMult')) p.relayMult = Math.max(1, Math.floor(+$('pRMult').value || 1));
+      if ($('pRMult')) { const n = Math.max(1, Math.floor(+$('pRMult').value || 1)); p.relayMult = n; if (p.setup.mult) p.setup.mult = n; }
       saveP(); renderP(); toast(mdw(L.date) + ' 라오어 표를 저장했습니다');
     };
     if ($('pRDel')) $('pRDel').onclick = () => { delete p.relay[L.date]; saveP(); renderP(); };
@@ -3329,7 +3334,7 @@ const DEMO = (() => {
   }
   function renderPSetup(R) {
     const p = state.p, d = pData(), lastD = d ? d.bars.at(-1)[0] : '';
-    let h = p.setup ? '<div class="note">현재 설정: ' + (p.setup.mult ? '라오어 33차 이어받기 ×' + p.setup.mult + '배' : '새로 시작') + ' · 기준일 ' + p.setup.startDate + ' · 시작 금액 ' + usd(p.setup.capital) + ' · 직접 기록 ' + new Set(p.fills.map(x => x.date)).size + '일</div>' : '';
+    let h = p.setup ? '<div class="note">현재 설정: ' + (p.setup.mult ? (p.setup.mine ? '내 계좌 33차 (라오어 표 ×' + p.setup.mult + '배)' : '라오어 33차 이어받기 ×' + p.setup.mult + '배') : '새로 시작') + ' · 기준일 ' + p.setup.startDate + ' · 시작 금액 ' + usd(p.setup.capital) + ' · 직접 기록 ' + new Set(p.fills.map(x => x.date)).size + '일</div>' : '';
     h += '<label class="chk"><input type="checkbox" id="pAuto"' + (p.auto !== false ? ' checked' : '') + '> 기록하지 않은 날은 시세로 체결을 추정해 이어 가기</label>';
     h += '<div class="pfill">' +
       '<div style="display:flex;flex-direction:column;gap:6px"><b>새로 시작</b><label class="field"><span>시작 금액 ($)</span><input type="number" id="pCap" min="100" step="100" value="' + (p.setup && !p.setup.mult ? p.setup.capital : 10000) + '"></label>' +
@@ -3338,7 +3343,7 @@ const DEMO = (() => {
       '<div style="display:flex;flex-direction:column;gap:6px"><b>라오어 33차 이어받기</b><label class="field"><span>N배 (라오어 1배 = 시작 $14,434.58)</span><input type="number" id="pMult" min="1" step="1" value="' + (p.setup && p.setup.mult ? p.setup.mult : 1) + '"></label><button type="button" id="pLaoer">33차를 N배로 이어받기</button>' +
       '<span class="note">10/2~11/12 블로그 체결가를 N배 수량으로 넣고, 그 뒤는 추정·직접 기록으로 이어 갑니다. 내 체결이 달랐으면 [체결 기록]에서 고치세요.</span></div>' +
       '</div>';
-    if (p.setup) h += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px"><b>추가 투입 (원할 때 금액 넣기)</b><div class="pfill"><label class="field"><span>날짜 (미국 거래일)</span><input type="date" id="pDepD" value="' + lastD + '"></label><label class="field"><span>금액 ($)</span><input type="number" id="pDepA" min="1" step="100"></label></div><button type="button" id="pDep">추가 투입 기록</button><span class="note">보유가 0일 때 넣으면 그날부터 새 사이클 시작금에 포함되고, 사이클 중간이면 잔금에 더해졌다가 다음 사이클 시작금에 들어갑니다(라오어 방식: 사이클이 끝난 뒤 N배 조정).</span>' + ((p.deposits || []).length ? '<span class="note">기록: ' + p.deposits.map(x => x.date + ' ' + usd(x.amt)).join(' · ') + '</span>' : '') + '</div>';
+    if (p.setup) h += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px"><b>추가 투입 (원할 때 금액 넣기)</b><div class="pfill"><label class="field"><span>날짜 (미국 거래일)</span><input type="date" id="pDepD" value="' + lastD + '"></label><label class="field"><span>금액 ($, 뺄 때는 −)</span><input type="number" id="pDepA" step="100"></label></div><button type="button" id="pDep">추가 투입 기록</button><span class="note">보유가 0일 때 넣으면 그날부터 새 사이클 시작금에 포함되고, 사이클 중간이면 잔금에 더해졌다가 다음 사이클 시작금에 들어갑니다(라오어 방식: 사이클이 끝난 뒤 N배 조정).</span>' + ((p.deposits || []).length ? '<span class="note">기록: ' + p.deposits.map(x => x.date + ' ' + usd(x.amt)).join(' · ') + '</span>' : '') + '</div>';
     if (p.setup) h += '<div class="row"><button type="button" id="pReset">P 기록 모두 지우기</button></div>';
     $('pSetup').innerHTML = h;
     $('pAuto').onchange = () => { p.auto = $('pAuto').checked; saveP(); renderP(); };
@@ -3347,7 +3352,7 @@ const DEMO = (() => {
       state.p = Object.assign(newP(), { setup: { startDate: sd, capital: c, cycleNo: 1 }, auto: p.auto }); saveP(); renderP(); toast('P 사이클을 ' + usd(c) + '로 시작했습니다'); };
     $('pLaoer').onclick = () => { const n = Math.max(1, Math.floor(+$('pMult').value || 1)); if (p.setup && p.fills.length && !confirmReset()) return;
       const pr = PENGINE.laoerPreset(n); state.p = Object.assign(newP(), { setup: { startDate: pr.startDate, capital: pr.capital, cycleNo: pr.cycleNo, mult: n }, fills: pr.fills, relay: pr.relay, auto: p.auto }); saveP(); renderP(); toast('라오어 33차를 ' + n + '배로 이어받았습니다'); };
-    if ($('pDep')) $('pDep').onclick = () => { const dd = $('pDepD').value, am = parseFloat($('pDepA').value); if (!dd || !(am > 0)) { toast('날짜와 금액을 넣어 주세요'); return; } p.deposits = (p.deposits || []).concat([{ date: dd, amt: am }]); saveP(); renderP(); toast(usd(am) + ' 추가 투입을 기록했습니다'); };
+    if ($('pDep')) $('pDep').onclick = () => { const dd = $('pDepD').value, am = parseFloat($('pDepA').value); if (!dd || !am) { toast('날짜와 금액을 넣어 주세요 (빼는 돈은 −로)'); return; } p.deposits = (p.deposits || []).concat([{ date: dd, amt: am }]); saveP(); renderP(); toast(usd(am) + ' 추가 투입을 기록했습니다'); };
     if ($('pReset')) $('pReset').onclick = () => { if (!confirmReset()) return; state.p = newP(); saveP(); renderP(); };
   }
   let pResetArm = 0;
@@ -3538,10 +3543,11 @@ const DEMO = (() => {
     let o; try { o = JSON.parse(await file.text()); } catch { toast('백업 파일을 읽지 못했습니다'); return; }
     if (!o || o.app !== 'samyeok-scanner' || !Array.isArray(o.trades)) { toast('이 앱의 백업 파일이 아닙니다'); return; }
     const before = state.trades.length;
+    if (o.psoxl && o.psoxl.setup && (!state.p.setup || String(o.psoxl.updatedAt || '') > String(state.p.updatedAt || ''))) { state.p = Object.assign(newP(), o.psoxl); store.set('psoxl', state.p); saveP(); }
+    if (o.psoxl && !o.trades.length && !o.ledger) { if (state.tab === 'p') renderP(); toast('SOXL P 기록을 불러왔습니다'); }
     const merged = cleanDupes(mergeTrades(allTrades(), o.trades)); setTrades(merged); store.set('trades', merged); state.tSnap = new Map();
-    await writeRemote(merged); snapTrades();
+    try { await writeRemote(merged); } catch {} snapTrades();
     if (o.ledger) { state.ledger = mergeLedger(state.ledger, o.ledger); await saveLedger(); }
-    if (o.psoxl && o.psoxl.setup && String(o.psoxl.updatedAt || '') > String(state.p.updatedAt || '')) { state.p = Object.assign(newP(), o.psoxl); store.set('psoxl', state.p); saveP(); }
     if (o.settings && applySettings(o.settings)) pushSettings();
     run(); renderPosBadge(); if (state.tab === 'pos') renderPositions(); if (state.tab === 'net') renderNet();
     toast('백업을 합쳤습니다 · 매매 기록 ' + before + '건 → ' + state.trades.length + '건');
