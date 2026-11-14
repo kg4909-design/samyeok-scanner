@@ -16,17 +16,20 @@ const PENGINE = (() => {
   const holdOf = lots => lots.reduce((a, l) => a + l.q, 0);
   
   // 다음 거래일 주문 만들기
+  // P 규칙판: 라오어 표 30~33차·28차·8차·1차와 대조해 확정·고정한 규칙 (중계표 없이 매일 같은 숫자가 나오도록)
   function makeOrders(st, C) {
-    const U = st.E0 / SPLIT, H = holdOf(st.lots), buy = [], sell = [];
+    const U = st.E0 / SPLIT, H = holdOf(st.lots), buy = [], sell = [], lf = st.lastFill;
+    const near = rd2(Math.min(C * NEAR, lf - 0.01));
     if (H === 0) {
-      for (const [p, tag] of [[rd2(C * 1.07 - 0.04), 'start'], [fl2(Math.min(C * NEAR, st.lastFill - 0.02)), 'near']]) { const q = Math.min(Math.floor(U / p), Math.floor(st.cash / p)); if (q > 0) buy.push({ px: p, q, tag, approx: tag === 'near' }); }
+      const p1 = rd2(C * (st.retry ? 1.05 : 1.07) - 0.04);
+      for (const [p, tag] of [[p1, 'start'], [near, 'near']]) { const q = Math.min(Math.floor(U / p), Math.floor(st.cash / p)); if (q > 0) buy.push({ px: p, q, tag }); }
       return { buy, sell };
     }
-    const f = Math.max(0, 1 - st.cash / st.E0), B = fl2(st.lastFill * (1 - K * f)), A = fl2(Math.min(C * NEAR, st.lastFill - 0.02)), q = Math.floor(U / B);
-    if (q > 0 && st.cash >= q * (A + B)) { buy.push({ px: B, q, tag: 'deep', approx: st.lossMode }); buy.push({ px: A, q, tag: 'near', approx: true }); }
-    else { const qb = Math.min(q, Math.floor(st.cash / B)); if (qb > 0) buy.push({ px: B, q: qb, tag: 'deep', approx: st.lossMode, cashLimited: true }); }
-    if (st.lots.length <= 2) sell.push({ px: ce2(st.avg * ALL_UP), q: H, all: true, approx: true });
-    else for (const L of st.lots.slice(-3).reverse()) sell.push({ px: ce2(L.px * (LOT_UP - LOT_DECAY * L.age)), q: L.q, lot: L.id, approx: true });
+    const T = Math.max(0, (st.E0 - st.cash) / U), B = fl2(lf * (1 - 0.003 * T)), q = Math.floor(U / B);
+    if (q > 0 && st.cash >= q * (B + near)) { buy.push({ px: B, q, tag: 'deep' }); buy.push({ px: near, q, tag: 'near' }); }
+    else { const qb = Math.min(q, Math.floor(st.cash / B)); if (qb > 0) buy.push({ px: B, q: qb, tag: 'deep', cashLimited: true }); }
+    if (H * C <= U * 1.2) sell.push({ px: ce2(lf * 1.006), q: H, all: true });
+    else st.lots.slice(-3).reverse().forEach((L, i) => { let px = ce2(L.px * (LOT_UP - LOT_DECAY * L.age)); if (i === 2) px = Math.min(px, ce2(lf * 1.007)); sell.push({ px, q: L.q, lot: L.id }); });
     return { buy, sell };
   }
 
@@ -57,10 +60,11 @@ const PENGINE = (() => {
     const rec = new Map(); for (const x of cfg.fills || []) { if (!rec.has(x.date)) rec.set(x.date, []); rec.get(x.date).push(x); }
     const st = { avg: 0, cash: cfg.capital, lots: [], E0: cfg.capital, cycleNo: cfg.cycleNo || 1, cycleStart: null, cycleReal: 0, cumReal: 0, lastFill: null, lossMode: false, seq: 0 };
     const rows = [], cycles = [];
-    let orders = null, prevDate = null;
+    let orders = null, prevDate = null, wasStartG = false;
     for (const b of bars) {
       const [d, , , , C] = b;
       const day = { date: d, C, buys: [], sells: [], est: false, rough: false, recorded: rec.has(d), dayReal: 0 };
+      for (const x of (cfg.deposits || []).filter(x => x.date === d)) { st.cash += x.amt; if (holdOf(st.lots) === 0) st.E0 = st.cash; day.deposit = (day.deposit || 0) + x.amt; }
       if (orders) {
         const step = kstWeekdays(prevDate, d); for (const L of st.lots) L.age += step;
         let fills;
@@ -73,6 +77,7 @@ const PENGINE = (() => {
           for (const o of orders.buy) { const e = estFill(o, 'buy', b30, C); if (e) { const q = Math.min(e.q, Math.floor(cashLeft / e.px)); if (q > 0) { fills.push({ side: 'buy', qty: q, px: e.px, partial: e.partial || q < o.q }); cashLeft -= q * e.px; } if (e.rough) day.rough = true; } }
         } else fills = [];
         const hadPos = holdOf(st.lots) > 0;
+        wasStartG = !hadPos;
         for (const x of fills.filter(x => x.side === 'sell')) {
           const H = holdOf(st.lots), q = Math.min(x.qty, H); if (q <= 0) continue;
           const r = q * (x.px - st.avg);   // 실현손익은 평단 기준 (매도해도 평단은 그대로)
@@ -96,6 +101,7 @@ const PENGINE = (() => {
           st.cycleNo++; st.E0 = st.cash; st.cycleReal = 0; st.cycleStart = null; st.lossMode = false; day.cycleEnd = true;
         }
       }
+      st.retry = !!(orders && typeof wasStartG !== 'undefined' && wasStartG && holdOf(st.lots) === 0 && !day.cycleEnd);
       if (!st.cycleStart && holdOf(st.lots) === 0) st.pendingStart = nextTradingDay(d);
       if (st.lastFill == null) st.lastFill = C;
       const pred = makeOrders(st, C), rl = cfg.relay && cfg.relay[d];
