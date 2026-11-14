@@ -79,6 +79,8 @@ details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--mu
 .relay .kv>span{padding:8px 12px;color:var(--muted);background:var(--soft)}
 .relay .kv>b{padding:8px 12px;font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .relay .ap{display:inline-block;font-size:10px;font-weight:700;border-radius:99px;padding:0 6px;background:var(--warn-soft);color:var(--warn);margin-left:4px;vertical-align:middle;font-family:var(--f-sans,inherit)}
+.pfold{padding:12px 14px}.pfold>summary{cursor:pointer;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.pfold[open]>summary{margin-bottom:8px}
+.relay .rrow.diff b{color:var(--warn)}.relay .rh.ref{background:var(--muted);color:var(--panel)}
 .pwhen{background:var(--soft);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.7}
 .pfill{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .pfill .field input{font-size:15px}
@@ -615,18 +617,15 @@ body[data-tab]:not([data-tab="sig"]) .sigonly{display:none!important}
       <div class="bthead"><div><div class="label">P 사이클 중계표 · SOXL</div><p id="pNote">라오어 'Privacy' 중계표를 실제 시세와 대조해 추정한 규칙으로, 내 계좌 기준 다음 거래일 주문을 계산합니다.</p></div></div>
       <div class="jbody" id="pBody"></div>
     </div>
-    <div class="panel" id="pFillPanel">
-      <div class="bthead"><div><div class="label">체결 기록</div><p>장 마감 30분 Limit VWAP 체결 결과를 적습니다. 시세가 들어오면 그날 체결을 추정해 미리 채워 둡니다. 증권사 체결 내역과 다르면 고쳐서 기록하세요.</p></div></div>
+    <details class="panel pfold"><summary><b>체결 기록</b> <span class="note">매일 메리츠 체결가·개수를 넣는 곳</span></summary>
       <div class="jbody" id="pFill"></div>
-    </div>
-    <div class="panel">
-      <div class="bthead"><div><div class="label">날짜별 기록</div><p>엑셀 중계표처럼 날짜별 체결·보유·평단·잔금을 정리합니다. "추정"은 직접 기록하지 않아 시세로 체결을 추정한 날입니다.</p></div></div>
+    </details>
+    <details class="panel pfold"><summary><b>날짜별 기록</b> <span class="note">지난 매매 내역</span></summary>
       <div class="jbody" id="pHist"></div>
-    </div>
-    <div class="panel">
-      <div class="bthead"><div><div class="label">시작 설정</div><p>처음 한 번만 정합니다. 새 금액으로 시작하거나, 라오어 33차(10/2 시작)를 N배로 이어받을 수 있습니다.</p></div></div>
+    </details>
+    <details class="panel pfold"><summary><b>시작 설정 · 추가 투입 · 배수</b></summary>
       <div class="jbody" id="pSetup"></div>
-    </div>
+    </details>
   </div>
 
   <div id="viewNet" class="bt" hidden>
@@ -3229,27 +3228,31 @@ const DEMO = (() => {
     const empty = t => '<div class="rrow empty">' + t + '</div>';
     const ended = L.cycleEnd, H = L.hold, eqRet = L.equity / R.capital - 1, cumRet = L.cumReal / R.capital;
     const kv = (k, v) => '<div class="kv"><span>' + k + '</span><b>' + v + '</b></div>';
-    const mult = p.setup.mult || p.relayMult || 1;
-    let h = o.relay ? '<div class="pwhen" style="background:var(--accent-soft)"><b>이 주문은 입력한 라오어 표 값 × ' + mult + '배입니다.</b></div>'
-      : '<div class="pwhen" style="background:var(--warn-soft)"><b>P 규칙판 주문입니다 (중계표 없이 계산).</b> 라오어 표와 같은 틀(13분할·깊은 줄 = 마지막 체결가 × (1 − 0.3% × 투입 회차)·얕은 줄·묶음별 매도와 시간 손절·사이클 종료/시작)을 고정한 규칙이라, 라오어 표와 센트 단위로는 다를 수 있습니다. 2026년 1~9월 시뮬레이션의 월별 실현수익률은 라오어 발표치와 평균 3.6%p 차이였습니다. 라오어 표를 넣으면 그 값이 우선합니다.</div>';
-    h += '<div class="pwhen">' + (ended ? '<b class="c-up">' + mdw(L.date) + ' ' + (L.cycleNo - 1) + '차 사이클이 끝났습니다.</b> 새 ' + L.cycleNo + '차 사이클은 <b>' + mdw(nd) + '</b>에 시작합니다 (시작 금액 ' + usd(L.E0) + ').<br>' : '') +
-      '<b>' + mdw(L.date) + ' 종가 기준 → ' + mdw(nd) + ' 미국 장 주문</b> · 체결: 장 마감 30분 전 Limit VWAP (한국시간 ' + mdw(kt.kDate) + ' ' + kt.from + '~' + kt.to + ')<br>' +
-      '메리츠 예약주문은 한국시간 09:00~21:30에 걸어 두세요. 표의 가격·개수 그대로 걸고, 빈 칸은 주문하지 않습니다. 매수·매도 줄의 순서는 상관없습니다.' +
-      (L.est ? '<br><span class="c-up">' + mdw(L.date) + ' 체결은 아직 기록하지 않아 시세로 추정한 결과입니다. 아래 [체결 기록]에서 확인하세요.</span>' : '') + '</div>';
-    h += '<div class="relay"><div class="rcol">' +
-      '<div class="rbox">' + kv('현사이클 시작', H ? mdw(L.cycleStart) : mdw(nd) + ' 예정') + kv('현사이클 차수', L.cycleNo + '차') + '</div>' +
-      '<div class="rbox"><div class="rh buy"><span>Limit VWAP 매수가</span><span>개수 · 금액</span></div>' + (o.buy.length ? o.buy.map(x => ordRow(x, 'buy')).join('') : empty('매수 주문 없음 (현금 부족)')) + '</div>' +
-      '<div class="rbox"><div class="rh sell"><span>Limit VWAP 매도가</span><span>개수 · 금액</span></div>' + (o.sell.length ? o.sell.map(x => ordRow(x, 'sell')).join('') : empty('매도 주문 없음 (보유 0)')) + '</div>' +
-      '</div><div class="rcol"><div class="rbox">' +
-      kv('종가 날짜', L.date.replace(/-/g, '. ')) + kv('종가', usd(L.C)) + kv('보유 평단', H ? usd(L.avg) : '–') + kv('직전 매매 개수', (L.net > 0 ? '+' : '') + (L.net || (L.buys.length || L.sells.length ? 0 : '–')) + (L.buys.length && L.sells.length ? ' <span class="note">(+' + L.buys.reduce((a, x) => a + x.q, 0) + ' −' + L.sells.reduce((a, x) => a + x.q, 0) + ')</span>' : '')) +
-      kv('현재 보유 개수', H + '개') + kv('현사이클 시작 $', usd(L.E0)) + kv('잔금 $', usd(L.cash)) + kv('당일 실현 $', L.dayReal ? '<span class="' + (L.dayReal >= 0 ? 'c-up' : 'c-down') + '">' + usd(L.dayReal) + '</span>' : '–') +
-      kv('현사이클 실현수익 $', '<span class="' + (L.cycleReal >= 0 ? 'c-up' : 'c-down') + '">' + usd(L.cycleReal) + '</span>') +
-      kv('누적 실현수익 · 수익률', '<span class="' + (L.cumReal >= 0 ? 'c-up' : 'c-down') + '">' + usd(L.cumReal) + ' · ' + (cumRet >= 0 ? '+' : '') + fmtN(cumRet * 100, 2) + '%</span>') +
-      kv('실제 평가 (잔금+보유×종가)', usd(L.equity) + ' <span class="' + (eqRet >= 0 ? 'c-up' : 'c-down') + '">' + (eqRet >= 0 ? '+' : '') + fmtN(eqRet * 100, 2) + '%</span>') +
-      '</div></div></div>';
-    h += '<div class="note">수익률은 시작 금액 ' + usd(R.capital) + ' 대비입니다. 중계표의 "총 수익률"은 실현수익만 더한 값이라, 보유 중인 평가손익은 "실제 평가"에서 확인하세요. ' +
-      '</div>';
-    if (H && o.sell.some(x => x.all)) h += '<div class="note">보유 묶음이 2개 이하라 "남은전부" 매도가 걸립니다. 다음 거래일 마감 30분 VWAP가 ' + usd(o.sell[0].px) + ' 이상이면 전부 팔려 사이클이 끝납니다.</div>';
+    const mult = p.setup.mult || p.relayMult || 1, my = L.pred || o;
+    // 오른쪽: 라오어 1배 계좌를 같은 규칙으로 돌린 중계표 (라오어 33차 체결 기록 + 이후는 추정·입력값)
+    let LR = null; try { const pr = PENGINE.laoerPreset(1); pr.relay = p.relay || {}; pr.fills = pr.fills.concat((p.laoerFills || [])); LR = PENGINE.replay(d, Object.assign(pr, { auto: true, mult: 1 })).last; } catch (e) { console.error(e); }
+    const act = (p.relay || {})[L.date];
+    const same = (a, b) => a && b && Math.abs(a.px - b[0]) < 0.015 && (b[1] === 'all' ? a.all : a.q === b[1]);
+    const rowsOf = (list, side, cmp) => list.length ? list.map((x, i) => { const ok = !cmp || cmp.some(c => same(x, c)); return '<div class="rrow' + (cmp && !ok ? ' diff' : '') + '"><b>' + fmtN(x.px, 2) + '</b><b>' + (x.all ? '남은전부' : x.q) + '</b><span class="amt">' + (x.all ? x.q + '주 · ' : '') + usd(x.px * x.q) + '<br>≈' + fmtInt(x.px * x.q * state.fx) + '원' + (cmp ? (ok ? ' ✓' : ' ≠') : '') + '</span></div>'; }).join('') : empty(side === 'b' ? '매수 없음' : '매도 없음');
+    const actRows = list => list.length ? list.map(x => '<div class="rrow"><b>' + fmtN(x[0], 2) + '</b><b>' + (x[1] === 'all' ? '남은전부' : x[1]) + '</b><span class="amt"></span></div>').join('') : empty('없음');
+    let h = '<div class="pwhen">' + (ended ? '<b class="c-up">' + mdw(L.date) + ' ' + (L.cycleNo - 1) + '차 사이클 종료 → 새 ' + L.cycleNo + '차 사이클 ' + mdw(nd) + ' 시작 (시작 금액 ' + usd(L.E0) + ')</b><br>' : '') +
+      '<b>' + mdw(nd) + ' 미국 장 주문</b> (' + mdw(L.date) + ' 종가 ' + usd(L.C) + ' 기준) · 메리츠 Limit VWAP 예약주문, 한국시간 09:00~21:30에 걸기 · 체결은 한국시간 ' + mdw(kt.kDate) + ' ' + kt.from + '~' + kt.to +
+      (L.est ? '<br><span class="c-up">' + mdw(L.date) + ' 체결을 아직 안 적어서 시세로 추정했습니다. 아래 [체결 기록]에서 메리츠 체결로 고쳐 주세요.</span>' : '') + '</div>';
+    h += '<div class="relay">' +
+      '<div class="rcol"><div class="rbox"><div class="rh"><span>내 주문 · P 규칙판</span><span>' + L.cycleNo + '차 · ' + (H ? mdw(L.cycleStart) + ' 시작' : mdw(nd) + ' 시작') + '</span></div>' +
+        kv('사이클 시작 자본', usd(L.E0)) + kv('잔금 · 보유', usd(L.cash) + ' · ' + H + '주') + kv('평단 · 실제 평가', (H ? usd(L.avg) : '–') + ' · ' + usd(L.equity)) + '</div>' +
+        '<div class="rbox"><div class="rh buy"><span>매수 (Limit VWAP)</span><span>개수 · 금액</span></div>' + rowsOf(my.buy, 'b') + '</div>' +
+        '<div class="rbox"><div class="rh sell"><span>매도 (Limit VWAP)</span><span>개수 · 금액</span></div>' + rowsOf(my.sell, 's') + '</div>' +
+        (act ? '<div class="note">라오어 표 × ' + mult + '배: 매수 ' + (act.buy.map(x => fmtN(x[0], 2) + '×' + x[1] * mult).join(', ') || '없음') + ' · 매도 ' + (act.sell.map(x => fmtN(x[0], 2) + '×' + (x[1] === 'all' ? '전부' : x[1] * mult)).join(', ') || '없음') + '</div>' : '') +
+      '</div>' +
+      '<div class="rcol"><div class="rbox"><div class="rh ref"><span>라오어 중계표 · 규칙판으로 계산 (1배)</span><span>' + (LR ? LR.cycleNo + '차' : '') + '</span></div>' +
+        (LR ? kv('사이클 시작 자본', usd(LR.E0)) + kv('잔금 · 보유', usd(LR.cash) + ' · ' + LR.hold + '주') + kv('평단', LR.hold ? usd(LR.avg) : '–') : kv('상태', '계산 불가')) + '</div>' +
+        (LR ? '<div class="rbox"><div class="rh buy"><span>매수 · 규칙판</span><span>' + (act ? '실제 표와 비교' : '') + '</span></div>' + rowsOf(LR.pred.buy, 'b', act ? act.buy : null) + '</div>' +
+          '<div class="rbox"><div class="rh sell"><span>매도 · 규칙판</span><span>' + (act ? '실제 표와 비교' : '') + '</span></div>' + rowsOf(LR.pred.sell, 's', act ? act.sell : null) + '</div>' : '') +
+        (act ? '<div class="rbox"><div class="rh ref"><span>실제 라오어 표 (' + md(L.date) + ' 입력값)</span><span></span></div><div class="rrow empty">매수</div>' + actRows(act.buy) + '<div class="rrow empty">매도</div>' + actRows(act.sell) + '</div>'
+          : '<div class="note">라오어 ' + md(L.date) + ' 표를 아래 [라오어 표 입력]에 넣으면 줄마다 ✓/≠로 비교합니다. 매일 ✓가 나오면 중계표는 더 필요 없습니다.</div>') +
+      '</div></div>';
+    h += '<div class="note">왼쪽은 내 계좌(시작 자본·체결 기록)에 규칙을 적용한 주문, 오른쪽은 라오어 1배 계좌에 같은 규칙을 적용한 결과입니다. 규칙: 시작금 ÷ 13 = 1회분 · 시작 1줄 종가×1.07−0.04 · 얕은 줄 min(종가×0.999, 마지막 체결가−0.01) · 깊은 줄 마지막 체결가×(1−0.3%×투입 회차) · 묶음 매도 산 가격+0.155%(한국 평일마다 −0.1%) · 보유 0이면 사이클 종료.</div>';
     h += renderPRelayForm(R);
     $('pBody').innerHTML = h;
     bindPRelayForm(R);
