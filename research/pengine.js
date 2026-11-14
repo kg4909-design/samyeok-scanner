@@ -101,7 +101,7 @@ const PENGINE = (() => {
         }
         if (day.sells.length) st.lastFill = day.sells.at(-1).px; else if (day.buys.length) st.lastFill = day.buys.at(-1).px;
         if (holdOf(st.lots) === 0) st.avg = 0;
-        if (hadPos && holdOf(st.lots) === 0) {   // 사이클 종료 → 다음 거래일 새 사이클
+        if (hadPos && holdOf(st.lots) === 0 && !(cfg.keepCycle || []).includes(d)) {   // 사이클 종료 → 다음 거래일 새 사이클
           cycles.push({ no: st.cycleNo, start: st.cycleStart, end: d, E0: st.E0, real: st.cycleReal });
           st.cycleNo++; st.E0 = st.cash; st.cycleReal = 0; st.cycleStart = null; st.lossMode = false; day.cycleEnd = true;
         }

@@ -1812,7 +1812,7 @@ const PENGINE = (() => {
         }
         if (day.sells.length) st.lastFill = day.sells.at(-1).px; else if (day.buys.length) st.lastFill = day.buys.at(-1).px;
         if (holdOf(st.lots) === 0) st.avg = 0;
-        if (hadPos && holdOf(st.lots) === 0) {   // 사이클 종료 → 다음 거래일 새 사이클
+        if (hadPos && holdOf(st.lots) === 0 && !(cfg.keepCycle || []).includes(d)) {   // 사이클 종료 → 다음 거래일 새 사이클
           cycles.push({ no: st.cycleNo, start: st.cycleStart, end: d, E0: st.E0, real: st.cycleReal });
           st.cycleNo++; st.E0 = st.cash; st.cycleReal = 0; st.cycleStart = null; st.lossMode = false; day.cycleEnd = true;
         }
@@ -3216,7 +3216,7 @@ const DEMO = (() => {
   const usdK = v => usd(v) + ' <span class="note">≈' + fmtInt(v * state.fx) + '원</span>';
   function pRun() {
     const d = pData(), p = state.p; if (!p.setup || !d) return null;
-    try { return PENGINE.replay(d, Object.assign({}, p.setup, { fills: p.fills, deposits: p.deposits || [], auto: p.auto !== false, relay: p.relay || {}, mult: p.setup.mult || p.relayMult || 1 })); } catch (e) { console.error(e); return null; }
+    try { return PENGINE.replay(d, Object.assign({}, p.setup, { fills: p.fills, deposits: p.deposits || [], keepCycle: p.keepCycle || [], auto: p.auto !== false, relay: p.relay || {}, mult: p.setup.mult || p.relayMult || 1 })); } catch (e) { console.error(e); return null; }
   }
   function renderP() {
     if (state.p.setup && state.p.setup.mult && !Object.keys(state.p.relay || {}).length) { state.p.relay = PENGINE.laoerPreset(state.p.setup.mult).relay; saveP(); }
@@ -3327,10 +3327,12 @@ const DEMO = (() => {
     const tr = r => '<tr' + (r.cycleEnd ? ' style="background:var(--accent-soft)"' : '') + '><td class="mono">' + md(r.date) + '</td><td class="r num">' + fmtN(r.C, 2) + '</td>' +
       '<td class="r num c-up">' + (r.buys.length ? r.buys.map(x => '+' + x.q + ' @' + fmtN(x.px, 2)).join('<br>') : '') + '</td><td class="r num c-down">' + (r.sells.length ? r.sells.map(x => '−' + x.q + ' @' + fmtN(x.px, 2)).join('<br>') : '') + '</td>' +
       '<td class="r num">' + r.hold + '</td><td class="r num">' + (r.hold ? fmtN(r.avg, 3) : '–') + '</td><td class="r num">' + fmtN(r.cash, 2) + '</td><td class="r num ' + (r.dayReal < 0 ? 'c-down' : r.dayReal > 0 ? 'c-up' : '') + '">' + (r.dayReal ? fmtN(r.dayReal, 2) : '') + '</td>' +
-      '<td class="r num">' + fmtN(r.cycleReal, 2) + '</td><td>' + r.cycleNo + '차' + (r.cycleEnd ? ' 종료' : '') + '</td><td>' + (r === R.rows[0] ? '시작' : r.recorded ? '기록' : '<span class="note">추정</span>') + '</td></tr>';
+      '<td class="r num">' + fmtN(r.cycleReal, 2) + '</td><td>' + r.cycleNo + '차' + (r.cycleEnd ? ' 종료 <button type="button" class="linkbtn" data-keep="' + r.date + '">종료 아님</button>' : (state.p.keepCycle || []).includes(r.date) ? ' <button type="button" class="linkbtn" data-unkeep="' + r.date + '">이어감 취소</button>' : '') + '</td><td>' + (r === R.rows[0] ? '시작' : r.recorded ? '기록' : '<span class="note">추정</span>') + '</td></tr>';
     let h = '<div class="tablewrap"><table class="list"><thead><tr><th>날짜</th><th class="r">종가</th><th class="r">매수</th><th class="r">매도</th><th class="r">보유</th><th class="r">평단</th><th class="r">잔금 $</th><th class="r">당일 실현</th><th class="r">사이클 실현</th><th>차수</th><th>구분</th></tr></thead><tbody>' + rows.map(tr).join('') + '</tbody></table></div>';
-    if (R.cycles.length) h += '<div class="note">끝난 사이클: ' + R.cycles.map(c => c.no + '차 ' + md(c.start) + '~' + md(c.end) + ' 실현 ' + usd(c.real)).join(' · ') + '</div>';
+    if (R.cycles.length) h += '<div class="note">내 계좌만 규칙 밖 매매로 보유가 0이 된 날은 [종료 아님]을 누르면 사이클이 이어집니다. 끝난 사이클: ' + R.cycles.map(c => c.no + '차 ' + md(c.start) + '~' + md(c.end) + ' 실현 ' + usd(c.real)).join(' · ') + '</div>';
     $('pHist').innerHTML = h;
+    for (const b of $('pHist').querySelectorAll('[data-keep]')) b.onclick = () => { const p = state.p; p.keepCycle = [...new Set((p.keepCycle || []).concat(b.dataset.keep))]; saveP(); renderP(); toast(md(b.dataset.keep) + '은 사이클 종료가 아닌 것으로 고쳤습니다 (같은 사이클 이어감)'); };
+    for (const b of $('pHist').querySelectorAll('[data-unkeep]')) b.onclick = () => { const p = state.p; p.keepCycle = (p.keepCycle || []).filter(x => x !== b.dataset.unkeep); saveP(); renderP(); };
   }
   function renderPSetup(R) {
     const p = state.p, d = pData(), lastD = d ? d.bars.at(-1)[0] : '';
