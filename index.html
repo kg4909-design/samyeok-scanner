@@ -92,6 +92,7 @@ details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--mu
 .todo .td-n.act{background:var(--up);color:#fff} .todo .td-n.go{background:var(--accent);color:var(--accent-ink)}
 .todo .td-b{min-width:0} .todo .td-b>b{font-size:14px}
 .todo ol.picks{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.hold-sum td{vertical-align:top;font-size:13px}
 .todo .row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .regime{padding:12px 14px;margin-top:12px;display:flex;flex-direction:column;gap:8px}
 .regime summary.rg-h{cursor:pointer}
@@ -2042,6 +2043,32 @@ const DEMO = (() => {
     const winners = new Set([...best.values()].map(x => x[1]));
     return keep.filter(s => s.market !== 'US' || !s.name || winners.has(s));
   }
+  // 보유 종목 한 줄 요약: 손절가(오늘 기준) · 익절가 · 청산 조건 · 도달 여부
+  function holdLine(tr) {
+    const m = tr.market, P = v => fmtP(v, m), st = findStock(tr), Sx = S[tr.strat];
+    let tk = null; try { tk = st ? ENGINE.track(st, tr) : null; } catch {}
+    const stop = ENGINE.floorPx(m, tk && isFinite(tk.stopNow) ? tk.stopNow : tr.sl);
+    const tps = [];
+    if (tr.scale) { let acc = 0; tr.scale.forEach((z, i) => { if (!(z.q > 0)) return; acc += z.q; if ((tr.sold || 0) + 1e-9 < acc) tps.push(P(z.px) + (tk && tk.scale && tk.scale[i] && tk.scale[i].hitDate ? ' (도달)' : '')); }); }
+    else if (isFinite(tr.tp1) && !tr.stage) tps.push(P(tr.tp1));
+    else if (isFinite(tr.tp2) && tr.stage) tps.push(P(tr.tp2));
+    const a = tk && !tk.waiting ? tk.alerts.find(x => ['stop', 'tp', 'time'].includes(x.lv) || x.act === 'sell') : null;
+    const last = tk ? tk.last : null, pct = last ? (last / tr.fill - 1) * 100 : null;
+    const be = tk && tk.be && Math.abs(stop - tr.fill) < 1e-9;
+    return { name: m === 'KR' ? tr.name : tr.symbol, m, fill: P(tr.fill), last: last ? P(last) : '–', pct, stop: P(stop), be, stopPct: (stop / tr.fill - 1) * 100,
+      tp: tps.join(' · '), exit: Sx && Sx.exitText ? Sx.exitText + '하면 다음 날 시가 매도' : '', qty: fmtQ(remQty(tr), remQty(tr) % 1 !== 0) + '주',
+      status: !st ? '시세 없음' : tk && tk.waiting ? '체결일 시세 대기' : a ? (a.lv === 'stop' ? '손절가 도달 → 매도' : a.lv === 'time' ? '보유 기간 끝 → 매도' : '매도 조건 도달 → 다음 날 매도') + (/^\d{4}-\d{2}-\d{2}/.test(a.text) ? ' (' + a.text.slice(5, 10).replace('-', '/') + ')' : '') : '보유 유지', hit: !!a, date: tk && tk.lastDate };
+  }
+  function holdTable(list) {
+    if (!list.length) return '';
+    return '<div class="tablewrap"><table class="list hold-sum"><thead><tr><th>종목</th><th class="r">산 가격 · 현재</th><th class="r">손절 감시가</th><th>익절 · 청산 기준</th><th>상태</th></tr></thead><tbody>' +
+      list.map(tr => { const h = holdLine(tr); return '<tr data-cur="' + h.m + '"><td><b>' + esc(h.name) + '</b> <span class="note">' + h.qty + '</span></td>' +
+        '<td class="r num">' + h.fill + '<br>' + h.last + (h.pct != null ? ' <span class="' + (h.pct >= 0 ? 'c-up' : 'c-down') + '">' + (h.pct >= 0 ? '+' : '') + fmtN(h.pct, 1) + '%</span>' : '') + '</td>' +
+        '<td class="r num"><b class="c-down">' + h.stop + '</b><br><span class="note">' + (h.be ? '본전' : (h.stopPct >= 0 ? '+' : '') + fmtN(h.stopPct, 1) + '%') + '</span></td>' +
+        '<td>' + (h.tp ? '익절 지정가 <b class="c-up">' + h.tp + '</b><br>' : '') + (h.exit ? '<span class="note">' + esc(h.exit) + '</span>' : (h.tp ? '' : '–')) + '</td>' +
+        '<td>' + (h.hit ? '<b class="c-up">' + h.status + '</b>' : h.status) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="note">손절 감시가는 오늘 종가 기준으로 다시 계산한 값입니다(본전 손절·추적 손절 반영). 증권사에 이 가격으로 손절 감시주문(자동 매도)을, 익절 지정가에는 지정가 매도를 걸어 두세요. 상태가 "도달"이면 다음 거래일에 매도하세요.</div>';
+  }
   // ---------- 오늘 할 일 (보유 점검 → 체결 확인 → 새로 살 종목) ----------
   function orderLine(r) {
     const m = r.stock.market, p = r.plan, P = v => fmtP(v, m), Sx = S[r.key];
@@ -2061,7 +2088,7 @@ const DEMO = (() => {
     h += item(1, act.length ? 'act' : '', '보유 종목 점검',
       !hold.length ? '보유 중인 종목이 없습니다.'
         : act.length ? '<b class="c-up">팔 차례 ' + act.length + '종목: ' + act.map(esc).join(', ') + '</b> · 보유 ' + hold.length + '종목 <button type="button" class="linkbtn" data-goto="pos">매매일지에서 확인</button>'
-        : '보유 ' + hold.length + '종목 모두 할 일 없음. 손절 감시주문만 그대로 두세요. <button type="button" class="linkbtn" data-goto="pos">매매일지</button>');
+        : '보유 ' + hold.length + '종목 모두 할 일 없음. 손절 감시주문만 그대로 두세요. <button type="button" class="linkbtn" data-goto="pos">매매일지</button>') + holdTable(hold);
     h += item(2, pend.length ? 'act' : '', '어제 예약한 주문 체결 확인',
       pend.length ? '예약 ' + pend.length + '건이 체결됐는지 매매일지에 적어 주세요. <button type="button" class="linkbtn" data-goto="pos">체결 입력</button>' : '확인할 예약 주문이 없습니다.');
     const sl = state.slots || {}, lines = [];
@@ -2127,7 +2154,8 @@ const DEMO = (() => {
     for (let i = n - 20; i < n; i++) { const pc = b[i - 1][4]; a += Math.max(b[i][2] - b[i][3], Math.abs(b[i][2] - pc), Math.abs(b[i][3] - pc)); }
     return a / 20 / b[n - 1][4];
   }
-  const buyTag = r => r.held ? '<span class="verdict near">이미 보유·예약</span>' : r.slot ? '<span class="verdict go">매수 ' + r.rank + '순위</span>' : r.rank ? '<span class="verdict near">예비 ' + r.rank + '순위</span>' : '<span class="verdict go">매수 후보</span>';
+  const heldNote = r => { const tr = state.trades.find(t => t.status === 'open' && t.market === r.stock.market && String(t.symbol) === String(r.stock.symbol)); if (!tr) return ''; const h = holdLine(tr); return '<div class="miss">손절 ' + h.stop + (h.tp ? ' · 익절 ' + h.tp : '') + (h.hit ? ' · <b class="c-up">' + h.status + '</b>' : '') + '</div>'; };
+  const buyTag = r => r.held ? '<span class="verdict near">이미 보유·예약</span>' + heldNote(r) : r.slot ? '<span class="verdict go">매수 ' + r.rank + '순위</span>' : r.rank ? '<span class="verdict near">예비 ' + r.rank + '순위</span>' : '<span class="verdict go">매수 후보</span>';
   // ---------- 오늘 신호 계산 ----------
   function run() {
     ensureRS();
@@ -2830,7 +2858,7 @@ const DEMO = (() => {
     }
 
     // ② 보유 중
-    $('holdList').innerHTML = hold.length ? hold.map(tr => {
+    $('holdList').innerHTML = (hold.length > 0 ? '<div class="label">한눈에 보기</div>' + holdTable(hold) : '') + (hold.length ? hold.map(tr => {
       const m = tr.market, st = findStock(tr), P = v => fmtP(v, m), rq = remQty(tr);
       const tk = st ? ENGINE.track(st, tr) : null;
       const last = tk ? tk.last : null, pct = last ? (last / tr.fill - 1) * 100 : null;
@@ -2865,7 +2893,7 @@ const DEMO = (() => {
         '<div><span>1주당 손절 손실(1R)</span><b>' + P(tr.R) + '</b></div><div><span>실현 손익</span><b>' + sgnM(m, realized(tr)) + '</b></div></div>' + (stale ? '<div>' + stale + '</div>' : '') +
         '<div class="row">' + (!tr.stage && isSplitT ? '<button type="button" data-act="tp1">1차 익절 체결 기록</button>' : '') + '<button type="button" data-act="sell">매도 기록</button><button type="button" data-act="del" class="ghost">삭제</button></div>' +
         '<div class="posform" data-f="form" hidden></div></div>';
-    }).join('') : '<div class="empty">보유 중인 종목이 없습니다.</div>';
+    }).join('') : '<div class="empty">보유 중인 종목이 없습니다.</div>');
     for (const card of $('holdList').querySelectorAll('.poscard')) {
       const tr = state.trades.find(t => t.id === card.dataset.id), form = card.querySelector('[data-f="form"]');
       const st = findStock(tr), tk = st ? ENGINE.track(st, tr) : null, a0 = tk?.alerts?.[0];
