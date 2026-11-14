@@ -19,7 +19,7 @@ const PENGINE = (() => {
   // P 규칙판: 라오어 표 30~33차·28차·8차·1차와 대조해 확정·고정한 규칙 (중계표 없이 매일 같은 숫자가 나오도록)
   function makeOrders(st, C) {
     const U = st.E0 / SPLIT, H = holdOf(st.lots), buy = [], sell = [], lf = st.lastFill;
-    const near = rd2(Math.min(C * NEAR, lf - 0.01));
+    const near = fl2(Math.min(C * NEAR, lf - 0.02) + 1e-9);
     if (H === 0) {
       const p1 = rd2(C * (st.retry ? 1.05 : 1.07) - 0.04);
       for (const [p, tag] of [[p1, 'start'], [near, 'near']]) { const q = Math.min(Math.floor(U / p), Math.floor(st.cash / p)); if (q > 0) buy.push({ px: p, q, tag }); }
@@ -28,8 +28,8 @@ const PENGINE = (() => {
     const T = Math.max(0, (st.E0 - st.cash) / U), B = fl2(lf * (1 - 0.003 * T)), q = Math.floor(U / B);
     if (q > 0 && st.cash >= q * (B + near)) { buy.push({ px: B, q, tag: 'deep' }); buy.push({ px: near, q, tag: 'near' }); }
     else { const qb = Math.min(q, Math.floor(st.cash / B)); if (qb > 0) buy.push({ px: B, q: qb, tag: 'deep', cashLimited: true }); }
-    if (H * C <= U * 1.2) sell.push({ px: ce2(lf * 1.006), q: H, all: true });
-    else st.lots.slice(-3).reverse().forEach((L, i) => { let px = ce2(L.px * (LOT_UP - LOT_DECAY * L.age)); if (i === 2) px = Math.min(px, ce2(lf * 1.007)); sell.push({ px, q: L.q, lot: L.id }); });
+    if (st.lots.length <= 2 || H * C <= U * 1.2) sell.push({ px: ce2(lf * 1.0055), q: H, all: true });
+    else st.lots.slice(-3).reverse().forEach((L, i) => { const px = i === 0 ? ce2(Math.max(lf, C) * 1.0095) : ce2(L.px * (LOT_UP - LOT_DECAY * L.age)); sell.push({ px, q: L.q, lot: L.id, rot: i === 0 }); });   // 가장 최근 묶음은 반등 회전 줄(라오어 10월: max(마지막 체결가, 종가)×1.0095 전후)
     return { buy, sell };
   }
 
@@ -99,7 +99,7 @@ const PENGINE = (() => {
         
           }
         }
-        if (day.sells.length) st.lastFill = day.sells.at(-1).px; else if (day.buys.length) st.lastFill = day.buys.at(-1).px;
+        if (day.buys.length) st.lastFill = day.buys.at(-1).px; else if (day.sells.length) st.lastFill = day.sells.at(-1).px;   // 같은 날 매수·매도가 다 있으면 매수가 기준 (라오어 10/6 표)
         if (holdOf(st.lots) === 0) st.avg = 0;
         if (hadPos && holdOf(st.lots) === 0 && !(cfg.keepCycle || []).includes(d)) {   // 사이클 종료 → 다음 거래일 새 사이클
           cycles.push({ no: st.cycleNo, start: st.cycleStart, end: d, E0: st.E0, real: st.cycleReal });
