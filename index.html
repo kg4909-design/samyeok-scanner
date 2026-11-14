@@ -3256,31 +3256,36 @@ const DEMO = (() => {
     const empty = t => '<div class="rrow empty">' + t + '</div>';
     const ended = L.cycleEnd, H = L.hold, eqRet = L.equity / R.capital - 1, cumRet = L.cumReal / R.capital;
     const kv = (k, v) => '<div class="kv"><span>' + k + '</span><b>' + v + '</b></div>';
-    const mult = p.setup.mult || p.relayMult || 1, my = L.pred || o;
-    // 오른쪽: 라오어 1배 계좌를 같은 규칙으로 돌린 중계표 (라오어 33차 체결 기록 + 이후는 추정·입력값)
-    let LR = null; try { const pr = PENGINE.laoerPreset(1); pr.relay = p.relay || {}; pr.fills = pr.fills.concat((p.laoerFills || [])); LR = PENGINE.replay(d, Object.assign(pr, { auto: true, mult: 1 })).last; } catch (e) { console.error(e); }
-    const act = (p.relay || {})[L.date];
+    const mult = p.setup.mult || p.relayMult || 1;
+    // P 규칙판 기준 계좌(1배) — 라오어 '홍길동씨' 계좌처럼 1배로 규칙을 돌리고 내 주문 = 1배 개수 × N배
+    let B = null;
+    try {
+      const base = p.setup.mult ? PENGINE.laoerPreset(1) : { startDate: p.setup.startDate, capital: p.setup.capital / mult, cycleNo: p.setup.cycleNo || 1, fills: (p.fills || []).map(f => f.none ? f : Object.assign({}, f, { qty: Math.max(1, Math.round(f.qty / mult)) })) };
+      delete base.relay;
+      if (p.setup.mult) base.fills = base.fills.concat((p.baseFills || []));
+      B = PENGINE.replay(d, Object.assign(base, { auto: true, deposits: (p.deposits || []).map(x => ({ date: x.date, amt: x.amt / mult })), keepCycle: [] })).last;
+    } catch (e) { console.error(e); }
+    const bo = B ? B.orders : { buy: [], sell: [] }, act = (p.relay || {})[B ? B.date : L.date];
     const same = (a, b) => a && b && Math.abs(a.px - b[0]) < 0.015 && (b[1] === 'all' ? a.all : a.q === b[1]);
-    const rowsOf = (list, side, cmp) => list.length ? list.map((x, i) => { const ok = !cmp || cmp.some(c => same(x, c)); return '<div class="rrow' + (cmp && !ok ? ' diff' : '') + '"><b>' + fmtN(x.px, 2) + '</b><b>' + (x.all ? '남은전부' : x.q) + '</b><span class="amt">' + (x.all ? x.q + '주 · ' : '') + usd(x.px * x.q) + '<br>≈' + fmtInt(x.px * x.q * state.fx) + '원' + (cmp ? (ok ? ' ✓' : ' ≠') : '') + '</span></div>'; }).join('') : empty(side === 'b' ? '매수 없음' : '매도 없음');
-    const actRows = list => list.length ? list.map(x => '<div class="rrow"><b>' + fmtN(x[0], 2) + '</b><b>' + (x[1] === 'all' ? '남은전부' : x[1]) + '</b><span class="amt"></span></div>').join('') : empty('없음');
-    let h = '<div class="pwhen">' + (ended ? '<b class="c-up">' + mdw(L.date) + ' ' + (L.cycleNo - 1) + '차 사이클 종료 → 새 ' + L.cycleNo + '차 사이클 ' + mdw(nd) + ' 시작 (시작 금액 ' + usd(L.E0) + ')</b><br>' : '') +
-      '<b>' + mdw(nd) + ' 미국 장 주문</b> (' + mdw(L.date) + ' 종가 ' + usd(L.C) + ' 기준) · 메리츠 Limit VWAP 예약주문, 한국시간 09:00~21:30에 걸기 · 체결은 한국시간 ' + mdw(kt.kDate) + ' ' + kt.from + '~' + kt.to +
+    const qtyTxt = (q1, all, H1) => all ? '남은전부' : '<span class="note">' + q1 + '주 × ' + mult + '배 =</span> ' + (q1 * mult);
+    const rowsOf = (list, side) => list.length ? list.map(x => { const ok = act ? (side === 'b' ? act.buy : act.sell).some(c => same(x, c)) : null; const n = x.all ? (B ? B.hold * mult : 0) : x.q * mult;
+      return '<div class="rrow' + (ok === false ? ' diff' : '') + '"><b>' + fmtN(x.px, 2) + '</b><b>' + qtyTxt(x.q, x.all) + '</b><span class="amt">' + (x.all ? '(내 보유 전부)' : usd(x.px * n) + '<br>≈' + fmtInt(x.px * n * state.fx) + '원') + (ok === null ? '' : ok ? ' ✓' : ' ≠') + '</span></div>'; }).join('') : empty(side === 'b' ? '매수 없음' : '매도 없음');
+    const actRows = list => list.length ? list.map(x => '<div class="rrow"><b>' + fmtN(x[0], 2) + '</b><b>' + (x[1] === 'all' ? '남은전부' : '<span class="note">' + x[1] + '주 × ' + mult + '배 =</span> ' + x[1] * mult) + '</b><span class="amt">' + (x[1] === 'all' ? '' : usd(x[0] * x[1] * mult)) + '</span></div>').join('') : empty('없음');
+    let h = '<div class="pwhen">' + (B && B.cycleEnd ? '<b class="c-up">' + mdw(B.date) + ' ' + (B.cycleNo - 1) + '차 사이클 종료 → 새 ' + B.cycleNo + '차 사이클 ' + mdw(nd) + ' 시작</b><br>' : '') +
+      '<b>' + mdw(nd) + ' 미국 장 주문</b> (' + mdw(L.date) + ' 종가 ' + usd(L.C) + ' 기준) · 메리츠 Limit VWAP 예약주문, 한국시간 09:00~21:30에 걸기 · 체결은 한국시간 ' + mdw(kt.kDate) + ' ' + kt.from + '~' + kt.to + ' · <b>배수 ' + mult + '배</b>' +
       (L.est ? '<br><span class="c-up">' + mdw(L.date) + ' 체결을 아직 안 적어서 시세로 추정했습니다. 아래 [체결 기록]에서 메리츠 체결로 고쳐 주세요.</span>' : '') + '</div>';
     h += '<div class="relay">' +
-      '<div class="rcol"><div class="rbox"><div class="rh"><span>내 주문 · P 규칙판</span><span>' + L.cycleNo + '차 · ' + (H ? mdw(L.cycleStart) + ' 시작' : mdw(nd) + ' 시작') + '</span></div>' +
-        kv('사이클 시작 자본', usd(L.E0)) + kv('잔금 · 보유', usd(L.cash) + ' · ' + H + '주') + kv('평단 · 실제 평가', (H ? usd(L.avg) : '–') + ' · ' + usd(L.equity)) + '</div>' +
-        '<div class="rbox"><div class="rh buy"><span>매수 (Limit VWAP)</span><span>개수 · 금액</span></div>' + rowsOf(my.buy, 'b') + '</div>' +
-        '<div class="rbox"><div class="rh sell"><span>매도 (Limit VWAP)</span><span>개수 · 금액</span></div>' + rowsOf(my.sell, 's') + '</div>' +
-        (act ? '<div class="note">라오어 표 × ' + mult + '배: 매수 ' + (act.buy.map(x => fmtN(x[0], 2) + '×' + x[1] * mult).join(', ') || '없음') + ' · 매도 ' + (act.sell.map(x => fmtN(x[0], 2) + '×' + (x[1] === 'all' ? '전부' : x[1] * mult)).join(', ') || '없음') + '</div>' : '') +
+      '<div class="rcol"><div class="rbox"><div class="rh"><span>P 규칙판 (중계표)</span><span>' + (B ? B.cycleNo + '차 · ' + (B.hold ? mdw(B.cycleStart) + ' 시작' : mdw(nd) + ' 시작') : '') + '</span></div>' +
+        (B ? kv('기준 계좌(1배) 시작 · 잔금', usd(B.E0) + ' · ' + usd(B.cash)) + kv('기준 보유 · 평단', B.hold + '주 · ' + (B.hold ? usd(B.avg) : '–')) : '') +
+        kv('내 계좌 잔금 · 보유', usd(L.cash) + ' · ' + H + '주') + kv('내 평단 · 실제 평가', (H ? usd(L.avg) : '–') + ' · ' + usd(L.equity)) + '</div>' +
+        '<div class="rbox"><div class="rh buy"><span>매수 (Limit VWAP)</span><span>개수 · 금액</span></div>' + rowsOf(bo.buy, 'b') + '</div>' +
+        '<div class="rbox"><div class="rh sell"><span>매도 (Limit VWAP)</span><span>개수 · 금액</span></div>' + rowsOf(bo.sell, 's') + '</div>' +
       '</div>' +
-      '<div class="rcol"><div class="rbox"><div class="rh ref"><span>라오어 중계표 · 규칙판으로 계산 (1배)</span><span>' + (LR ? LR.cycleNo + '차' : '') + '</span></div>' +
-        (LR ? kv('사이클 시작 자본', usd(LR.E0)) + kv('잔금 · 보유', usd(LR.cash) + ' · ' + LR.hold + '주') + kv('평단', LR.hold ? usd(LR.avg) : '–') : kv('상태', '계산 불가')) + '</div>' +
-        (LR ? '<div class="rbox"><div class="rh buy"><span>매수 · 규칙판</span><span>' + (act ? '실제 표와 비교' : '') + '</span></div>' + rowsOf(LR.pred.buy, 'b', act ? act.buy : null) + '</div>' +
-          '<div class="rbox"><div class="rh sell"><span>매도 · 규칙판</span><span>' + (act ? '실제 표와 비교' : '') + '</span></div>' + rowsOf(LR.pred.sell, 's', act ? act.sell : null) + '</div>' : '') +
-        (act ? '<div class="rbox"><div class="rh ref"><span>실제 라오어 표 (' + md(L.date) + ' 입력값)</span><span></span></div><div class="rrow empty">매수</div>' + actRows(act.buy) + '<div class="rrow empty">매도</div>' + actRows(act.sell) + '</div>'
-          : '<div class="note">라오어 ' + md(L.date) + ' 표를 아래 [라오어 표 입력]에 넣으면 줄마다 ✓/≠로 비교합니다. 매일 ✓가 나오면 중계표는 더 필요 없습니다.</div>') +
+      '<div class="rcol">' + (act ? '<div class="rbox"><div class="rh ref"><span>실제 라오어 표 (' + md(B ? B.date : L.date) + ' 종가 표)</span><span>' + mult + '배</span></div><div class="rrow empty">매수</div>' + actRows(act.buy) + '<div class="rrow empty">매도</div>' + actRows(act.sell) + '</div>'
+          + '<div class="note">왼쪽 줄 옆 ✓는 라오어 표와 같은 줄, ≠는 다른 줄입니다. 차이가 나는 날의 표를 계속 넣어 주시면 그걸로 규칙판을 고칩니다.</div>'
+          : '<div class="rbox"><div class="rh ref"><span>실제 라오어 표</span><span></span></div><div class="rrow empty">' + md(B ? B.date : L.date) + ' 종가 표를 아래 [라오어 표 입력]에 넣으면 여기 나란히 보입니다.</div></div>') +
       '</div></div>';
-    h += '<div class="note">왼쪽은 내 계좌(시작 자본·체결 기록)에 규칙을 적용한 주문, 오른쪽은 라오어 1배 계좌에 같은 규칙을 적용한 결과입니다. 규칙: 시작금 ÷ 13 = 1회분 · 시작 1줄 종가×1.07−0.04 · 얕은 줄 min(종가×0.999, 마지막 체결가−0.01) · 깊은 줄 마지막 체결가×(1−0.3%×투입 회차) · 묶음 매도 산 가격+0.155%(한국 평일마다 −0.1%) · 보유 0이면 사이클 종료.</div>';
+    h += '<div class="note">개수는 "1배 기준 개수 × 배수"로 표시합니다(배수는 [시작 설정]이나 [라오어 표 입력]에서 바꾸면 바로 반영). 규칙: 시작금 ÷ 13 = 1회분 · 시작 1줄 종가×1.07−0.04 · 얕은 줄 min(종가×0.999, 마지막 체결가−0.02) · 깊은 줄 마지막 체결가×(1−0.3%×투입 회차) · 묶음 매도 산 가격+0.155%(한국 평일마다 −0.1%) · 보유 0이면 사이클 종료.</div>';
     h += renderPRelayForm(R);
     $('pBody').innerHTML = h;
     bindPRelayForm(R);
@@ -3368,6 +3373,7 @@ const DEMO = (() => {
   function renderPSetup(R) {
     const p = state.p, d = pData(), lastD = d ? d.bars.at(-1)[0] : '';
     let h = p.setup ? '<div class="note">현재 설정: ' + (p.setup.mult ? (p.setup.mine ? '내 계좌 33차 (라오어 표 ×' + p.setup.mult + '배)' : '라오어 33차 이어받기 ×' + p.setup.mult + '배') : '새로 시작') + ' · 기준일 ' + p.setup.startDate + ' · 시작 금액 ' + usd(p.setup.capital) + ' · 직접 기록 ' + new Set(p.fills.map(x => x.date)).size + '일</div>' : '';
+    if (p.setup) h += '<div class="row" style="gap:6px;align-items:end;flex-wrap:wrap"><label class="field" style="max-width:160px"><span>배수 (N배)</span><input type="number" id="pMultSet" min="1" step="1" value="' + (p.setup.mult || p.relayMult || 1) + '"></label><button type="button" id="pMultSave">배수 바꾸기</button></div>';
     h += '<label class="chk"><input type="checkbox" id="pAuto"' + (p.auto !== false ? ' checked' : '') + '> 기록하지 않은 날은 시세로 체결을 추정해 이어 가기</label>';
     h += '<div class="pfill">' +
       '<div style="display:flex;flex-direction:column;gap:6px"><b>새로 시작</b><label class="field"><span>시작 금액 ($)</span><input type="number" id="pCap" min="100" step="100" value="' + (p.setup && !p.setup.mult ? p.setup.capital : 10000) + '"></label>' +
@@ -3379,6 +3385,7 @@ const DEMO = (() => {
     if (p.setup) h += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px"><b>추가 투입 (원할 때 금액 넣기)</b><div class="pfill"><label class="field"><span>날짜 (미국 거래일)</span><input type="date" id="pDepD" value="' + lastD + '"></label><label class="field"><span>금액 ($, 뺄 때는 −)</span><input type="number" id="pDepA" step="100"></label></div><button type="button" id="pDep">추가 투입 기록</button><span class="note">보유가 0일 때 넣으면 그날부터 새 사이클 시작금에 포함되고, 사이클 중간이면 잔금에 더해졌다가 다음 사이클 시작금에 들어갑니다(라오어 방식: 사이클이 끝난 뒤 N배 조정).</span>' + ((p.deposits || []).length ? '<span class="note">기록: ' + p.deposits.map(x => x.date + ' ' + usd(x.amt)).join(' · ') + '</span>' : '') + '</div>';
     if (p.setup) h += '<div class="row"><button type="button" id="pReset">P 기록 모두 지우기</button></div>';
     $('pSetup').innerHTML = h;
+    if ($('pMultSave')) $('pMultSave').onclick = () => { const n = Math.max(1, Math.floor(+$('pMultSet').value || 1)); if (p.setup.mult) p.setup.mult = n; p.relayMult = n; saveP(); renderP(); toast('배수를 ' + n + '배로 바꿨습니다'); };
     $('pAuto').onchange = () => { p.auto = $('pAuto').checked; saveP(); renderP(); };
     $('pNew').onclick = () => { const c = parseFloat($('pCap').value), sd = $('pStart').value; if (!(c >= 100) || !sd) { toast('시작 금액과 기준일을 넣어 주세요'); return; }
       if (p.setup && p.fills.length && !confirmReset()) return;
