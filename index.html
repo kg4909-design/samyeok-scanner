@@ -1733,7 +1733,7 @@ const PENGINE = (() => {
       for (const [p, tag] of [[rd2(C * START_UP), 'start'], [fl2(C * NEAR), 'near']]) { const q = Math.min(Math.floor(U / p), Math.floor(st.cash / p)); if (q > 0) buy.push({ px: p, q, tag, approx: tag === 'near' }); }
       return { buy, sell };
     }
-    const f = Math.max(0, 1 - st.cash / st.E0), B = fl2(st.lastFill * (1 - K * f)), A = fl2(C * NEAR), q = Math.floor(U / B);
+    const f = Math.max(0, 1 - st.cash / st.E0), B = fl2(st.lastFill * (1 - K * f)), A = fl2(Math.min(C * NEAR, st.lastFill - 0.02)), q = Math.floor(U / B);
     if (q > 0 && st.cash >= q * (A + B)) { buy.push({ px: B, q, tag: 'deep', approx: st.lossMode }); buy.push({ px: A, q, tag: 'near', approx: true }); }
     else { const qb = Math.min(q, Math.floor(st.cash / B)); if (qb > 0) buy.push({ px: B, q: qb, tag: 'deep', approx: st.lossMode, cashLimited: true }); }
     if (st.lots.length <= 2) sell.push({ px: ce2(st.avg * ALL_UP), q: H, all: true, approx: true });
