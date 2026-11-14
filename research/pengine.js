@@ -29,7 +29,7 @@ const PENGINE = (() => {
     if (q > 0 && st.cash >= q * (B + near)) { buy.push({ px: B, q, tag: 'deep' }); buy.push({ px: near, q, tag: 'near' }); }
     else { const qb = Math.min(q, Math.floor(st.cash / B)); if (qb > 0) buy.push({ px: B, q: qb, tag: 'deep', cashLimited: true }); }
     if (st.lots.length <= 2 || H * C <= U * 1.2) sell.push({ px: ce2(lf * 1.0055), q: H, all: true });
-    else st.lots.slice(-3).reverse().forEach((L, i) => { const px = i === 0 ? ce2(Math.max(lf, C) * 1.0095) : ce2(L.px * (LOT_UP - LOT_DECAY * L.age)); sell.push({ px, q: L.q, lot: L.id, rot: i === 0 }); });   // 가장 최근 묶음은 반등 회전 줄(라오어 10월: max(마지막 체결가, 종가)×1.0095 전후)
+    else st.lots.slice(-3).reverse().forEach((L, i) => { const px = i === 0 ? (st.cash < 2 * U ? ce2(Math.max(lf, C) * 1.0095) : ce2(Math.max(C + 0.02, lf * 1.0025))) : ce2(L.px * (LOT_UP - LOT_DECAY * L.age)); sell.push({ px, q: L.q, lot: L.id, rot: i === 0 }); });   // 가장 최근 묶음은 반등 회전 줄(라오어 10월: max(마지막 체결가, 종가)×1.0095 전후)
     return { buy, sell };
   }
 
