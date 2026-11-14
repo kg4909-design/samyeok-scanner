@@ -1730,7 +1730,7 @@ const PENGINE = (() => {
   function makeOrders(st, C) {
     const U = st.E0 / SPLIT, H = holdOf(st.lots), buy = [], sell = [];
     if (H === 0) {
-      for (const [p, tag] of [[rd2(C * START_UP), 'start'], [fl2(C * NEAR), 'near']]) { const q = Math.min(Math.floor(U / p), Math.floor(st.cash / p)); if (q > 0) buy.push({ px: p, q, tag, approx: tag === 'near' }); }
+      for (const [p, tag] of [[rd2(C * 1.07 - 0.04), 'start'], [fl2(Math.min(C * NEAR, st.lastFill - 0.02)), 'near']]) { const q = Math.min(Math.floor(U / p), Math.floor(st.cash / p)); if (q > 0) buy.push({ px: p, q, tag, approx: tag === 'near' }); }
       return { buy, sell };
     }
     const f = Math.max(0, 1 - st.cash / st.E0), B = fl2(st.lastFill * (1 - K * f)), A = fl2(Math.min(C * NEAR, st.lastFill - 0.02)), q = Math.floor(U / B);
