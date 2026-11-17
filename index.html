@@ -2680,6 +2680,8 @@ const DEMO = (() => {
     saveChain = saveChain.then(async () => {
       const now = new Date().toISOString(), snap = state.tSnap || new Map(), ids = new Set();
       for (const t of state.trades) { ids.add(t.id); if (snap.get(t.id) !== tKey(t)) t.updatedAt = now; }
+      // 100일 리부트 연동: 매매일지를 쓰거나 고치면 같은 주소의 리부트 앱이 '매매일지' 습관을 자동 체크
+      if (state.trades.some(t => t.updatedAt === now)) { try { const k = 'kg.signals', o = JSON.parse(localStorage.getItem(k) || '{}'); o.trade = now; localStorage.setItem(k, JSON.stringify(o)); } catch (e) {} }
       const tomb = (state.tomb || []).slice();
       for (const id of snap.keys()) if (!ids.has(id)) tomb.push({ id, deleted: true, updatedAt: now });
       const all = state.trades.concat(tomb);
